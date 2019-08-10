@@ -1,0 +1,79 @@
+<!-- Created by Karl-Heinz Wind -->
+<!-- see also // https://shelly-api-docs.shelly.cloud/#common-http-api -->
+
+
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/javascript">
+    RED.nodes.registerType('shelly-switch', {
+        category: 'shelly',
+        color: '#319DD7',
+        defaults: {
+            hostname: { value:"" },
+            description: { value:"" }
+        },
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "shelly.png",
+        paletteLabel: "switch",
+        label: function () {
+            return this.description || this.hostname || "Shelly switch";
+        },
+        labelStyle: function() {
+            return this.description?"node_label_italic":"";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="shelly-switch">
+    <div class="form-row">
+        <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
+        <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the switch">
+    </div>
+    <div class="form-row">
+        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
+        <input type="text" id="node-input-description" placeholder="The description of the switch (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="shelly-switch">
+    <p>A node that controls a shelly switch device.</p>
+    
+    <h3>Configuration</h3> 
+    <p>Hostname is the IP address or the hostname of the device.</p>
+    <p>Description of the device.</p>
+    <p>User is optional and must only be set if security is enabled.</p>
+    <p>Password is optional and must only be set if security is enabled.</p>
+   
+    <h3>Inputs</h3> 
+    <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <li><code>relay</code>the relay number 0..n (optional, default is 0).</li>
+        <li><code>on</code>true or false.</li>
+    </ul>
+    
+    <h3>Outputs</h3> 
+    <p>1. Standard Ouput: shelly status object.</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <li><code>[</code>An array of relay status objects.</li>
+        <li><code>{ ison : false ... }</code> the first relay (0) of the switch is off.</li>
+        <li><code>{ ison : true  ... }</code> the second relay (1) of the switch is on.</li>
+        <li><code>]</code></li>
+    </ul>
+</script>
+
+<!-- ------------------------------------------------------------------------------------------ -->
+
