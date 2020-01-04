@@ -20,6 +20,9 @@ If you want to support this free project. Any help is welcome. You can donate by
 
 
 # History
+Version 1.1.0
+Added shelly door node.
+
 Version 1.0.0
 Added shelly switch node with example flow.
 
@@ -45,7 +48,7 @@ Right after having sent the request to the shelly device a status request is don
 If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank. 
 This is useful, when you want to poll for the status cyclically. 
 
-The output of the node is an array of status objects for every reley of the switch:
+The output of the node is an array of status objects for every relay of the switch:
 
 
 ```
@@ -59,6 +62,37 @@ The output of the node is an array of status objects for every reley of the swit
 	    ...
     },
 ]
+```
+
+
+# Shelly Door Node
+The node is able to poll a shelly door sensor. It outputs the sensor status together with battery and lux sensor values on every change of the door status.
+Note that the sensor sleeps when nothing is detected and is thus not accessible via REST.
+
+The output of the node is as follows:
+
+
+```
+{
+    sensor 
+	{
+		state: "close", 
+		is_valid: true 
+	},
+	
+	lux 
+	{ 
+		value: 150, 
+		illumination: "twilight", 
+		is_valid: true 
+	},
+	
+	bat 
+	{ 
+		value: 100, 
+		voltage: 6.01 
+	}
+}
 ```
 
 
