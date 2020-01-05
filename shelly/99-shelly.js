@@ -38,7 +38,7 @@ module.exports = function (RED) {
     }
 
     // Note that this function has a reduced timeout.
-    function shellyTryGet(route, node, timeout, callback){
+    function shellyTryGet(route, node, timeout, callback, errorCallback){
             
         var options = {
             url: 'http://' + node.hostname + route,
@@ -59,7 +59,7 @@ module.exports = function (RED) {
                     node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusMessage });
                 }
             } else {
-                // timeout or error
+                errorCallback(error);
             }
         });
     }
@@ -184,16 +184,26 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
         var node = this;
         node.hostname = config.hostname;
-        node.sendRawStatus = false; // TODO: make this configurable
-        node.pollInterval = 1000; // TODO: make this configurable
+        node.sendRawStatus = config.sendfullstatus;
+        node.usePolling = config.usepolling;    
+        node.pollInterval = parseInt(config.pollinginterval);
 
-        node.timer = setInterval(function() {
-            node.emit("input", {});
-        }, node.pollInterval);    
-    
-        node.status({ fill: "orange", shape: "ring", text: "Status unknown: polling ..." });   
-       
+        if(node.usePolling){
+            node.timer = setInterval(function() {
+                node.emit("input", {});
+            }, node.pollInterval);    
+        
+            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });   
+        }
+        else{
+            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: waiting for trigger ..." });   
+        }
+
         this.on('input', function (msg) {
+
+                if(msg.payload){
+                    node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });   
+                }
 
                 shellyTryGet('/status', node, node.pollInterval, function(result) {
                     var status = JSON.parse(result);
@@ -219,6 +229,11 @@ module.exports = function (RED) {
 
                     var msg = { payload: payload };
                     node.send([msg]);
+                },
+                function(error){
+                    if(msg.payload){
+                        node.status({ fill: "yellow", shape: "ring", text: "Status unknown: device not reachable." });   
+                    }
                 });
         });
 

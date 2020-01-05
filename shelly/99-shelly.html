@@ -8,7 +8,7 @@
         category: 'shelly',
         color: '#319DD7',
         defaults: {
-            hostname: { value:"" },
+            hostname: { value:"", required:true },
             description: { value:"" }
         },
         credentials: {
@@ -92,8 +92,12 @@
         category: 'shelly',
         color: '#319DD7',
         defaults: {
-            hostname: { value:"" },
-            description: { value:"" }
+            hostname: { value:"", required:true  },
+            description: { value:"" },
+            sendfullstatus: { value: false },
+            usepolling: { value: true },
+            pollinginterval: { value: 2000 },
+            inputs: {value:0},
         },
         credentials: {
             username: { type: "text" },
@@ -108,6 +112,28 @@
         },
         labelStyle: function() {
             return this.description?"node_label_italic":"";
+        },
+        oneditprepare: function() {
+
+            // the inputs edit field is always hidden.
+            $("#hiddeninputs").hide();
+
+             // polling on / off
+             var usePolling = function() {
+                var mode = $("#node-input-usepolling").prop('checked');
+                if (mode === false) {
+                    $("#polling").hide();
+                    $("#hint").show();
+                    $("#node-input-inputs").val(1);
+                    $("#node-input-pollinginterval").val(3000);
+                } else {
+                    $("#polling").show();
+                    $("#hint").hide();
+                    $("#node-input-inputs").val(0);
+                }
+            };
+            usePolling();
+            $("#node-input-usepolling").change(usePolling);
         }
     });
 </script>
@@ -129,6 +155,37 @@
         <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
         <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
     </div>
+
+    <div class="form-row">
+        <label for="node-input-sendfullstatus"><i class="fa fa-search"></i> Send full status object.</label>
+        <input type="checkbox" id="node-input-sendfullstatus" style="display: inline-block; width: auto; vertical-align: top;">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-usepolling"><i class="fa fa-clock"></i> Polling Mode</label>
+        <input type="checkbox" id="node-input-usepolling" style="display: inline-block; width: auto; vertical-align: top;">
+    </div>
+
+    <div class="form-row" id="polling" style="background: #fbfbfb">
+        <label style="width: auto"><i class="fa fa-cogs"></i> Polling Options:</label>
+      
+        <div class="form-row" style="background: #fff; margin-left: 20px">        
+            <div class="form-row">
+                <label for="node-input-pollinginterval"><i class="fa fa-stopwatch"></i> Polling Interval (ms)</label>
+                <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds.)">
+            </div>
+        </div>
+    </div>
+
+    <div class="form-row" id="hint">
+        <div class="form-tips" style="width: auto"><b>Note:</b> Polling support is standard. If you turn it off you must trigger the input manually.</div>
+    </div>
+   
+    <div class="form-row" id="hiddeninputs">
+        <label for="node-input-inputs"><i class="fa fa-poo"></i> Input Count</label>
+        <input type="text" id="node-input-inputs">
+    </div>
+
 </script>
 
 <script type="text/x-red" data-help-name="shelly-door">
@@ -139,9 +196,12 @@
     <p>Description of the device.</p>
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
-   
+    <p>Send full status object is for debugging purposes. If this box is checked then you get the verbose response of the shelly sensor instead of a lightweight object.</p>
+    <p>Polling mode can be turned off. But note that you will have to trigger the node via an external source e.g. an inject node.</p>
+    <p>If polling is enabled you can control the polling time in milliseconds.</p>
+  
     <h3>Inputs</h3> 
-    <p>The node does not have any inputs.</p>
+    <p>The node has an input which triggers a status update request. It should only be trigger when polling mode is turned off.</p>
 
     <h3>Outputs</h3> 
     <p>1. Standard Ouput: shelly status object.</p>

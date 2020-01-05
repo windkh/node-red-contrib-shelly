@@ -21,6 +21,9 @@ If you want to support this free project. Any help is welcome. You can donate by
 
 # History
 Version 1.2.0
+Added more options in configuration dialog.
+
+Version 1.2.0
 Fixed bug when closing node on redeploy.
 
 Version 1.1.0
