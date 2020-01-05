@@ -5,13 +5,6 @@
 TODO:
 Support for Control roller shutter
 GET /settings/roller/0
-
-Support for Door Switch
-status {"wifi_sta":{"connected":true,"ssid":"HiveRelayR2","ip":"192.168.178.146","rssi":-75},"cloud":{"enabled":true,"connected":true},"mqtt":{"connected":false},"time":"15:05","serial":3,"has_update":false,"mac":"98F4ABB88DB4","is_valid":true,"lux":{"value":51, "illumination": "dark", "is_valid":true},"sensor":{"state":"open", "is_valid":true},"bat":{"value":100,"voltage":6.00},"act_reasons":["poweron"],"update":{"status":"idle","has_update":false,"new_version":"20191216-090511/v1.5.7@c30657ba","old_version":"20191216-090511/v1.5.7@c30657ba"},"ram_total":50592,"ram_free":40304,"fs_size":233681,"fs_free":162648,"uptime":18}
-settings {"device":{"type":"SHDW-1","mac":"98F4ABB88DB4","hostname":"shellydw-B88DB4","sleep_mode":true},"wifi_ap":{"enabled":false,"ssid":"shellydw-B88DB4","key":""},"wifi_sta":{"enabled":true,"ssid":"HiveRelayR2","ipv4_method":"dhcp","ip":null,"gw":null,"mask":null,"dns":null},"wifi_sta1":{"enabled":false,"ssid":null,"ipv4_method":"dhcp","ip":null,"gw":null,"mask":null,"dns":null},"mqtt": {"enable":false,"server":"192.168.33.3:1883","user":"","id":"shellydw-B88DB4","reconnect_timeout_max":60.000000,"reconnect_timeout_min":2.000000,"clean_session":true,"keep_alive":60,"max_qos":0,"retain":false,"update_period":30},"sntp": {"server":"time.google.com"},"login":{"enabled":false,"unprotected":false,"username":"admin","password":"admin"},"pin_code":"v}Djh$","name":"","fw":"20191216-090511/v1.5.7@c30657ba","build_info":{"build_id":"20191216-090511/v1.5.7@c30657ba","build_timestamp":"2019-12-16T09:05:11Z","build_version":"1.0"},"cloud":{"enabled":true,"connected":true},"timezone":"Europe/Berlin","lat":49.864700,"lng":8.625460,"tzautodetect":true,"time":"15:05","dark_threshold":100,"twilight_threshold":300,"sleep_mode":{"period":6,"unit":"h"},"led_status_disable":true,"report_url":"", "dark_url":"", "twilight_url":""} 
-lux
-battery
-closed open
 **/
 
 module.exports = function (RED) {
@@ -44,10 +37,12 @@ module.exports = function (RED) {
         });
     }
 
-    function shellyTryGet(route, node, callback){
+    // Note that this function has a reduced timeout.
+    function shellyTryGet(route, node, timeout, callback){
             
         var options = {
-            url: 'http://' + node.hostname + route
+            url: 'http://' + node.hostname + route,
+            timeout: timeout
         };
         if(node.credentials.username !== undefined && node.credentials.password !== undefined) {
             options.auth = {
@@ -64,7 +59,7 @@ module.exports = function (RED) {
                     node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusMessage });
                 }
             } else {
-                // node.status({ fill: "red", shape: "ring", text: "Request failed " + error });
+                // timeout or error
             }
         });
     }
@@ -160,82 +155,77 @@ module.exports = function (RED) {
 
     // --------------------------------------------------------------------------------------------
     // The door node controls a shelly door device.
+    /* The device can diconnect but wakes up when the switch changes the state or after every 4-5 minutes
+    GET /status
+    {
+        "wifi_sta":{"connected":true,"ssid":"HiveRelayR2","ip":"192.168.178.146","rssi":-62},
+        "cloud":{"enabled":true,"connected":true},
+        "mqtt":{"connected":false},
+        "time":"15:22",
+        "serial":19,
+        "has_update":false,
+        "mac":"98F4ABB88DB4",
+        "is_valid":true,
+
+        "lux":{"value":66, "illumination": "dark", "is_valid":true},
+        "sensor":{"state":"close", "is_valid":true},
+        "bat":{"value":99,"voltage":5.92},
+        
+        "act_reasons":["poweron","sensor"],
+        "update":{"status":"idle","has_update":false,"new_version":"20191216-090511/v1.5.7@c30657ba","old_version":"20191216-090511/v1.5.7@c30657ba"},
+        "ram_total":50592,
+        "ram_free":40308,
+        "fs_size":233681,
+        "fs_free":162648,
+        "uptime":66
+    }
+    */
     function ShellyDoorNode(config) {
         RED.nodes.createNode(this, config);
         var node = this;
         node.hostname = config.hostname;
-        node.interval = 1000;
-        node.polling = true;
-        this.timer = null;
-        
-        /* The device can diconnect but wakes up when the switch changes the state.
-        GET /status
-        {
-            "wifi_sta":{"connected":true,"ssid":"HiveRelayR2","ip":"192.168.178.146","rssi":-62},
-            "cloud":{"enabled":true,"connected":true},
-            "mqtt":{"connected":false},
-            "time":"15:22",
-            "serial":19,
-            "has_update":false,
-            "mac":"98F4ABB88DB4",
-            "is_valid":true,
+        node.sendRawStatus = false; // TODO: make this configurable
+        node.pollInterval = 1000; // TODO: make this configurable
 
-            "lux":{"value":66, "illumination": "dark", "is_valid":true},
-            "sensor":{"state":"close", "is_valid":true},
-            "bat":{"value":99,"voltage":5.92},
-            
-            "act_reasons":["poweron","sensor"],
-            "update":{"status":"idle","has_update":false,"new_version":"20191216-090511/v1.5.7@c30657ba","old_version":"20191216-090511/v1.5.7@c30657ba"},
-            "ram_total":50592,
-            "ram_free":40308,
-            "fs_size":233681,
-            "fs_free":162648,
-            "uptime":66
-        }
-        */
-        
-        // TODO: implement webhook as alternative
-        var text;
-        if(node.polling){
-            this.timer = setInterval(function() {
-                    node.emit("input", {});
-                }, node.interval);
-                text = "Status unknown: polling ...";
-        }
-        else{
-            text = "Status unknown: waiting ...";
-            // TODO: start server for webhook
-        }
-        node.status({ fill: "orange", shape: "ring", text: text });   
+        node.timer = setInterval(function() {
+            node.emit("input", {});
+        }, node.pollInterval);    
+    
+        node.status({ fill: "orange", shape: "ring", text: "Status unknown: polling ..." });   
        
         this.on('input', function (msg) {
 
-            shellyTryGet('/status', node, function(result) {
-                var status = JSON.parse(result);
-                var timestamp=new Date().toLocaleTimeString();
-                if(status.sensor.is_valid){
-                    node.status({ fill: "green", shape: "ring", text: "Status: " + status.sensor.state + " " + timestamp});   
-                }
-                else {
-                    node.status({ fill: "red", shape: "ring", text: "Status: invalid" });   
-                }
+                shellyTryGet('/status', node, node.pollInterval, function(result) {
+                    var status = JSON.parse(result);
+                    var timestamp=new Date().toLocaleTimeString();
+                    if(status.sensor.is_valid){
+                        node.status({ fill: "green", shape: "ring", text: "Status: " + status.sensor.state + " " + timestamp});   
+                    }
+                    else {
+                        node.status({ fill: "red", shape: "ring", text: "Status: invalid" });   
+                    }
 
-                var payload = {
-                    sensor : status.sensor,
-                    lux : status.lux,
-                    bat :  status.bat, 
-                }
+                    var payload;
+                    if(!node.sendRawStatus){
+                        payload = {
+                            sensor : status.sensor,
+                            lux : status.lux,
+                            bat :  status.bat, 
+                        }
+                    }
+                    else{
+                        payload = status;
+                    }
 
-                var msg = { payload: payload };
-                node.send([msg]);
-            });
-        
+                    var msg = { payload: payload };
+                    node.send([msg]);
+                });
         });
 
-        this.on('close', function(msg) {
-            clearInterval(this.timer);   
-            this.timer = null; 
-        }); 
+        this.on('close', function(done) {
+            clearInterval(node.timer);
+            done();
+        });
     }
 
     RED.nodes.registerType("shelly-door", ShellyDoorNode, {
