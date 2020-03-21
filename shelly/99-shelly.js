@@ -249,4 +249,92 @@ module.exports = function (RED) {
             password: { type: "password" },
         }
     });
+
+
+    // --------------------------------------------------------------------------------------------
+    // The roller shutter node controls a shelly roller shutter (2.5).
+    function ShellyRollerShutterNode(config) {
+        RED.nodes.createNode(this, config);
+        var node = this;
+        node.hostname = config.hostname;
+
+        /* node.shellyInfo
+        GET /shelly
+        {
+            "type": "SHSW-21",
+            "mac": "5ECF7F1632E8",
+            "auth": true,
+            "fw": "20161223-111304/master@2bc16496",
+            "num_outputs": 1
+        }
+        */
+       shellyGet('/shelly', node, function(result) {
+            node.shellyInfo = JSON.parse(result);
+            if(node.shellyInfo.type.startsWith("SHPLG-") || node.shellyInfo.type.startsWith("SHSW-")){
+                node.status({ fill: "green", shape: "ring", text: "Connected." });    
+            }
+            else{
+                node.status({ fill: "red", shape: "ring", text: "Shelly type " + node.shellyInfo.type + " is not known." });
+            }  
+        });
+
+        /* when a payload is received in the format 
+            {
+                roller : 0, 
+                on : true
+            }
+        then the command is send to the shelly.
+    
+        The output gets the status of all rollers.
+        */
+        this.on('input', function (msg) {
+
+            var route;
+            if(msg.payload !== undefined){
+                var command = msg.payload;
+                
+                var roller = 0;
+                if(command.roller !== undefined){
+                    roller = command.roller;
+                }
+
+                var go;
+                if(command.go !== undefined){
+                    go = command.go;
+
+                    if (command.go == "to_pos" && command.roller_pos !== undefined) {
+                        go += "&roller_pos=" + command.roller_pos;
+                    }
+                }
+
+                if(go != undefined){
+                    route = "/roller/" + roller + "?go=" + go;
+                }
+            }
+
+            if(route){
+                shellyGet(route, node, function(result) {
+                    shellyGet('/status', node, function(result) {
+                        var status = JSON.parse(result);
+                        var msg = { payload: status.rollers };
+                        node.send([msg]);
+                    });
+                });
+            }
+            else{
+                shellyGet('/status', node, function(result) {
+                    var status = JSON.parse(result);
+                    var msg = { payload: status.rollers };
+                    node.send([msg]);
+                });
+            }
+        });
+
+    }
+    RED.nodes.registerType("shelly-roller-shutter", ShellyRollerShutterNode, {
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        }
+    });
 }
