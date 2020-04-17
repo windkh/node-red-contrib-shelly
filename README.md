@@ -7,8 +7,7 @@
 This package contains nodes for controlling shelly devices
 
 # Warning
-This package is under construction. Right now only the switches like shelly switch 1, 2 and shelly plug is supported.
-
+This package is under construction. Right now only the switches like shelly switch 1, 2, shelly plug an shelly 2.5 (roller shutter) is supported.
 
 
 # Thanks for your donation
@@ -101,6 +100,67 @@ The output of the node is as follows:
 }
 ```
 
+# Shelly Roller Shutter Node
+
+A node that controls a shelly roller shutter device (Shelly 2.5).
+The relay number is optional and defaults to 0. The following object for open or close the roller shutter:
+
+```
+{
+    roller : 0,
+	go : "open"
+}
+```
+
+```
+{
+    roller : 0,
+	go : "close"
+}
+```
+
+```
+{
+    roller : 0,
+	go : "to_pos",
+	roller_pos: 50
+}
+```
+
+Right after having sent the request to the shelly device a status request is done. The roller property of the response is output on output 1.
+
+If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank. 
+This is useful, when you want to poll for the status cyclically. 
+
+The output of the node is an array of status objects for every roller of the roller shutter:
+
+```
+[
+    {
+        state : "open",
+	    ...
+    }
+]
+```
+
+```
+[
+    {
+        state : "close",
+	    ...
+    }
+]
+```
+
+```
+[
+    {
+        state : "open",
+        current_pos: 50,
+	    ...
+    }
+]
+```
 
 # Shelly REST API
 For a complete documentation see also
