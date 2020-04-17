@@ -16,9 +16,14 @@ If you want to support this free project. Any help is welcome. You can donate by
 <a target="blank" href="https://blockchain.com/btc/payment_request?address=1PBi7BoZ1mBLQx4ePbwh1MVoK2RaoiDsp5"><img src="https://img.shields.io/badge/Donate-Bitcoin-green.svg"/></a>
 <a target="blank" href="https://www.paypal.me/windkh"><img src="https://img.shields.io/badge/Donate-PayPal-blue.svg"/></a>
 
+# Credits
+gerdemann for providing the roller shutter code
 
 
 # History
+Version 1.3.0
+Added roller shutter.
+
 Version 1.2.0
 Added more options in configuration dialog.
 
