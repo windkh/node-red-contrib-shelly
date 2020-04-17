@@ -21,7 +21,7 @@ gerdemann for providing the roller shutter code
 
 
 # History
-Version 1.3.0
+Version 1.3.1
 Added roller shutter.
 
 Version 1.2.0
