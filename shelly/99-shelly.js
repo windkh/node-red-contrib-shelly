@@ -337,103 +337,103 @@ module.exports = function (RED) {
             password: { type: "password" },
         }
     });
-}
-// --------------------------------------------------------------------------------------------
-// The dimmer node controls a shelly dimmer.
-function ShellyDimmerNode(config) {
-    RED.nodes.createNode(this, config);
-    var node = this;
-    node.hostname = config.hostname;
+    // --------------------------------------------------------------------------------------------
+    // The dimmer node controls a shelly dimmer.
+    function ShellyDimmerNode(config) {
+        RED.nodes.createNode(this, config);
+        var node = this;
+        node.hostname = config.hostname;
 
-    /* node.shellyInfo
-    GET /shelly
-    {
-       "type":"SHDM-1",
-       "mac":"CC50E3F36XXX",
-       "auth":false,
-       "fw":"20200309-104554/v1.6.0@43056d58",
-       "num_outputs":1,
-       "num_meters":1
-    }
-    */
-   shellyGet('/shelly', node, function(result) {
-        node.shellyInfo = JSON.parse(result);
-        if(node.shellyInfo.type.startsWith("SHDM-")){
-            node.status({ fill: "green", shape: "ring", text: "Connected." });
-        }
-        else{
-            node.status({ fill: "red", shape: "ring", text: "Shelly type " + node.shellyInfo.type + " is not known." });
-        }
-    });
-
-    /* when a payload is received in the format
+        /* node.shellyInfo
+        GET /shelly
         {
-            light : 0,
-            on : true,
-            brightness : 75
+           "type":"SHDM-1",
+           "mac":"CC50E3F36XXX",
+           "auth":false,
+           "fw":"20200309-104554/v1.6.0@43056d58",
+           "num_outputs":1,
+           "num_meters":1
         }
-    then the command is send to the shelly.
-
-    The output gets the status of all relays.
-    */
-    this.on('input', function (msg) {
-
-        var route;
-        if(msg.payload !== undefined){
-            var command = msg.payload;
-
-            var light = 0;
-            if(command.light !== undefined){
-                light = command.light;
+        */
+       shellyGet('/shelly', node, function(result) {
+            node.shellyInfo = JSON.parse(result);
+            if(node.shellyInfo.type.startsWith("SHDM-")){
+                node.status({ fill: "green", shape: "ring", text: "Connected." });
             }
+            else{
+                node.status({ fill: "red", shape: "ring", text: "Shelly type " + node.shellyInfo.type + " is not known." });
+            }
+        });
 
-            var onOff;
-            if(command.on !== undefined){
-                if(command.on == true){
-                    onOff = "on";
+        /* when a payload is received in the format
+            {
+                light : 0,
+                on : true,
+                brightness : 75
+            }
+        then the command is send to the shelly.
+
+        The output gets the status of all relays.
+        */
+        this.on('input', function (msg) {
+
+            var route;
+            if(msg.payload !== undefined){
+                var command = msg.payload;
+
+                var light = 0;
+                if(command.light !== undefined){
+                    light = command.light;
                 }
-                else{
-                    onOff = "off"
+
+                var onOff;
+                if(command.on !== undefined){
+                    if(command.on == true){
+                        onOff = "on";
+                    }
+                    else{
+                        onOff = "off"
+                    }
+                }
+
+                var brightness;
+                if(command.brightness !== undefined){
+                    if(command.brightness >=1 && command.brightness <= 100){
+                        brightness = command.brightness;
+                  }
+                }
+
+                if (onOff != undefined && brightness != undefined){
+                  route = "/light/" + light + "?turn=" + onOff + "&brightness=" + brightness;
+                }
+                else if (onOff != undefined){
+                    route = "/light/" + light + "?turn=" + onOff;
                 }
             }
 
-            var brightness;
-            if(command.brightness !== undefined){
-              if(command.brightness >=1 && command.brightness <= 100){
-
-              }
+            if(route){
+                shellyGet(route, node, function(result) {
+                    shellyGet('/status', node, function(result) {
+                        var status = JSON.parse(result);
+                        var msg = { payload: status.lights };
+                        node.send([msg]);
+                    });
+                });
             }
-
-            if (onOff != undefined && brightness != undefined){
-              route = "/light/" + light + "?turn=" + onOff + "&brightness=" + brightness;
-            }
-            else if (onOff != undefined){
-                route = "/light/" + light + "?turn=" + onOff;
-            }
-        }
-
-        if(route){
-            shellyGet(route, node, function(result) {
+            else{
                 shellyGet('/status', node, function(result) {
                     var status = JSON.parse(result);
-                    var msg = { payload: status.relays };
+                    var msg = { payload: status.lights };
                     node.send([msg]);
                 });
-            });
-        }
-        else{
-            shellyGet('/status', node, function(result) {
-                var status = JSON.parse(result);
-                var msg = { payload: status.relays };
-                node.send([msg]);
-            });
+            }
+        });
+
+    }
+    RED.nodes.registerType("shelly-dimmer", ShellyDimmerNode, {
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
         }
     });
-
 }
-RED.nodes.registerType("shelly-dimmer", ShellyDimmerNode, {
-    credentials: {
-        username: { type: "text" },
-        password: { type: "password" },
-    }
-});
