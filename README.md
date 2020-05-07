@@ -7,7 +7,7 @@
 This package contains nodes for controlling shelly devices
 
 # Warning
-This package is under construction. Right now only the switches like shelly switch 1, 2, shelly plug an shelly 2.5 (roller shutter) is supported.
+This package is under construction. Right now only the switches like shelly switch 1, 2, shelly plug, shelly 2.5 (roller shutter) and shelly dimmer is supported.
 
 
 # Thanks for your donation
@@ -18,9 +18,12 @@ If you want to support this free project. Any help is welcome. You can donate by
 
 # Credits
 gerdemann for providing the roller shutter code
-
+Gophlin for provider the Dimmer (SL) code
 
 # History
+Version 1.3.2
+Added dimmer
+
 Version 1.3.1
 Added roller shutter.
 
@@ -55,8 +58,8 @@ Turning on is done by sending the following payload into the input. The relay nu
 
 Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
 
-If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank. 
-This is useful, when you want to poll for the status cyclically. 
+If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
+This is useful, when you want to poll for the status cyclically.
 
 The output of the node is an array of status objects for every relay of the switch:
 
@@ -84,23 +87,23 @@ The output of the node is as follows:
 
 ```
 {
-    sensor 
+    sensor
 	{
-		state: "close", 
-		is_valid: true 
+		state: "close",
+		is_valid: true
 	},
-	
-	lux 
-	{ 
-		value: 150, 
-		illumination: "twilight", 
-		is_valid: true 
+
+	lux
+	{
+		value: 150,
+		illumination: "twilight",
+		is_valid: true
 	},
-	
-	bat 
-	{ 
-		value: 100, 
-		voltage: 6.01 
+
+	bat
+	{
+		value: 100,
+		voltage: 6.01
 	}
 }
 ```
@@ -134,8 +137,8 @@ The relay number is optional and defaults to 0. The following object for open or
 
 Right after having sent the request to the shelly device a status request is done. The roller property of the response is output on output 1.
 
-If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank. 
-This is useful, when you want to poll for the status cyclically. 
+If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
+This is useful, when you want to poll for the status cyclically.
 
 The output of the node is an array of status objects for every roller of the roller shutter:
 
@@ -167,9 +170,43 @@ The output of the node is an array of status objects for every roller of the rol
 ]
 ```
 
+# Shelly Dimmer (SL) Node
+The node is able to turn on and turn off a shelly dimmer and set its brightness. It outputs the status of all lights after every interaction with the shelly device.
+Turning on is done by sending the following payload into the input. The light number is optional and defaults to 0. The brightness can be set between 0 and 100.
+
+
+```
+{
+    light : 0,
+    on : true,
+    brightness: 100
+}
+```
+
+Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
+
+If you only want to get the current status of the dimmer without turning on or off you should leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
+
+The output of the node is an array of status objects for every light of the dimmer:
+
+
+```
+[
+    {
+        ison : true,
+	    ...
+    },
+    {
+        ison : true,
+	    ...
+    },
+]
+```
+
+
 # Shelly REST API
 For a complete documentation see also
-https://shelly-api-docs.shelly.cloud/#common-http-api 
+https://shelly-api-docs.shelly.cloud/#common-http-api
 
 
 

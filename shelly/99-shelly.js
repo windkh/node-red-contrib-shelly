@@ -1,6 +1,6 @@
 /**
 * Created by Karl-Heinz Wind
-* see also https://shelly-api-docs.shelly.cloud/#common-http-api 
+* see also https://shelly-api-docs.shelly.cloud/#common-http-api
 
 TODO:
 Support for Control roller shutter
@@ -13,7 +13,7 @@ module.exports = function (RED) {
 
     // generic REST get wrapper
     function shellyGet(route, node, callback){
-            
+
         var options = {
             url: 'http://' + node.hostname + route
         };
@@ -27,7 +27,7 @@ module.exports = function (RED) {
         request.get(options, function (error, response, body) {
             if(!error){
                 if(response.statusMessage == "OK"){
-                callback(body); 
+                callback(body);
                 } else {
                     node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusMessage });
                 }
@@ -39,7 +39,7 @@ module.exports = function (RED) {
 
     // Note that this function has a reduced timeout.
     function shellyTryGet(route, node, timeout, callback, errorCallback){
-            
+
         var options = {
             url: 'http://' + node.hostname + route,
             timeout: timeout
@@ -54,7 +54,7 @@ module.exports = function (RED) {
         request.get(options, function (error, response, body) {
             if(!error){
                 if(response.statusMessage == "OK"){
-                callback(body); 
+                callback(body);
                 } else {
                     node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusMessage });
                 }
@@ -84,20 +84,20 @@ module.exports = function (RED) {
        shellyGet('/shelly', node, function(result) {
             node.shellyInfo = JSON.parse(result);
             if(node.shellyInfo.type.startsWith("SHPLG-") || node.shellyInfo.type.startsWith("SHSW-")){
-                node.status({ fill: "green", shape: "ring", text: "Connected." });    
+                node.status({ fill: "green", shape: "ring", text: "Connected." });
             }
             else{
                 node.status({ fill: "red", shape: "ring", text: "Shelly type " + node.shellyInfo.type + " is not known." });
-            }  
+            }
         });
 
-        /* when a payload is received in the format 
+        /* when a payload is received in the format
             {
-                relay : 0, 
+                relay : 0,
                 on : true
             }
         then the command is send to the shelly.
-    
+
         The output gets the status of all relays.
         */
         this.on('input', function (msg) {
@@ -105,7 +105,7 @@ module.exports = function (RED) {
             var route;
             if(msg.payload !== undefined){
                 var command = msg.payload;
-                
+
                 var relay = 0;
                 if(command.relay !== undefined){
                     relay = command.relay;
@@ -114,7 +114,7 @@ module.exports = function (RED) {
                 var onOff;
                 if(command.on !== undefined){
                     if(command.on == true){
-                        onOff = "on";        
+                        onOff = "on";
                     }
                     else{
                         onOff = "off"
@@ -170,7 +170,7 @@ module.exports = function (RED) {
         "lux":{"value":66, "illumination": "dark", "is_valid":true},
         "sensor":{"state":"close", "is_valid":true},
         "bat":{"value":99,"voltage":5.92},
-        
+
         "act_reasons":["poweron","sensor"],
         "update":{"status":"idle","has_update":false,"new_version":"20191216-090511/v1.5.7@c30657ba","old_version":"20191216-090511/v1.5.7@c30657ba"},
         "ram_total":50592,
@@ -185,34 +185,34 @@ module.exports = function (RED) {
         var node = this;
         node.hostname = config.hostname;
         node.sendRawStatus = config.sendfullstatus;
-        node.usePolling = config.usepolling;    
+        node.usePolling = config.usepolling;
         node.pollInterval = parseInt(config.pollinginterval);
 
         if(node.usePolling){
             node.timer = setInterval(function() {
                 node.emit("input", {});
-            }, node.pollInterval);    
-        
-            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });   
+            }, node.pollInterval);
+
+            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
         }
         else{
-            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: waiting for trigger ..." });   
+            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: waiting for trigger ..." });
         }
 
         this.on('input', function (msg) {
 
                 if(msg.payload){
-                    node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });   
+                    node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
                 }
 
                 shellyTryGet('/status', node, node.pollInterval, function(result) {
                     var status = JSON.parse(result);
                     var timestamp=new Date().toLocaleTimeString();
                     if(status.sensor.is_valid){
-                        node.status({ fill: "green", shape: "ring", text: "Status: " + status.sensor.state + " " + timestamp});   
+                        node.status({ fill: "green", shape: "ring", text: "Status: " + status.sensor.state + " " + timestamp});
                     }
                     else {
-                        node.status({ fill: "red", shape: "ring", text: "Status: invalid" });   
+                        node.status({ fill: "red", shape: "ring", text: "Status: invalid" });
                     }
 
                     var payload;
@@ -220,7 +220,7 @@ module.exports = function (RED) {
                         payload = {
                             sensor : status.sensor,
                             lux : status.lux,
-                            bat :  status.bat, 
+                            bat :  status.bat,
                         }
                     }
                     else{
@@ -232,7 +232,7 @@ module.exports = function (RED) {
                 },
                 function(error){
                     if(msg.payload){
-                        node.status({ fill: "yellow", shape: "ring", text: "Status unknown: device not reachable." });   
+                        node.status({ fill: "yellow", shape: "ring", text: "Status unknown: device not reachable." });
                     }
                 });
         });
@@ -271,20 +271,20 @@ module.exports = function (RED) {
        shellyGet('/shelly', node, function(result) {
             node.shellyInfo = JSON.parse(result);
             if(node.shellyInfo.type.startsWith("SHPLG-") || node.shellyInfo.type.startsWith("SHSW-")){
-                node.status({ fill: "green", shape: "ring", text: "Connected." });    
+                node.status({ fill: "green", shape: "ring", text: "Connected." });
             }
             else{
                 node.status({ fill: "red", shape: "ring", text: "Shelly type " + node.shellyInfo.type + " is not known." });
-            }  
+            }
         });
 
-        /* when a payload is received in the format 
+        /* when a payload is received in the format
             {
-                roller : 0, 
+                roller : 0,
                 on : true
             }
         then the command is send to the shelly.
-    
+
         The output gets the status of all rollers.
         */
         this.on('input', function (msg) {
@@ -292,7 +292,7 @@ module.exports = function (RED) {
             var route;
             if(msg.payload !== undefined){
                 var command = msg.payload;
-                
+
                 var roller = 0;
                 if(command.roller !== undefined){
                     roller = command.roller;
@@ -332,6 +332,107 @@ module.exports = function (RED) {
 
     }
     RED.nodes.registerType("shelly-roller-shutter", ShellyRollerShutterNode, {
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        }
+    });
+    // --------------------------------------------------------------------------------------------
+    // The dimmer node controls a shelly dimmer.
+    function ShellyDimmerNode(config) {
+        RED.nodes.createNode(this, config);
+        var node = this;
+        node.hostname = config.hostname;
+
+        /* node.shellyInfo
+        GET /shelly
+        {
+           "type":"SHDM-1",
+           "mac":"CC50E3F36XXX",
+           "auth":false,
+           "fw":"20200309-104554/v1.6.0@43056d58",
+           "num_outputs":1,
+           "num_meters":1
+        }
+        */
+       shellyGet('/shelly', node, function(result) {
+            node.shellyInfo = JSON.parse(result);
+            if(node.shellyInfo.type.startsWith("SHDM-")){
+                node.status({ fill: "green", shape: "ring", text: "Connected." });
+            }
+            else{
+                node.status({ fill: "red", shape: "ring", text: "Shelly type " + node.shellyInfo.type + " is not known." });
+            }
+        });
+
+        /* when a payload is received in the format
+            {
+                light : 0,
+                on : true,
+                brightness : 75
+            }
+        then the command is send to the shelly.
+
+        The output gets the status of all relays.
+        */
+        this.on('input', function (msg) {
+
+            var route;
+            if(msg.payload !== undefined){
+                var command = msg.payload;
+
+                var light = 0;
+                if(command.light !== undefined){
+                    light = command.light;
+                }
+
+                var onOff;
+                if(command.on !== undefined){
+                    if(command.on == true){
+                        onOff = "on";
+                    }
+                    else{
+                        onOff = "off"
+                    }
+                }
+
+                var brightness;
+                if(command.brightness !== undefined){
+                    if(command.brightness >=1 && command.brightness <= 100){
+                        brightness = command.brightness;
+                  } else { 
+                      brightness = 100;  // Default to full brightness
+                  }
+                }
+
+                if (onOff != undefined && brightness != undefined){
+                  route = "/light/" + light + "?turn=" + onOff + "&brightness=" + brightness;
+                }
+                else if (onOff != undefined){
+                    route = "/light/" + light + "?turn=" + onOff;
+                }
+            }
+
+            if(route){
+                shellyGet(route, node, function(result) {
+                    shellyGet('/status', node, function(result) {
+                        var status = JSON.parse(result);
+                        var msg = { payload: status.lights };
+                        node.send([msg]);
+                    });
+                });
+            }
+            else{
+                shellyGet('/status', node, function(result) {
+                    var status = JSON.parse(result);
+                    var msg = { payload: status.lights };
+                    node.send([msg]);
+                });
+            }
+        });
+
+    }
+    RED.nodes.registerType("shelly-dimmer", ShellyDimmerNode, {
         credentials: {
             username: { type: "text" },
             password: { type: "password" },

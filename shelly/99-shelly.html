@@ -52,14 +52,14 @@
 
 <script type="text/x-red" data-help-name="shelly-switch">
     <p>A node that controls a shelly switch device.</p>
-    
-    <h3>Configuration</h3> 
+
+    <h3>Configuration</h3>
     <p>Hostname is the IP address or the hostname of the device.</p>
     <p>Description of the device.</p>
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
-   
-    <h3>Inputs</h3> 
+
+    <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
     <p><code>msg.payload</code></p>
     <ul>
@@ -71,8 +71,8 @@
         <br/>
         <code>}</code>
     </ul>
-    
-    <h3>Outputs</h3> 
+
+    <h3>Outputs</h3>
     <p>1. Standard Ouput: An array of relay status objects.</p>
     <p><code>msg.payload</code></p>
     <ul>
@@ -168,8 +168,8 @@
 
     <div class="form-row" id="polling" style="background: #fbfbfb">
         <label style="width: auto"><i class="fa fa-cogs"></i> Polling Options:</label>
-      
-        <div class="form-row" style="background: #fff; margin-left: 20px">        
+
+        <div class="form-row" style="background: #fff; margin-left: 20px">
             <div class="form-row">
                 <label for="node-input-pollinginterval"><i class="fa fa-stopwatch"></i> Polling Interval (ms)</label>
                 <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds.)">
@@ -180,7 +180,7 @@
     <div class="form-row" id="hint">
         <div class="form-tips" style="width: auto"><b>Note:</b> Polling support is standard. If you turn it off you must trigger the input manually.</div>
     </div>
-   
+
     <div class="form-row" id="hiddeninputs">
         <label for="node-input-inputs"><i class="fa fa-poo"></i> Input Count</label>
         <input type="text" id="node-input-inputs">
@@ -190,8 +190,8 @@
 
 <script type="text/x-red" data-help-name="shelly-door">
     <p>A node that controls a shelly door device.</p>
-    
-    <h3>Configuration</h3> 
+
+    <h3>Configuration</h3>
     <p>Hostname is the IP address or the hostname of the device.</p>
     <p>Description of the device.</p>
     <p>User is optional and must only be set if security is enabled.</p>
@@ -199,11 +199,11 @@
     <p>Send full status object is for debugging purposes. If this box is checked then you get the verbose response of the shelly sensor instead of a lightweight object.</p>
     <p>Polling mode can be turned off. But note that you will have to trigger the node via an external source e.g. an inject node.</p>
     <p>If polling is enabled you can control the polling time in milliseconds.</p>
-  
-    <h3>Inputs</h3> 
+
+    <h3>Inputs</h3>
     <p>The node has an input which triggers a status update request. It should only be trigger when polling mode is turned off.</p>
 
-    <h3>Outputs</h3> 
+    <h3>Outputs</h3>
     <p>1. Standard Ouput: shelly status object.</p>
     <p><code>msg.payload</code></p>
     <ul>
@@ -270,14 +270,14 @@
 
 <script type="text/x-red" data-help-name="shelly-roller-shutter">
     <p>A node that controls a shelly roller shutter device (Shelly 2.5).</p>
-    
-    <h3>Configuration</h3> 
+
+    <h3>Configuration</h3>
     <p>Hostname is the IP address or the hostname of the device.</p>
     <p>Description of the device.</p>
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
-   
-    <h3>Inputs</h3> 
+
+    <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for open or close the roller shutter:</p>
     <p><code>msg.payload</code></p>
     <ul>
@@ -311,8 +311,8 @@
         <br/>
         <code>}</code>
     </ul>
-    
-    <h3>Outputs</h3> 
+
+    <h3>Outputs</h3>
     <p>1. Standard Ouput: An array of relay status objects.</p>
     <p><code>msg.payload</code></p>
     <ul>
@@ -327,6 +327,92 @@
         or
         <br/>
         <code>    { state : "open", current_pos: 50 }</code>
+        <br/>
+        <code>]</code>
+    </ul>
+</script>
+
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/javascript">
+    RED.nodes.registerType('shelly-dimmer', {
+        category: 'shelly',
+        color: '#319DD7',
+        defaults: {
+            hostname: { value:"", required:true },
+            description: { value:"" }
+        },
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "shelly.png",
+        paletteLabel: "dimmer",
+        label: function () {
+            return this.description || this.hostname || "Shelly dimmer";
+        },
+        labelStyle: function() {
+            return this.description?"node_label_italic":"";
+        }
+    });
+
+</script>
+
+<!-- ------------------------------------------------------------------------------------------ -->
+
+<script type="text/x-red" data-template-name="shelly-dimmer">
+    <div class="form-row">
+        <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
+        <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the dimmer">
+    </div>
+    <div class="form-row">
+        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
+        <input type="text" id="node-input-description" placeholder="The description of the dimmer (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="shelly-dimmer">
+    <p>A node that controls a shelly dimmer device.</p>
+
+    <h3>Configuration</h3>
+    <p>Hostname is the IP address or the hostname of the device.</p>
+    <p>Description of the device.</p>
+    <p>User is optional and must only be set if security is enabled.</p>
+    <p>Password is optional and must only be set if security is enabled.</p>
+
+    <h3>Inputs</h3>
+    <p>Empty payload for getting the status. Or the following object for turning the dimmer on or off:</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>{</code>
+        <br/>
+        <code>    light : 0,</code>
+        <br/>
+        <code>    on : true,</code>
+        <<br/>
+        <<code>   brightness: 75</code>
+        <br/>
+        <code>}</code>
+    </ul>
+
+    <h3>Outputs</h3>
+    <p>1. Standard Ouput: An array of light status objects.</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>[</code>
+        <br/>
+        <code>    { ison : false }</code>
+        <br/>
+        <code>    { ison : true }</code>
         <br/>
         <code>]</code>
     </ul>
