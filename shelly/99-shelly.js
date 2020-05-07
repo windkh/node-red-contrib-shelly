@@ -400,6 +400,8 @@ module.exports = function (RED) {
                 if(command.brightness !== undefined){
                     if(command.brightness >=1 && command.brightness <= 100){
                         brightness = command.brightness;
+                  } else { 
+                      brightness = 100;  // Default to full brightness
                   }
                 }
 
