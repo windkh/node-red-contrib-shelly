@@ -18,7 +18,7 @@ If you want to support this free project. Any help is welcome. You can donate by
 
 # Credits
 gerdemann for providing the roller shutter code
-
+Gophlin for provider the Dimmer (SL) code
 
 # History
 Version 1.3.2
@@ -171,23 +171,23 @@ The output of the node is an array of status objects for every roller of the rol
 ```
 
 # Shelly Dimmer (SL) Node
-The node is able to turn on and turn off a shelly switch and set it's brightness. It outputs the status of all relays after every interaction with the shelly device.
+The node is able to turn on and turn off a shelly dimmer and set its brightness. It outputs the status of all lights after every interaction with the shelly device.
 Turning on is done by sending the following payload into the input. The light number is optional and defaults to 0. The brightness can be set between 0 and 100.
 
 
 ```
 {
     light : 0,
-	on : true,
-  brightness: 100
+    on : true,
+    brightness: 100
 }
 ```
 
 Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
 
-If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
+If you only want to get the current status of the dimmer without turning on or off you should leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
 
-The output of the node is an array of status objects for every relay of the switch:
+The output of the node is an array of status objects for every light of the dimmer:
 
 
 ```
