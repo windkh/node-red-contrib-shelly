@@ -186,7 +186,6 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
         var node = this;
         node.hostname = config.hostname;
-        node.sendRawStatus = config.sendfullstatus;
         node.usePolling = config.usepolling;
         node.pollInterval = parseInt(config.pollinginterval);
 
@@ -217,19 +216,12 @@ module.exports = function (RED) {
                         node.status({ fill: "red", shape: "ring", text: "Status: invalid" });
                     }
 
-                    var payload;
-                    if(!node.sendRawStatus){
-                        payload = {
-                            sensor : status.sensor,
-                            lux : status.lux,
-                            bat :  status.bat,
-                        }
-                    }
-                    else{
-                        payload = status;
-                    }
-
-                    msg.payload = payload;
+                    msg.payload = {
+                        sensor : status.sensor,
+                        lux : status.lux,
+                        bat :  status.bat,
+                    };
+                
                     msg.status = status;
                     node.send([msg]);
                 },

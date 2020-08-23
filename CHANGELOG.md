@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2020-08-23
+### removed check box in dimmer node for sending the full status object.
+
 ## [1.3.5] - 2020-08-23
 ### msg.status contains the original status now (for experts)
 
