@@ -130,7 +130,7 @@ module.exports = function (RED) {
                 shellyGet(route, node, function(result) {
                     shellyGet('/status', node, function(result) {
                         var status = JSON.parse(result);
-                        var msg = { payload: status.relays };
+                        msg.payload = status.relays;
                         node.send([msg]);
                     });
                 });
@@ -138,7 +138,7 @@ module.exports = function (RED) {
             else{
                 shellyGet('/status', node, function(result) {
                     var status = JSON.parse(result);
-                    var msg = { payload: status.relays };
+                    msg.payload = status.relays;
                     node.send([msg]);
                 });
             }
@@ -227,7 +227,7 @@ module.exports = function (RED) {
                         payload = status;
                     }
 
-                    var msg = { payload: payload };
+                    msg.payload = payload;
                     node.send([msg]);
                 },
                 function(error){
@@ -316,7 +316,7 @@ module.exports = function (RED) {
                 shellyGet(route, node, function(result) {
                     shellyGet('/status', node, function(result) {
                         var status = JSON.parse(result);
-                        var msg = { payload: status.rollers };
+                        msg.payload = status.rollers;
                         node.send([msg]);
                     });
                 });
@@ -324,7 +324,7 @@ module.exports = function (RED) {
             else{
                 shellyGet('/status', node, function(result) {
                     var status = JSON.parse(result);
-                    var msg = { payload: status.rollers };
+                    msg.payload = status.rollers;
                     node.send([msg]);
                 });
             }
@@ -417,7 +417,7 @@ module.exports = function (RED) {
                 shellyGet(route, node, function(result) {
                     shellyGet('/status', node, function(result) {
                         var status = JSON.parse(result);
-                        var msg = { payload: status.lights };
+                        msg.payload = status.lights;
                         node.send([msg]);
                     });
                 });
@@ -425,7 +425,7 @@ module.exports = function (RED) {
             else{
                 shellyGet('/status', node, function(result) {
                     var status = JSON.parse(result);
-                    var msg = { payload: status.lights };
+                    msg.payload = status.lights;
                     node.send([msg]);
                 });
             }
