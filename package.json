@@ -3,7 +3,7 @@
     "version": "1.3.3",
     "description": "Shelly nodes.",
     "dependencies": {
-        "request" : "2.81.0"
+        "request" : "2.88.2"
     },
     "node-red" : {
         "nodes": {

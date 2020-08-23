@@ -1,7 +1,6 @@
 # Shelly nodes for node-red
-[![Platform](https://img.shields.io/badge/platform-Node--RED-red)](https://nodered.org)]
-[![License](https://img.shields.io/github/license/windkh/node-red-contrib-shelly.svg)]
-[![Release](https://img.shields.io/npm/v/node-red-contrib-shelly.svg)]
+[![Platform](https://img.shields.io/badge/platform-Node--RED-red)](https://nodered.org)
+![License](https://img.shields.io/github/license/windkh/node-red-contrib-shelly.svg)
 [![NPM](https://img.shields.io/npm/v/node-red-contrib-shelly?logo=npm)](https://www.npmjs.org/package/node-red-contrib-shelly)
 [![Known Vulnerabilities](https://snyk.io/test/npm/node-red-contrib-shelly/badge.svg)](https://snyk.io/test/npm/node-red-contrib-shelly)
 
