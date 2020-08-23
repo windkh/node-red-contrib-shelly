@@ -20,28 +20,8 @@ If you want to support this free project. Any help is welcome. You can donate by
 gerdemann for providing the roller shutter code
 Gophlin for provider the Dimmer (SL) code
 
-# History
-Version 1.3.2
-Added dimmer
-
-Version 1.3.1
-Added roller shutter.
-
-Version 1.2.0
-Added more options in configuration dialog.
-
-Version 1.2.0
-Fixed bug when closing node on redeploy.
-
-Version 1.1.0
-Added shelly door node.
-
-Version 1.0.0
-Added shelly switch node with example flow.
-
-Version 0.1.0
-Initial version: simple status node added.
-
+# Changelog
+Changes can be followed [here](/CHANGELOG.md)
 
 
 # Shelly Switch Node
