@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.3.5] - 2020-08-23
+### msg.status contains the original status now (for experts)
+
 ## [1.3.4] - 2020-08-23
 ### updated to latest request 2.88.2
 
