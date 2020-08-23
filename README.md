@@ -1,8 +1,9 @@
 # Shelly nodes for node-red
-
-![License](https://img.shields.io/github/license/windkh/node-red-contrib-shelly.svg)
-![Release](https://img.shields.io/npm/v/node-red-contrib-shelly.svg)
-![NPM](https://img.shields.io/npm/dm/node-red-contrib-shelly.svg)
+[![Platform](https://img.shields.io/badge/platform-Node--RED-red)](https://nodered.org)]
+[![License](https://img.shields.io/github/license/windkh/node-red-contrib-shelly.svg)]
+[![Release](https://img.shields.io/npm/v/node-red-contrib-shelly.svg)]
+[![NPM](https://img.shields.io/npm/v/node-red-contrib-shelly?logo=npm)](https://www.npmjs.org/package/node-red-contrib-shelly)
+[![Known Vulnerabilities](https://snyk.io/test/npm/node-red-contrib-shelly/badge.svg)](https://snyk.io/test/npm/node-red-contrib-shelly)
 
 This package contains nodes for controlling shelly devices
 
@@ -19,6 +20,7 @@ If you want to support this free project. Any help is welcome. You can donate by
 # Credits
 gerdemann for providing the roller shutter code
 Gophlin for provider the Dimmer (SL) code
+minuq for providing pull request for issue #7
 
 # Changelog
 Changes can be followed [here](/CHANGELOG.md)
