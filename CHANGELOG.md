@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2020-11-07
+### Moved examples to correct folder.
+
 ## [1.4.0] - 2020-08-23
 ### removed check box in dimmer node for sending the full status object.
 
