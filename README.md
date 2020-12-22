@@ -37,6 +37,17 @@ Turning on is done by sending the following payload into the input. The relay nu
 }
 ```
 
+or you can make use of the alternative notation:
+
+
+```
+{
+    relay : 0,
+	turn : "toggle"
+}
+```
+turn can be one of the following: "toggle", "on", "off"
+
 Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
 
 If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
@@ -163,6 +174,8 @@ Turning on is done by sending the following payload into the input. The light nu
     brightness: 100
 }
 ```
+
+Like in the switch node you can replace on with turn and choose a value from the following: "toggle", "on", "off"
 
 Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
 

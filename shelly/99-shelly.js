@@ -98,6 +98,11 @@ module.exports = function (RED) {
                 relay : 0,
                 on : true
             }
+            or in alternative format 
+            {
+                relay : 0,
+                turn : on/off/toggle
+            }
         then the command is send to the shelly.
 
         The output gets the status of all relays.
@@ -113,18 +118,21 @@ module.exports = function (RED) {
                     relay = command.relay;
                 }
 
-                var onOff;
+                var turn;
                 if(command.on !== undefined){
                     if(command.on == true){
-                        onOff = "on";
+                        turn = "on";
                     }
                     else{
-                        onOff = "off"
+                        turn = "off"
                     }
                 }
+                else if(command.turn !== undefined){
+                    turn = command.turn;
+                }
 
-                if(onOff != undefined){
-                    route = "/relay/" + relay + "?turn=" + onOff;
+                if(turn != undefined){
+                    route = "/relay/" + relay + "?turn=" + turn;
                 }
             }
 
@@ -373,6 +381,12 @@ module.exports = function (RED) {
                 on : true,
                 brightness : 75
             }
+            or in alternative format 
+            {
+                relay : 0,
+                turn : on/off/toggle,
+                brightness : 75
+            }
         then the command is send to the shelly.
 
         The output gets the status of all relays.
@@ -388,14 +402,17 @@ module.exports = function (RED) {
                     light = command.light;
                 }
 
-                var onOff;
+                var turn;
                 if(command.on !== undefined){
                     if(command.on == true){
-                        onOff = "on";
+                        turn = "on";
                     }
                     else{
-                        onOff = "off"
+                        turn = "off"
                     }
+                }
+                else if(command.turn !== undefined){
+                    turn = command.turn;
                 }
 
                 var brightness;
@@ -407,11 +424,11 @@ module.exports = function (RED) {
                   }
                 }
 
-                if (onOff != undefined && brightness != undefined){
-                  route = "/light/" + light + "?turn=" + onOff + "&brightness=" + brightness;
+                if (turn != undefined && brightness != undefined){
+                  route = "/light/" + light + "?turn=" + turn + "&brightness=" + brightness;
                 }
-                else if (onOff != undefined){
-                    route = "/light/" + light + "?turn=" + onOff;
+                else if (turn != undefined){
+                    route = "/light/" + light + "?turn=" + turn;
                 }
             }
 

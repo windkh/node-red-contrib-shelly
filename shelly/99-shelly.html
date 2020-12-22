@@ -71,6 +71,17 @@
         <br/>
         <code>}</code>
     </ul>
+    <p>As an alternative you can also make use of the following notation:</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>{</code>
+        <br/>
+        <code>    relay : 0,</code>
+        <br/>
+        <code>    turn : on/off/toggle</code>
+        <br/>
+        <code>}</code>
+    </ul>
 
     <h3>Outputs</h3>
     <p>1. Standard Ouput: An array of relay status objects.</p>
@@ -94,6 +105,7 @@
         defaults: {
             hostname: { value:"", required:true  },
             description: { value:"" },
+            sendfullstatus: { value: false },
             usepolling: { value: true },
             pollinginterval: { value: 2000 },
             inputs: {value:0},
@@ -156,6 +168,11 @@
     </div>
 
     <div class="form-row">
+        <label for="node-input-sendfullstatus"><i class="fa fa-search"></i> Send full status object.</label>
+        <input type="checkbox" id="node-input-sendfullstatus" style="display: inline-block; width: auto; vertical-align: top;">
+    </div>
+
+    <div class="form-row">
         <label for="node-input-usepolling"><i class="fa fa-clock"></i> Polling Mode</label>
         <input type="checkbox" id="node-input-usepolling" style="display: inline-block; width: auto; vertical-align: top;">
     </div>
@@ -190,6 +207,7 @@
     <p>Description of the device.</p>
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
+    <p>Send full status object is for debugging purposes. If this box is checked then you get the verbose response of the shelly sensor instead of a lightweight object.</p>
     <p>Polling mode can be turned off. But note that you will have to trigger the node via an external source e.g. an inject node.</p>
     <p>If polling is enabled you can control the polling time in milliseconds.</p>
 
@@ -298,7 +316,7 @@
         <br/>
         <code>    roller : 0,</code>
         <br/>
-        <code>    go : "to_pos",</code>
+        <code>    go : "to_pos"</code>
         <br/>
         <code>    roller_pos : 50</code>
         <br/>
@@ -391,6 +409,18 @@
         <code>    light : 0,</code>
         <br/>
         <code>    on : true,</code>
+        <<br/>
+        <<code>   brightness: 75</code>
+        <br/>
+        <code>}</code>
+    </ul>
+    <p>As an alternative you can also make use of the following notation:</p>
+    <ul>
+        <code>{</code>
+        <br/>
+        <code>    light : 0,</code>
+        <br/>
+        <code>    turn : on/off/toggle,</code>
         <<br/>
         <<code>   brightness: 75</code>
         <br/>
