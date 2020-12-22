@@ -83,7 +83,9 @@ module.exports = function (RED) {
         */
        shellyGet('/shelly', node, function(result) {
             node.shellyInfo = JSON.parse(result);
-            if(node.shellyInfo.type.startsWith("SHPLG-") || node.shellyInfo.type.startsWith("SHSW-")){
+            if( node.shellyInfo.type.startsWith("SHPLG-") || 
+                node.shellyInfo.type.startsWith("SHSW-") ||
+                node.shellyInfo.type.startsWith("SHUNI-")){
                 node.status({ fill: "green", shape: "ring", text: "Connected." });
             }
             else{
@@ -131,7 +133,6 @@ module.exports = function (RED) {
                     shellyGet('/status', node, function(result) {
                         var status = JSON.parse(result);
                         msg.payload = status.relays;
-                        msg.status = status;
                         node.send([msg]);
                     });
                 });
@@ -140,7 +141,6 @@ module.exports = function (RED) {
                 shellyGet('/status', node, function(result) {
                     var status = JSON.parse(result);
                     msg.payload = status.relays;
-                    msg.status = status;
                     node.send([msg]);
                 });
             }
@@ -186,6 +186,7 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
         var node = this;
         node.hostname = config.hostname;
+        node.sendRawStatus = config.sendfullstatus;
         node.usePolling = config.usepolling;
         node.pollInterval = parseInt(config.pollinginterval);
 
@@ -216,13 +217,19 @@ module.exports = function (RED) {
                         node.status({ fill: "red", shape: "ring", text: "Status: invalid" });
                     }
 
-                    msg.payload = {
-                        sensor : status.sensor,
-                        lux : status.lux,
-                        bat :  status.bat,
-                    };
-                
-                    msg.status = status;
+                    var payload;
+                    if(!node.sendRawStatus){
+                        payload = {
+                            sensor : status.sensor,
+                            lux : status.lux,
+                            bat :  status.bat,
+                        }
+                    }
+                    else{
+                        payload = status;
+                    }
+
+                    msg.payload = payload;
                     node.send([msg]);
                 },
                 function(error){
@@ -312,7 +319,6 @@ module.exports = function (RED) {
                     shellyGet('/status', node, function(result) {
                         var status = JSON.parse(result);
                         msg.payload = status.rollers;
-                        msg.status = status;
                         node.send([msg]);
                     });
                 });
@@ -321,7 +327,6 @@ module.exports = function (RED) {
                 shellyGet('/status', node, function(result) {
                     var status = JSON.parse(result);
                     msg.payload = status.rollers;
-                    msg.status = status;
                     node.send([msg]);
                 });
             }
@@ -415,7 +420,6 @@ module.exports = function (RED) {
                     shellyGet('/status', node, function(result) {
                         var status = JSON.parse(result);
                         msg.payload = status.lights;
-                        msg.status = status;
                         node.send([msg]);
                     });
                 });
@@ -424,7 +428,6 @@ module.exports = function (RED) {
                 shellyGet('/status', node, function(result) {
                     var status = JSON.parse(result);
                     msg.payload = status.lights;
-                    msg.status = status;
                     node.send([msg]);
                 });
             }

@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.5.1] - 2020-12-22
+###Added UNI support - [#11](https://github.com/windkh/node-red-contrib-shelly/issues/11)
+
 ## [1.5.0] - 2020-11-07
 ### Moved examples to correct folder.
 
