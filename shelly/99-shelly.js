@@ -140,6 +140,7 @@ module.exports = function (RED) {
                 shellyGet(route, node, function(result) {
                     shellyGet('/status', node, function(result) {
                         var status = JSON.parse(result);
+                        msg.status = status;
                         msg.payload = status.relays;
                         node.send([msg]);
                     });
@@ -148,6 +149,7 @@ module.exports = function (RED) {
             else{
                 shellyGet('/status', node, function(result) {
                     var status = JSON.parse(result);
+                    msg.status = status;
                     msg.payload = status.relays;
                     node.send([msg]);
                 });
@@ -326,6 +328,7 @@ module.exports = function (RED) {
                 shellyGet(route, node, function(result) {
                     shellyGet('/status', node, function(result) {
                         var status = JSON.parse(result);
+                        msg.status = status;
                         msg.payload = status.rollers;
                         node.send([msg]);
                     });
@@ -334,6 +337,7 @@ module.exports = function (RED) {
             else{
                 shellyGet('/status', node, function(result) {
                     var status = JSON.parse(result);
+                    msg.status = status;
                     msg.payload = status.rollers;
                     node.send([msg]);
                 });
@@ -436,6 +440,7 @@ module.exports = function (RED) {
                 shellyGet(route, node, function(result) {
                     shellyGet('/status', node, function(result) {
                         var status = JSON.parse(result);
+                        msg.status = status;
                         msg.payload = status.lights;
                         node.send([msg]);
                     });
@@ -444,6 +449,7 @@ module.exports = function (RED) {
             else{
                 shellyGet('/status', node, function(result) {
                     var status = JSON.parse(result);
+                    msg.status = status;
                     msg.payload = status.lights;
                     node.send([msg]);
                 });

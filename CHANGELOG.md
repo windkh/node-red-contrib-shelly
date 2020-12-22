@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.5.3] - 2020-12-22
+### Added status to msg when polling status - [#9](https://github.com/windkh/node-red-contrib-shelly/issues/9)
+
 ## [1.5.2] - 2020-12-22
 ### Added lternative toggle notation for switch - [#10](https://github.com/windkh/node-red-contrib-shelly/issues/10)
 

@@ -7,7 +7,14 @@
 This package contains nodes for controlling shelly devices
 
 # Warning
-This package is under construction. Right now only the switches like shelly switch 1, 2, shelly plug, shelly 2.5 (roller shutter) and shelly dimmer is supported.
+This package is under construction. Right now only the switches like 
+- shelly switch 1 (PM), 2 
+- shelly plug
+- shelly 2.5 (roller shutter) 
+- shelly dimmer
+- shelly uni
+are supported.
+Other may work but are not really tested so far.
 
 
 # Thanks for your donation
