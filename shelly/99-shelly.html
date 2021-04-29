@@ -350,7 +350,8 @@
         color: '#319DD7',
         defaults: {
             hostname: { value:"", required:true },
-            description: { value:"" }
+            description: { value:"" },
+	    dimmerStat: { value: false, required: false }
         },
         credentials: {
             username: { type: "text" },
@@ -388,6 +389,10 @@
     <div class="form-row">
         <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
         <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
+    </div>
+    <div class="form-row">
+        <label for="node-input-statusRep"><i class="fa fa-cogs"></i> Status</label>
+        <input type="checkbox" id="node-input-dimmerStat" style="display: inline-block; width: auto; vertical-align: top;"> Status Report
     </div>
 </script>
 
