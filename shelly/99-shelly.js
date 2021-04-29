@@ -439,7 +439,7 @@ module.exports = function (RED) {
 
             if(route){
                 shellyGet(route, node, function(result) {
-		    if (!node.dimmerStat) {
+		    if (node.dimmerStat) {
 			shellyGet('/status', node, function(result) {
                           var status = JSON.parse(result);
                           msg.status = status;
