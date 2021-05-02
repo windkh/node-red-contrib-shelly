@@ -184,7 +184,8 @@ Turning on is done by sending the following payload into the input. The light nu
 
 Like in the switch node you can replace on with turn and choose a value from the following: "toggle", "on", "off"
 
-Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
+Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.  
+This feature can optionally be disabled by unticking the `status` checkbox in the node configuration options.
 
 If you only want to get the current status of the dimmer without turning on or off you should leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
 

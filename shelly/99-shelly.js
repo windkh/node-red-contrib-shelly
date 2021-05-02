@@ -432,9 +432,6 @@ module.exports = function (RED) {
                 if (turn != undefined && brightness != undefined){
                   route = "/light/" + light + "?turn=" + turn + "&brightness=" + brightness;
                 }
-                else if (brightness != undefined){
-		  route = "/light/" + light + "?brightness=" + brightness;
-                }
                 else if (turn != undefined){
                     route = "/light/" + light + "?turn=" + turn;
                 }
