@@ -27,6 +27,8 @@ If you want to support this free project. Any help is welcome. You can donate by
 gerdemann for providing the roller shutter code
 Gophlin for provider the Dimmer (SL) code
 minuq for providing pull request for issue #7
+Paul-Reed  for enhancing the dimmer node see issue #21
+
 
 # Changelog
 Changes can be followed [here](/CHANGELOG.md)
