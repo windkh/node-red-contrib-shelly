@@ -3,19 +3,20 @@
     "version": "1.6.0",
     "description": "Shelly nodes.",
     "dependencies": {
-        "request" : "2.88.2"
+        "request": "2.88.2"
     },
-    "node-red" : {
+    "node-red": {
         "nodes": {
             "shelly": "shelly/99-shelly.js"
         }
     },
     "keywords": [
-        "node-red", "shelly"
+        "node-red",
+        "shelly"
     ],
-    "repository" :
-    { "type" : "git"
-    , "url" : "https://github.com/windkh/node-red-contrib-shelly"
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/windkh/node-red-contrib-shelly"
     },
     "author": "Karl-Heinz Wind",
     "license": "MIT"
