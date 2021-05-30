@@ -1,8 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.6.1] - 2021-05-30
+### Added git workflows 
+
 ## [1.6.0] - 2021-05-30
-### Gte status can be suppressed in hig hperformance scenarios: e.g. dimmer - [#21](https://github.com/windkh/node-red-contrib-shelly/issues/21)
+### Get status can be suppressed in hig hperformance scenarios: e.g. dimmer - [#21](https://github.com/windkh/node-red-contrib-shelly/issues/21)
 
 ## [1.5.3] - 2020-12-22
 ### Added status to msg when polling status - [#9](https://github.com/windkh/node-red-contrib-shelly/issues/9)
