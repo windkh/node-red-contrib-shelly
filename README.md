@@ -30,12 +30,15 @@ If you want to support this free project. Any help is welcome. You can donate by
 <a target="blank" href="https://blockchain.com/btc/payment_request?address=1PBi7BoZ1mBLQx4ePbwh1MVoK2RaoiDsp5"><img src="https://img.shields.io/badge/Donate-Bitcoin-green.svg"/></a>
 <a target="blank" href="https://www.paypal.me/windkh"><img src="https://img.shields.io/badge/Donate-PayPal-blue.svg"/></a>
 
+<a href="https://www.buymeacoffee.com/windka" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+
 
 # Credits
 - gerdemann for providing the roller shutter code
 - Gophlin for provider the Dimmer (SL) code
 - minuq for providing pull request for issue #7
-- Paul-Reed  for enhancing the dimmer node see issue #21
+- Paul-Reed for enhancing the dimmer node see issue #21
+- Docjones for providing the skeleton for ShellyRGBW node see pull request #15
 
 
 # Changelog
