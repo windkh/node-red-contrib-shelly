@@ -350,7 +350,8 @@
         color: '#319DD7',
         defaults: {
             hostname: { value:"", required:true },
-            description: { value:"" }
+            description: { value:"" },
+	    dimmerStat: { value: true }
         },
         credentials: {
             username: { type: "text" },
@@ -389,6 +390,10 @@
         <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
         <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
     </div>
+    <div class="form-row">
+        <label for="node-input-dimmerStat"><i class="fa fa-share"></i> Status</label>
+        <input type="checkbox" id="node-input-dimmerStat" style="display: inline-block; width: auto; vertical-align: top"> Enable status output after each command
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="shelly-dimmer">
@@ -399,6 +404,7 @@
     <p>Description of the device.</p>
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
+    <p>Status enables a node status payload following every command.</p>
 
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for turning the dimmer on or off:</p>

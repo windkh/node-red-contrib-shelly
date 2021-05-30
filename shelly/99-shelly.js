@@ -357,6 +357,7 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
         var node = this;
         node.hostname = config.hostname;
+	node.dimmerStat = config.dimmerStat || false;
 
         /* node.shellyInfo
         GET /shelly
@@ -441,13 +442,15 @@ module.exports = function (RED) {
 
             if(route){
                 shellyGet(route, node, function(result) {
-                    shellyGet('/status', node, function(result) {
-                        var status = JSON.parse(result);
-                        msg.status = status;
-                        msg.payload = status.lights;
-                        node.send([msg]);
-                    });
-                });
+		    if (node.dimmerStat) {
+			shellyGet('/status', node, function(result) {
+                          var status = JSON.parse(result);
+                          msg.status = status;
+                          msg.payload = status.lights;
+                          node.send([msg]);
+			});
+		    }
+		});
             }
             else{
                 shellyGet('/status', node, function(result) {
