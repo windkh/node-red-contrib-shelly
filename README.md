@@ -3,6 +3,13 @@
 ![License](https://img.shields.io/github/license/windkh/node-red-contrib-shelly.svg)
 [![NPM](https://img.shields.io/npm/v/node-red-contrib-shelly?logo=npm)](https://www.npmjs.org/package/node-red-contrib-shelly)
 [![Known Vulnerabilities](https://snyk.io/test/npm/node-red-contrib-shelly/badge.svg)](https://snyk.io/test/npm/node-red-contrib-shelly)
+[![Downloads](https://img.shields.io/npm/dm/node-red-contrib-shelly.svg)](https://www.npmjs.com/package/node-red-contrib-shelly)
+[![Total Downloads](https://img.shields.io/npm/dt/node-red-contrib-shelly.svg)](https://www.npmjs.com/package/node-red-contrib-shelly)
+[![Package Quality](http://npm.packagequality.com/shield/node-red-contrib-shelly.png)](http://packagequality.com/#?package=node-red-contrib-shelly)
+![Build](https://img.shields.io/github/workflow/status/windkh/node-red-contrib-shelly/Node.js%20CI?event=push)
+[![Open Issues](https://img.shields.io/github/issues-raw/windkh/node-red-contrib-shelly.svg)](https://github.com/windkh/node-red-contrib-shelly/issues)
+[![Closed Issues](https://img.shields.io/github/issues-closed-raw/windkh/node-red-contrib-shelly.svg)](https://github.com/windkh/node-red-contrib-shelly/issues?q=is%3Aissue+is%3Aclosed)
+...
 
 This package contains nodes for controlling shelly devices
 
@@ -23,11 +30,12 @@ If you want to support this free project. Any help is welcome. You can donate by
 <a target="blank" href="https://blockchain.com/btc/payment_request?address=1PBi7BoZ1mBLQx4ePbwh1MVoK2RaoiDsp5"><img src="https://img.shields.io/badge/Donate-Bitcoin-green.svg"/></a>
 <a target="blank" href="https://www.paypal.me/windkh"><img src="https://img.shields.io/badge/Donate-PayPal-blue.svg"/></a>
 
+
 # Credits
-gerdemann for providing the roller shutter code
-Gophlin for provider the Dimmer (SL) code
-minuq for providing pull request for issue #7
-Paul-Reed  for enhancing the dimmer node see issue #21
+- gerdemann for providing the roller shutter code
+- Gophlin for provider the Dimmer (SL) code
+- minuq for providing pull request for issue #7
+- Paul-Reed  for enhancing the dimmer node see issue #21
 
 
 # Changelog
