@@ -469,4 +469,161 @@ module.exports = function (RED) {
             password: { type: "password" },
         }
     });
+    // --------------------------------------------------------------------------------------------
+    // The dimmer node controls a shelly dimmer.
+    function ShellyRGBW2Node(config) {
+        RED.nodes.createNode(this, config);
+        var node = this;
+        node.hostname = config.hostname;
+
+        /* node.shellyInfo
+        GET /shelly
+        {
+            "type":"SHRGBW2",
+            "mac":"E868E7811D20",
+            "auth":true,
+            "fw":"20201124-092159/v1.9.0@57ac4ad8",
+            "num_outputs":1
+        }
+        */
+        shellyGet('/shelly', node, function(result) {
+            node.shellyInfo = JSON.parse(result);
+            if(node.shellyInfo.type.startsWith("SHRGBW2")){
+                node.status({ fill: "green", shape: "ring", text: "Connected." });
+            }
+            else{
+                node.status({ fill: "red", shape: "ring", text: "Shelly type " + node.shellyInfo.type + " is not known." });
+            }
+        });
+
+        /* when a payload is received in the format
+            {
+                red : 0,
+                green : 0,
+                blue : 0,
+                on : true,
+                white : 75,
+                gain: 100,
+                effect: 1
+            }
+
+        then the command is send to the shelly.
+
+        The output gets the status of all relays.
+        */
+        this.on('input', function (msg) {
+
+            var route;
+            if(msg.payload !== undefined){
+                var command = msg.payload;
+
+                var red;
+                if(command.red !== undefined){
+                    if(command.red >=1 && command.red <= 255){
+                        red = command.red;
+                    } else {
+                        red = 255;  // Default to full brightness
+                    }
+                }
+
+                var green;
+                if(command.green !== undefined){
+                    if(command.green >=1 && command.green <= 255){
+                        green = command.green;
+                    } else {
+                        green = 255;  // Default to full brightness
+                    }
+                }
+
+                var blue;
+                if(command.blue !== undefined){
+                    if(command.blue >=1 && command.blue <= 255){
+                        blue = command.blue;
+                    } else {
+                        blue = 255;  // Default to full brightness
+                    }
+                }
+
+                var white;
+                if(command.white !== undefined){
+                    if(command.white >=1 && command.white <= 255){
+                        white = command.white;
+                    } else {
+                        white = 255;  // Default to full brightness
+                    }
+                }
+
+                var gain;
+                if(command.gain !== undefined){
+                    if(command.gain >=1 && command.gain <= 100){
+                        gain = command.gain;
+                    } else {
+                        gain = 100;  // Default to full brightness
+                    }
+                }
+
+                var effect;
+                if(command.effect !== undefined){
+                    if(command.effect >=0 && command.effect <= 6){
+                        effect = command.effect;
+                    } else {
+                        effect = 0  // Default to no effect
+                    }
+                }
+
+                var turn;
+                if(command.on !== undefined){
+                    if(command.on == true){
+                        turn = "on";
+                    }
+                    else{
+                        turn = "off"
+                    }
+                }
+                else if(command.turn !== undefined){
+                    turn = command.turn;
+                }
+
+
+                if (turn != undefined && effect != undefined && red != undefined && green != undefined && blue != undefined && white != undefined && efffect != effect){
+                    route = "/color/0?turn=" + turn
+                        + "&gain=" + effect
+                        + "&red=" + red
+                        + "&green=" + green
+                        + "&blue=" + blue
+                        + "&white=" + white
+                        + "&effect=" + effect;
+                }
+                else if (turn != undefined){
+                    route = "/color/0?turn=" + turn;
+                }
+            }
+
+            if(route){
+                shellyGet(route, node, function(result) {
+                    shellyGet('/status', node, function(result) {
+                        var status = JSON.parse(result);
+                        msg.status = status;
+                        msg.payload = status.lights;
+                        node.send([msg]);
+                    });
+                });
+            }
+            else{
+                shellyGet('/status', node, function(result) {
+                    var status = JSON.parse(result);
+                    msg.status = status;
+                    msg.payload = status.lights;
+                    node.send([msg]);
+                });
+            }
+        });
+
+    }
+    RED.nodes.registerType("shelly-rgbw2", ShellyRGBW2Node, {
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        }
+    });
 }
