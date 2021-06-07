@@ -1,10 +1,6 @@
 /**
 * Created by Karl-Heinz Wind
 * see also https://shelly-api-docs.shelly.cloud/#common-http-api
-
-TODO:
-Support for Control roller shutter
-GET /settings/roller/0
 **/
 
 module.exports = function (RED) {
@@ -351,6 +347,8 @@ module.exports = function (RED) {
             password: { type: "password" },
         }
     });
+
+
     // --------------------------------------------------------------------------------------------
     // The dimmer node controls a shelly dimmer.
     function ShellyDimmerNode(config) {
@@ -440,19 +438,19 @@ module.exports = function (RED) {
                 }
             }
 
-            if(route){
+            if(route) {
                 shellyGet(route, node, function(result) {
-		    if (node.dimmerStat) {
-			shellyGet('/status', node, function(result) {
-                          var status = JSON.parse(result);
-                          msg.status = status;
-                          msg.payload = status.lights;
-                          node.send([msg]);
-			});
-		    }
-		});
+		            if (node.dimmerStat) {
+			            shellyGet('/status', node, function(result) {
+                            var status = JSON.parse(result);
+                            msg.status = status;
+                            msg.payload = status.lights;
+                            node.send([msg]);
+			            });
+		            }
+                });
             }
-            else{
+            else {
                 shellyGet('/status', node, function(result) {
                     var status = JSON.parse(result);
                     msg.status = status;
@@ -469,8 +467,10 @@ module.exports = function (RED) {
             password: { type: "password" },
         }
     });
+
+    
     // --------------------------------------------------------------------------------------------
-    // The dimmer node controls a shelly dimmer.
+    // The RGBW2 node controls a shelly LED stripe.
     function ShellyRGBW2Node(config) {
         RED.nodes.createNode(this, config);
         var node = this;
@@ -508,18 +508,17 @@ module.exports = function (RED) {
             }
 
         then the command is send to the shelly.
-
-        The output gets the status of all relays.
         */
+
         this.on('input', function (msg) {
 
             var route;
-            if(msg.payload !== undefined){
+            if(msg.payload !== undefined) {
                 var command = msg.payload;
 
                 var red;
-                if(command.red !== undefined){
-                    if(command.red >=1 && command.red <= 255){
+                if(command.red !== undefined) {
+                    if(command.red >=1 && command.red <= 255) {
                         red = command.red;
                     } else {
                         red = 255;  // Default to full brightness
@@ -527,8 +526,8 @@ module.exports = function (RED) {
                 }
 
                 var green;
-                if(command.green !== undefined){
-                    if(command.green >=1 && command.green <= 255){
+                if (command.green !== undefined) {
+                    if (command.green >=1 && command.green <= 255) {
                         green = command.green;
                     } else {
                         green = 255;  // Default to full brightness
@@ -537,7 +536,7 @@ module.exports = function (RED) {
 
                 var blue;
                 if(command.blue !== undefined){
-                    if(command.blue >=1 && command.blue <= 255){
+                    if (command.blue >=1 && command.blue <= 255){
                         blue = command.blue;
                     } else {
                         blue = 255;  // Default to full brightness
@@ -545,8 +544,8 @@ module.exports = function (RED) {
                 }
 
                 var white;
-                if(command.white !== undefined){
-                    if(command.white >=1 && command.white <= 255){
+                if(command.white !== undefined) {
+                    if (command.white >=1 && command.white <= 255) {
                         white = command.white;
                     } else {
                         white = 255;  // Default to full brightness
@@ -554,17 +553,17 @@ module.exports = function (RED) {
                 }
 
                 var gain;
-                if(command.gain !== undefined){
-                    if(command.gain >=1 && command.gain <= 100){
+                if (command.gain !== undefined) {
+                    if (command.gain >=1 && command.gain <= 100) {
                         gain = command.gain;
                     } else {
-                        gain = 100;  // Default to full brightness
+                        gain = 100;  // Default to full gain
                     }
                 }
 
                 var effect;
-                if(command.effect !== undefined){
-                    if(command.effect >=0 && command.effect <= 6){
+                if (command.effect !== undefined) {
+                    if (command.effect >=0 && command.effect <= 6) {
                         effect = command.effect;
                     } else {
                         effect = 0  // Default to no effect
@@ -572,20 +571,26 @@ module.exports = function (RED) {
                 }
 
                 var turn;
-                if(command.on !== undefined){
-                    if(command.on == true){
+                if (command.on !== undefined) {
+                    if (command.on == true) {
                         turn = "on";
                     }
-                    else{
+                    else {
                         turn = "off"
                     }
                 }
-                else if(command.turn !== undefined){
+                else if (command.turn !== undefined) {
                     turn = command.turn;
                 }
 
 
-                if (turn != undefined && effect != undefined && red != undefined && green != undefined && blue != undefined && white != undefined && efffect != effect){
+                if  (turn != undefined && 
+                    effect != undefined && 
+                    red != undefined && 
+                    green != undefined && 
+                    blue != undefined && 
+                    white != undefined && 
+                    efffect != effect) {
                     route = "/color/0?turn=" + turn
                         + "&gain=" + effect
                         + "&red=" + red
@@ -594,12 +599,12 @@ module.exports = function (RED) {
                         + "&white=" + white
                         + "&effect=" + effect;
                 }
-                else if (turn != undefined){
+                else if (turn != undefined) {
                     route = "/color/0?turn=" + turn;
                 }
             }
 
-            if(route){
+            if (route){
                 shellyGet(route, node, function(result) {
                     shellyGet('/status', node, function(result) {
                         var status = JSON.parse(result);
@@ -609,7 +614,7 @@ module.exports = function (RED) {
                     });
                 });
             }
-            else{
+            else {
                 shellyGet('/status', node, function(result) {
                     var status = JSON.parse(result);
                     msg.status = status;
@@ -618,7 +623,6 @@ module.exports = function (RED) {
                 });
             }
         });
-
     }
     RED.nodes.registerType("shelly-rgbw2", ShellyRGBW2Node, {
         credentials: {

@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.7.1] - 2021-06-07
+### Code cleanup, enhanced readme for RGBW2 node.
+
 ## [1.7.0] - 2021-05-30
 ### Added experimental RGBW node - [#14](https://github.com/windkh/node-red-contrib-shelly/issues/14)
 

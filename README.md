@@ -14,13 +14,13 @@
 This package contains nodes for controlling shelly devices
 
 # Warning
-This package is under construction. Right now only the switches like 
+This package is under construction. Right now the following devices are supported
 - shelly switch 1 (PM), 2 
 - shelly plug
 - shelly 2.5 (roller shutter) 
 - shelly dimmer
 - shelly uni
-are supported.
+- shelly RGBW2
 Other may work but are not really tested so far.
 
 
@@ -233,6 +233,33 @@ The output of the node is an array of status objects for every light of the dimm
     },
 ]
 ```
+
+
+
+# Shelly RGBW2 Node
+The node is able to control a RGBW LED light strip. 
+
+If you only want to get the current status of the dimmer without turning on or off you should leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
+
+The node accepts the following input
+
+
+```
+{
+    red : 0,
+    green : 0,
+	blue : 0,
+	white : 0,
+	gain : 0,
+	effect : 1,
+	on : true
+}
+```
+
+red, green, blue, white can be between 0 and 255. 
+gain can be a value between 0 and 100
+effect = 0 means no effect. 
+
 
 
 # Shelly REST API
