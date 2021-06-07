@@ -21,7 +21,8 @@ This package is under construction. Right now the following devices are supporte
 - shelly dimmer
 - shelly uni
 - shelly RGBW2
-Other may work but are not really tested so far.
+
+Others may work but are not really tested so far.
 
 
 # Thanks for your donation
