@@ -225,10 +225,12 @@ The output of the node is an array of status objects for every light of the dimm
 [
     {
         ison : true,
+		brightness: 100
 	    ...
     },
     {
         ison : true,
+		brightness: 100
 	    ...
     },
 ]

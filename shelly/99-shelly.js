@@ -60,12 +60,35 @@ module.exports = function (RED) {
         });
     }
 
+    function shellyPing(node, types){
+        shellyGet('/shelly', node, function(result) {
+            node.shellyInfo = JSON.parse(result);
+
+            var found = false;
+            for (var i = 0; i < types.length; i++) {
+                var type = types[i];
+                found  = node.shellyInfo.type.startsWith(type)
+                if (found) {
+                    break;
+                }    
+            }
+            
+            if(found){
+                node.status({ fill: "green", shape: "ring", text: "Connected." });
+            }
+            else{
+                node.status({ fill: "red", shape: "ring", text: "Shelly type " + node.shellyInfo.type + " is not known." });
+            }
+        });
+    }
+
     // --------------------------------------------------------------------------------------------
     // The switch node controls a shelly switch.
     function ShellySwitchNode(config) {
         RED.nodes.createNode(this, config);
         var node = this;
         node.hostname = config.hostname;
+        node.pollInterval = parseInt(config.pollinginterval);
 
         /* node.shellyInfo
         GET /shelly
@@ -77,17 +100,15 @@ module.exports = function (RED) {
             "num_outputs": 1
         }
         */
-       shellyGet('/shelly', node, function(result) {
-            node.shellyInfo = JSON.parse(result);
-            if( node.shellyInfo.type.startsWith("SHPLG-") || 
-                node.shellyInfo.type.startsWith("SHSW-") ||
-                node.shellyInfo.type.startsWith("SHUNI-")){
-                node.status({ fill: "green", shape: "ring", text: "Connected." });
-            }
-            else{
-                node.status({ fill: "red", shape: "ring", text: "Shelly type " + node.shellyInfo.type + " is not known." });
-            }
-        });
+
+        var types = ["SHPLG-", "SHSW-", "SHUNI-"];
+        shellyPing(node, types);
+
+        if(node.pollInterval > 0) {
+            node.timer = setInterval(function() {
+                shellyPing(node, types);
+            }, node.pollInterval);
+        }
 
         /* when a payload is received in the format
             {
@@ -265,6 +286,7 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
         var node = this;
         node.hostname = config.hostname;
+        node.pollInterval = parseInt(config.pollinginterval);
 
         /* node.shellyInfo
         GET /shelly
@@ -276,15 +298,15 @@ module.exports = function (RED) {
             "num_outputs": 1
         }
         */
-       shellyGet('/shelly', node, function(result) {
-            node.shellyInfo = JSON.parse(result);
-            if(node.shellyInfo.type.startsWith("SHPLG-") || node.shellyInfo.type.startsWith("SHSW-")){
-                node.status({ fill: "green", shape: "ring", text: "Connected." });
-            }
-            else{
-                node.status({ fill: "red", shape: "ring", text: "Shelly type " + node.shellyInfo.type + " is not known." });
-            }
-        });
+
+        var types = ["SHPLG-", "SHSW-"];
+        shellyPing(node, types);
+
+        if(node.pollInterval > 0) {
+            node.timer = setInterval(function() {
+                shellyPing(node, types);
+            }, node.pollInterval);
+        }
 
         /* when a payload is received in the format
             {
@@ -355,7 +377,8 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
         var node = this;
         node.hostname = config.hostname;
-	node.dimmerStat = config.dimmerStat || false;
+	    node.dimmerStat = config.dimmerStat || false;
+        node.pollInterval = parseInt(config.pollinginterval);
 
         /* node.shellyInfo
         GET /shelly
@@ -368,15 +391,15 @@ module.exports = function (RED) {
            "num_meters":1
         }
         */
-       shellyGet('/shelly', node, function(result) {
-            node.shellyInfo = JSON.parse(result);
-            if(node.shellyInfo.type.startsWith("SHDM-")){
-                node.status({ fill: "green", shape: "ring", text: "Connected." });
-            }
-            else{
-                node.status({ fill: "red", shape: "ring", text: "Shelly type " + node.shellyInfo.type + " is not known." });
-            }
-        });
+
+        var types = ["SHDM-"];
+        shellyPing(node, types);
+
+        if(node.pollInterval > 0) {
+            node.timer = setInterval(function() {
+                shellyPing(node, types);
+            }, node.pollInterval);
+        }
 
         /* when a payload is received in the format
             {
@@ -468,7 +491,7 @@ module.exports = function (RED) {
         }
     });
 
-    
+
     // --------------------------------------------------------------------------------------------
     // The RGBW2 node controls a shelly LED stripe.
     function ShellyRGBW2Node(config) {
@@ -486,15 +509,8 @@ module.exports = function (RED) {
             "num_outputs":1
         }
         */
-        shellyGet('/shelly', node, function(result) {
-            node.shellyInfo = JSON.parse(result);
-            if(node.shellyInfo.type.startsWith("SHRGBW2")){
-                node.status({ fill: "green", shape: "ring", text: "Connected." });
-            }
-            else{
-                node.status({ fill: "red", shape: "ring", text: "Shelly type " + node.shellyInfo.type + " is not known." });
-            }
-        });
+
+        shellyPing(node, ["SHRGBW2"]);
 
         /* when a payload is received in the format
             {

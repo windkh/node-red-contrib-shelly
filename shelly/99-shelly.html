@@ -9,7 +9,8 @@
         color: '#319DD7',
         defaults: {
             hostname: { value:"", required:true },
-            description: { value:"" }
+            description: { value:"" },
+            pollinginterval: { value: 5000 },
         },
         credentials: {
             username: { type: "text" },
@@ -47,6 +48,10 @@
     <div class="form-row">
         <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
         <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
+    </div>
+    <div class="form-row">
+        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
+        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
     </div>
 </script>
 
@@ -182,7 +187,7 @@
 
         <div class="form-row" style="background: #fff; margin-left: 20px">
             <div class="form-row">
-                <label for="node-input-pollinginterval"><i class="fa fa-stopwatch"></i> Polling Interval (ms)</label>
+                <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Polling Interval (ms)</label>
                 <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds.)">
             </div>
         </div>
@@ -238,7 +243,8 @@
         color: '#319DD7',
         defaults: {
             hostname: { value:"", required:true },
-            description: { value:"" }
+            description: { value:"" },
+            pollinginterval: { value: 5000 },
         },
         credentials: {
             username: { type: "text" },
@@ -276,6 +282,10 @@
     <div class="form-row">
         <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
         <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
+    </div>
+    <div class="form-row">
+        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
+        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
     </div>
 </script>
 
@@ -351,7 +361,8 @@
         defaults: {
             hostname: { value:"", required:true },
             description: { value:"" },
-	    dimmerStat: { value: true }
+	        dimmerStat: { value: true },
+            pollinginterval: { value: 5000 },
         },
         credentials: {
             username: { type: "text" },
@@ -394,6 +405,11 @@
         <label for="node-input-dimmerStat"><i class="fa fa-share"></i> Status</label>
         <input type="checkbox" id="node-input-dimmerStat" style="display: inline-block; width: auto; vertical-align: top"> Enable status output after each command
     </div>
+    <div class="form-row">
+        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
+        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
+    </div>
+
 </script>
 
 <script type="text/x-red" data-help-name="shelly-dimmer">
