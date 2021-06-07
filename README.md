@@ -45,6 +45,13 @@ If you want to support this free project. Any help is welcome. You can donate by
 Changes can be followed [here](/CHANGELOG.md)
 
 
+# General
+To check if the node is available in the network, a HTTP GET to /shelly is issued. This route returns a type string which is 
+verified. You can configure an interval for the polling. The default is 5000ms. Most node will call HTTP GET to the /status route
+after a input is received from the node. This answer is directly available at the output via msg.status. The msg.payload property 
+contains a lightweight version of this status object.
+
+
 # Shelly Switch Node
 The node is able to turn on and turn off a shelly switch. It outputs the status of all relays after every interaction with the shelly device.
 Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
