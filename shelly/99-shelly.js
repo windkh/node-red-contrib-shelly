@@ -691,7 +691,7 @@ module.exports = function (RED) {
                     var status = JSON.parse(result);
                     var timestamp=new Date().toLocaleTimeString();
                     if(status.sensor.is_valid){
-                        node.status({ fill: "green", shape: "ring", text: "Status: " + status.sensor.state + " " + timestamp});
+                        node.status({ fill: "green", shape: "ring", text: "Motion: " + status.sensor.motion + " Vibration: " + status.sensor.vibration + " " + timestamp});
                     }
                     else {
                         node.status({ fill: "red", shape: "ring", text: "Status: invalid" });
