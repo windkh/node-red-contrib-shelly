@@ -462,3 +462,91 @@
         <code>]</code>
     </ul>
 </script>
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/javascript">
+    RED.nodes.registerType('shelly-switch', {
+        category: 'shelly',
+        color: '#319DD7',
+        defaults: {
+            hostname: { value:"", required:true },
+            description: { value:"" },
+            pollinginterval: { value: 5000 },
+        },
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "shelly.png",
+        paletteLabel: "switch",
+        label: function () {
+            return this.description || this.hostname || "Shelly switch";
+        },
+        labelStyle: function() {
+            return this.description?"node_label_italic":"";
+        }
+    });
+
+</script>
+
+
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/x-red" data-template-name="shelly-rgbw2">
+    <div class="form-row">
+        <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
+        <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the switch">
+    </div>
+    <div class="form-row">
+        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
+        <input type="text" id="node-input-description" placeholder="The description of the switch (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="shelly-rgbw2">
+    <p>A node that controls a shelly RGBW2 device.</p>
+
+    <h3>Configuration</h3>
+    <p>Hostname is the IP address or the hostname of the device.</p>
+    <p>Description of the device.</p>
+    <p>User is optional and must only be set if security is enabled.</p>
+    <p>Password is optional and must only be set if security is enabled.</p>
+
+    <h3>Inputs</h3>
+    <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>{</code>
+        <br/>
+        <code>    red : 0,</code>
+        <br/>
+        <code>    green : 0,</code>
+        <br/>
+        <code>    blue : 0,</code>
+        <br/>
+        <code>    white : 0,</code>
+        <br/>
+        <code>    gain : 0,</code>
+        <br/>
+        <code>    effect : 0,</code>
+        <br/>
+        <code>    on : true</code>
+        <br/>
+        <code>}</code>
+    </ul>
+    <p>Values or colors must be betweem 0..255.</p>
+    <p>Value of gain must be between 0..100.</p>
+    <p>effect = 0 is default means that no effect is used.</p>
+    
+    <h3>Outputs</h3>
+    <p>1. Standard Ouput: A status objects.</p>
+    <p><code>msg.payload</code></p>
+</script>
