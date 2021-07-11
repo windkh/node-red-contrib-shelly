@@ -184,10 +184,10 @@ module.exports = function (RED) {
 
     // --------------------------------------------------------------------------------------------
     // The door node controls a shelly door device.
-    /* The device can diconnect but wakes up when the switch changes the state or after every 4-5 minutes
+    /* The device can disconnect but wakes up when the switch changes the state or after every 4-5 minutes
     GET /status
     {
-        "wifi_sta":{"connected":true,"ssid":"HiveRelayR2","ip":"192.168.178.146","rssi":-62},
+        "wifi_sta":{"connected":true,"ssid":"...","ip":"192.168.178.146","rssi":-62},
         "cloud":{"enabled":true,"connected":true},
         "mqtt":{"connected":false},
         "time":"15:22",
@@ -646,4 +646,92 @@ module.exports = function (RED) {
             password: { type: "password" },
         }
     });
+
+    // --------------------------------------------------------------------------------------------
+    // The motion node controls a shelly motion device.
+    /* The device can disconnect but wakes up when the switch changes the state or after every 4-5 minutes
+    GET /status
+    {
+        lux: 
+            value: 88
+            illumination: "dark"
+            is_valid: true
+        sensor: 
+            motion: true
+            vibration: false
+            timestamp: 1626034808
+            active: true
+            is_valid: true
+        bat:
+            value: 100
+            voltage: 4.207
+            charger: true
+    }
+    */
+    function ShellyMotionNode(config) {
+        RED.nodes.createNode(this, config);
+        var node = this;
+        node.hostname = config.hostname;
+        node.sendRawStatus = config.sendfullstatus;
+        node.pollInterval = parseInt(config.pollinginterval);
+
+        node.timer = setInterval(function() {
+            node.emit("input", {});
+        }, node.pollInterval);
+
+        node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
+
+        this.on('input', function (msg) {
+
+                if(msg.payload){
+                    node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
+                }
+
+                shellyTryGet('/status', node, node.pollInterval, function(result) {
+                    var status = JSON.parse(result);
+                    var timestamp=new Date().toLocaleTimeString();
+                    if(status.sensor.is_valid){
+                        node.status({ fill: "green", shape: "ring", text: "Status: " + status.sensor.state + " " + timestamp});
+                    }
+                    else {
+                        node.status({ fill: "red", shape: "ring", text: "Status: invalid" });
+                    }
+
+                    var payload;
+                    if(!node.sendRawStatus){
+                        payload = {
+                            sensor : status.sensor,
+                            lux : status.lux,
+                            bat :  status.bat,
+                          }
+                    }
+                    else{
+                        payload = status;
+                    }
+
+                    msg.payload = payload;
+                    node.send([msg]);
+                },
+                function(error){
+                    if(msg.payload){
+                        node.status({ fill: "yellow", shape: "ring", text: "Status unknown: device not reachable." });
+                    }
+                });
+        });
+
+        this.on('close', function(done) {
+            clearInterval(node.timer);
+            done();
+        });
+    }
+
+    RED.nodes.registerType("shelly-motion", ShellyMotionNode, {
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        }
+    });
 }
+
+
+

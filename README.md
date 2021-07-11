@@ -21,6 +21,7 @@ This package is under construction. Right now the following devices are supporte
 - shelly dimmer
 - shelly uni
 - shelly RGBW2
+- shelly motion
 
 Others may work but are not really tested so far.
 
@@ -269,6 +270,39 @@ The node accepts the following input
 red, green, blue, white can be between 0 and 255. 
 gain can be a value between 0 and 100
 effect = 0 means no effect. 
+
+
+# Shelly Motion Node
+The node is able to poll a shelly motion sensor. It outputs the sensor status together with battery and lux sensor values on every change of the motion status.
+
+The output of the node is as follows:
+
+
+```
+{
+    sensor
+	{
+		motion: true,
+		vibration: true,
+		timestamp: 12345,
+		active: true,
+		is_valid: true
+	},
+
+	lux
+	{
+		value: 150,
+		illumination: "twilight",
+		is_valid: true
+	},
+
+	bat
+	{
+		value: 100,
+		voltage: 6.01
+	}
+}
+```
 
 
 

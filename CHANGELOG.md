@@ -1,11 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.8.2] - 2021-07-11
+### Beta support for shelly motion. - [#17](https://github.com/windkh/node-red-contrib-shelly/issues/17)
+
 ## [1.8.1] - 2021-07-11
 ### Added missing section in Shelly-RGBW2 html
 
 ## [1.8.0] - 2021-07-11
-### Beta support for ShellyRGBW2 node (not fully tested). - [#12](https://github.com/windkh/node-red-contrib-shelly/issues/25)
+### Beta support for ShellyRGBW2 node (not fully tested). - [#25](https://github.com/windkh/node-red-contrib-shelly/issues/25)
 
 ## [1.7.2] - 2021-06-07
 ### Connection status is polled now. - [#12](https://github.com/windkh/node-red-contrib-shelly/issues/12)

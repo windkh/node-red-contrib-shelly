@@ -491,7 +491,6 @@
 </script>
 
 
-
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
     RED.nodes.registerType('shelly-rgbw2', {
@@ -499,8 +498,7 @@
         color: '#319DD7',
         defaults: {
             hostname: { value:"", required:true },
-            description: { value:"" },
-            pollinginterval: { value: 5000 },
+            description: { value:"" }
         },
         credentials: {
             username: { type: "text" },
@@ -574,6 +572,81 @@
     <p>Values or colors must be betweem 0..255.</p>
     <p>Value of gain must be between 0..100.</p>
     <p>effect = 0 is default means that no effect is used.</p>
+    
+    <h3>Outputs</h3>
+    <p>1. Standard Ouput: A status objects.</p>
+    <p><code>msg.payload</code></p>
+</script>
+
+
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/javascript">
+    RED.nodes.registerType('shelly-motion', {
+        category: 'shelly',
+        color: '#319DD7',
+        defaults: {
+            hostname: { value:"", required:true },
+            description: { value:"" },
+            pollinginterval: { value: 1000 },
+            sendfullstatus: { value: false },
+        },
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "shelly.png",
+        paletteLabel: "motion",
+        label: function () {
+            return this.description || this.hostname || "Shelly motion";
+        },
+        labelStyle: function() {
+            return this.description?"node_label_italic":"";
+        }
+    });
+
+</script>
+
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/x-red" data-template-name="shelly-motion">
+    <div class="form-row">
+        <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
+        <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the switch">
+    </div>
+    <div class="form-row">
+        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
+        <input type="text" id="node-input-description" placeholder="The description of the switch (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
+    </div>
+    <div class="form-row">
+        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
+        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-sendfullstatus"><i class="fa fa-search"></i> Send full status object.</label>
+        <input type="checkbox" id="node-input-sendfullstatus" style="display: inline-block; width: auto; vertical-align: top;">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="shelly-motion">
+    <p>A node that controls a shelly motion device.</p>
+
+    <h3>Configuration</h3>
+    <p>Hostname is the IP address or the hostname of the device.</p>
+    <p>Description of the device.</p>
+    <p>User is optional and must only be set if security is enabled.</p>
+    <p>Password is optional and must only be set if security is enabled.</p>
+
+    <h3>Inputs</h3>
+    <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
     
     <h3>Outputs</h3>
     <p>1. Standard Ouput: A status objects.</p>
