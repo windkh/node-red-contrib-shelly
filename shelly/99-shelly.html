@@ -491,6 +491,35 @@
 </script>
 
 
+
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/javascript">
+    RED.nodes.registerType('shelly-rgbw2', {
+        category: 'shelly',
+        color: '#319DD7',
+        defaults: {
+            hostname: { value:"", required:true },
+            description: { value:"" },
+            pollinginterval: { value: 5000 },
+        },
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "shelly.png",
+        paletteLabel: "rgbw2",
+        label: function () {
+            return this.description || this.hostname || "Shelly RGBW2";
+        },
+        labelStyle: function() {
+            return this.description?"node_label_italic":"";
+        }
+    });
+
+</script>
+
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/x-red" data-template-name="shelly-rgbw2">
     <div class="form-row">
