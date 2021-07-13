@@ -277,6 +277,7 @@ timer can be a value in seconds to flip back on/off
 
 ```
 {
+	mode : "white",
     light : 0,
     on : true,
     brightness: 100,
