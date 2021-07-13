@@ -257,19 +257,37 @@ The node accepts the following input
 
 ```
 {
+    mode : "color",
     red : 0,
     green : 0,
 	blue : 0,
 	white : 0,
 	gain : 0,
 	effect : 1,
-	on : true
+	on : true,
+	timer : 0
 }
 ```
 
 red, green, blue, white can be between 0 and 255. 
-gain can be a value between 0 and 100
+gain can be a value between 0 and 100.
 effect = 0 means no effect. 
+timer can be a value in seconds to flip back on/off
+
+
+```
+{
+    light : 0,
+    on : true,
+    brightness: 100,
+	timer : 0
+}
+```
+
+light 0 .. 3 is the number of the strip. 
+brightness can be a value between 0 and 100. 
+timer can be a value in seconds to flip back on/off
+
 
 
 # Shelly Motion Node

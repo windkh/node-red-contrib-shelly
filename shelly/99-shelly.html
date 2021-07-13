@@ -498,7 +498,9 @@
         color: '#319DD7',
         defaults: {
             hostname: { value:"", required:true },
-            description: { value:"" }
+            description: { value:"" },
+            ledStat: { value: true },
+            pollinginterval: { value: 5000 },
         },
         credentials: {
             username: { type: "text" },
@@ -536,6 +538,14 @@
         <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
         <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
     </div>
+    <div class="form-row">
+        <label for="node-input-ledStat"><i class="fa fa-share"></i> Status</label>
+        <input type="checkbox" id="node-input-ledStat" style="display: inline-block; width: auto; vertical-align: top"> Enable status output after each command
+    </div>
+    <div class="form-row">
+        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
+        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="shelly-rgbw2">
@@ -553,26 +563,44 @@
     <ul>
         <code>{</code>
         <br/>
-        <code>    red : 0,</code>
+        <code>    red : 255,</code>
         <br/>
-        <code>    green : 0,</code>
+        <code>    green : 255,</code>
         <br/>
-        <code>    blue : 0,</code>
+        <code>    blue : 255,</code>
         <br/>
-        <code>    white : 0,</code>
+        <code>    white : 255,</code>
         <br/>
-        <code>    gain : 0,</code>
+        <code>    gain : 100,</code>
         <br/>
         <code>    effect : 0,</code>
         <br/>
         <code>    on : true</code>
+        <br/>
+        <code>    timer : 0</code>
         <br/>
         <code>}</code>
     </ul>
     <p>Values or colors must be betweem 0..255.</p>
     <p>Value of gain must be between 0..100.</p>
     <p>effect = 0 is default means that no effect is used.</p>
-    
+    <p>timer = 0 time in seconds to flip back. 0 is default means that no flip back is used.</p>
+    <p> or </p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>{</code>
+        <br/>
+        <code>    light : 0,</code>
+        <br/>
+        <code>    brightness : 100,</code>
+        <br/>
+        <code>    on : true</code>
+        <br/>
+        <code>    timer : 0</code>
+        <br/>
+        <code>}</code>
+    </ul>
+
     <h3>Outputs</h3>
     <p>1. Standard Ouput: A status objects.</p>
     <p><code>msg.payload</code></p>

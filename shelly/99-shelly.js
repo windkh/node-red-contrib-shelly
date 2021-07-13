@@ -153,7 +153,7 @@ module.exports = function (RED) {
                 }
             }
 
-            if(route){
+            if(route !== undefined){
                 shellyGet(route, node, function(result) {
                     shellyGet('/status', node, function(result) {
                         var status = JSON.parse(result);
@@ -342,7 +342,7 @@ module.exports = function (RED) {
                 }
             }
 
-            if(route){
+            if(route !== undefined){
                 shellyGet(route, node, function(result) {
                     shellyGet('/status', node, function(result) {
                         var status = JSON.parse(result);
@@ -461,7 +461,7 @@ module.exports = function (RED) {
                 }
             }
 
-            if(route) {
+            if(route !== undefined) {
                 shellyGet(route, node, function(result) {
 		            if (node.dimmerStat) {
 			            shellyGet('/status', node, function(result) {
@@ -498,7 +498,9 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
         var node = this;
         node.hostname = config.hostname;
-
+        node.ledStat = config.ledStat || false;
+        node.pollInterval = parseInt(config.pollinginterval);
+    
         /* node.shellyInfo
         GET /shelly
         {
@@ -510,19 +512,37 @@ module.exports = function (RED) {
         }
         */
 
-        shellyPing(node, ["SHRGBW2"]);
+        var types = ["SHRGBW2"];
+        shellyPing(node, types);
+
+        if(node.pollInterval > 0) {
+            node.timer = setInterval(function() {
+                shellyPing(node, types);
+            }, node.pollInterval);
+        }
 
         /* when a payload is received in the format
             {
+                mode : "color",
                 red : 0,
                 green : 0,
                 blue : 0,
                 on : true,
+                timer : 0,
                 white : 75,
                 gain: 100,
                 effect: 1
             }
 
+            or
+
+            {
+                mode : "white",
+                light : 0,
+                brightness : 100,
+                on: true,
+                timer : 0
+            }
         then the command is send to the shelly.
         */
 
@@ -532,114 +552,214 @@ module.exports = function (RED) {
             if(msg.payload !== undefined) {
                 var command = msg.payload;
 
-                var red;
-                if(command.red !== undefined) {
-                    if(command.red >=1 && command.red <= 255) {
-                        red = command.red;
-                    } else {
-                        red = 255;  // Default to full brightness
-                    }
+                var mode;
+                if(command.mode !== undefined) {
+                    mode = command.mode;
+                }
+                else {
+                    mode = "color";
                 }
 
-                var green;
-                if (command.green !== undefined) {
-                    if (command.green >=1 && command.green <= 255) {
-                        green = command.green;
-                    } else {
-                        green = 255;  // Default to full brightness
+                if(mode === "color") {
+                    var red;
+                    if(command.red !== undefined) {
+                        if(command.red >= 0 && command.red <= 255) {
+                            red = command.red;
+                        } else {
+                            red = 255;  // Default to full brightness
+                        }
                     }
-                }
 
-                var blue;
-                if(command.blue !== undefined){
-                    if (command.blue >=1 && command.blue <= 255){
-                        blue = command.blue;
-                    } else {
-                        blue = 255;  // Default to full brightness
+                    var green;
+                    if (command.green !== undefined) {
+                        if (command.green >= 0 && command.green <= 255) {
+                            green = command.green;
+                        } else {
+                            green = 255;  // Default to full brightness
+                        }
                     }
-                }
 
-                var white;
-                if(command.white !== undefined) {
-                    if (command.white >=1 && command.white <= 255) {
-                        white = command.white;
-                    } else {
-                        white = 255;  // Default to full brightness
+                    var blue ;
+                    if(command.blue !== undefined){
+                        if (command.blue >= 0 && command.blue <= 255){
+                            blue = command.blue;
+                        } else {
+                            blue = 255;  // Default to full brightness
+                        }
                     }
-                }
 
-                var gain;
-                if (command.gain !== undefined) {
-                    if (command.gain >=1 && command.gain <= 100) {
-                        gain = command.gain;
-                    } else {
-                        gain = 100;  // Default to full gain
+                    var white;
+                    if(command.white !== undefined) {
+                        if (command.white >= 0 && command.white <= 255) {
+                            white = command.white;
+                        } else {
+                            white = 255;  // Default to full brightness
+                        }
                     }
-                }
 
-                var effect;
-                if (command.effect !== undefined) {
-                    if (command.effect >=0 && command.effect <= 6) {
-                        effect = command.effect;
-                    } else {
-                        effect = 0  // Default to no effect
+                    var gain;
+                    if (command.gain !== undefined) {
+                        if (command.gain >= 0 && command.gain <= 100) {
+                            gain = command.gain;
+                        } else {
+                            gain = 100;  // Default to full gain
+                        }
                     }
-                }
 
-                var turn;
-                if (command.on !== undefined) {
-                    if (command.on == true) {
+                    var effect;
+                    if (command.effect !== undefined) {
+                        if (command.effect >=0) {
+                            effect = command.effect;
+                        } else {
+                            effect = 0  // Default to no effect
+                        }
+                    }
+
+                    var timer;
+                    if (command.timer !== undefined) {
+                        if (command.timer >=0) {
+                            timer = command.timer;
+                        } else {
+                            timer = 0  // Default to no timer
+                        }
+                    }
+
+                    var turn;
+                    if (command.on !== undefined) {
+                        if (command.on == true) {
+                            turn = "on";
+                        }
+                        else {
+                            turn = "off"
+                        }
+                    }
+                    else if (command.turn !== undefined) {
+                        turn = command.turn;
+                    }
+                    else
+                    {
                         turn = "on";
                     }
-                    else {
-                        turn = "off"
+
+                    
+                    // create route
+                    route = "/color/0?turn=" + turn;
+
+                    if(gain !== undefined) {
+                        route += "&gain=" + gain;
+                    }
+                    
+                    if(red !== undefined) {
+                        route += "&red=" + red;
+                    }
+
+                    if(green !== undefined) {
+                        route += "&green=" + green;
+                    }
+
+                    if(blue !== undefined) {
+                        route += "&blue=" + blue;
+                    }
+
+                    if(white !== undefined) {
+                        route += "&white=" + white;
+                    }
+
+                    if(effect !== undefined) {
+                        route += "&effect=" + effect;
+                    }
+
+                    if(timer !== undefined && timer > 0) {
+                        route += "&timer=" + timer;
                     }
                 }
-                else if (command.turn !== undefined) {
-                    turn = command.turn;
-                }
+                else if(mode === "white") {
+                    
+                    var light;
+                    if (command.light !== undefined) {
+                        if (command.light >=0) {
+                            light = command.light;
+                        } else {
+                            light = 0  // Default to no 0
+                        }
+                    }
+
+                    var brightness;
+                    if (command.brightness !== undefined) {
+                        if (command.brightness >= 0 && command.brightness <= 100) {
+                            brightness = command.brightness;
+                        } else {
+                            brightness = 100;  // Default to full brightness
+                        }
+                    }
+
+                    var timer;
+                    if (command.timer !== undefined) {
+                        if (command.timer >=0) {
+                            timer = command.timer;
+                        } else {
+                            timer = 0  // Default to no timer
+                        }
+                    }
+
+                    var turn;
+                    if (command.on !== undefined) {
+                        if (command.on == true) {
+                            turn = "on";
+                        }
+                        else {
+                            turn = "off"
+                        }
+                    }
+                    else if (command.turn !== undefined) {
+                        turn = command.turn;
+                    }
+                    else
+                    {
+                        turn = "on";
+                    }
 
 
-                if  (turn != undefined && 
-                    effect != undefined && 
-                    red != undefined && 
-                    green != undefined && 
-                    blue != undefined && 
-                    white != undefined && 
-                    efffect != effect) {
-                    route = "/color/0?turn=" + turn
-                        + "&gain=" + effect
-                        + "&red=" + red
-                        + "&green=" + green
-                        + "&blue=" + blue
-                        + "&white=" + white
-                        + "&effect=" + effect;
-                }
-                else if (turn != undefined) {
-                    route = "/color/0?turn=" + turn;
-                }
-            }
+                    // create route
+                    route = "/white/" + light + "?turn=" + turn;
 
-            if (route){
-                shellyGet(route, node, function(result) {
+                    if(brightness !== undefined) {
+                        route += "&brightness=" + brightness;
+                    }
+
+                    if(timer !== undefined && timer > 0) {
+                        route += "&timer=" + timer;
+                    }
+
+                } else {
+                    // TODO error handling: unknown mode.
+                }
+            
+
+                if (route !== undefined){
+                    shellyGet(route, node, function(result) {
+                        if (node.ledStat) {
+                            shellyGet('/status', node, function(result) {
+                                var status = JSON.parse(result);
+                                msg.status = status;
+                                msg.payload = status.lights;
+                                node.send([msg]);
+                            });
+                        }
+                    });
+                }
+                else {
                     shellyGet('/status', node, function(result) {
                         var status = JSON.parse(result);
                         msg.status = status;
                         msg.payload = status.lights;
                         node.send([msg]);
                     });
-                });
-            }
-            else {
-                shellyGet('/status', node, function(result) {
-                    var status = JSON.parse(result);
-                    msg.status = status;
-                    msg.payload = status.lights;
-                    node.send([msg]);
-                });
+                }
             }
         });
     }
+
     RED.nodes.registerType("shelly-rgbw2", ShellyRGBW2Node, {
         credentials: {
             username: { type: "text" },
