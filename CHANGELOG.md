@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [1.9.3] - 2021-07-17
+## [1.9.4] - 2021-07-17
 ### reworked RGBW2 node now supports setting white and color mode from within the config node.
 
 ## [1.9.2] - 2021-07-13
