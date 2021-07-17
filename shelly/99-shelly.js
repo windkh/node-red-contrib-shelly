@@ -500,6 +500,7 @@ module.exports = function (RED) {
         node.hostname = config.hostname;
         node.ledStat = config.ledStat || false;
         node.pollInterval = parseInt(config.pollinginterval);
+        node.mode = config.mode;
     
         /* node.shellyInfo
         GET /shelly
@@ -523,7 +524,6 @@ module.exports = function (RED) {
 
         /* when a payload is received in the format
             {
-                mode : "color",
                 red : 0,
                 green : 0,
                 blue : 0,
@@ -537,7 +537,6 @@ module.exports = function (RED) {
             or
 
             {
-                mode : "white",
                 light : 0,
                 brightness : 100,
                 on: true,
@@ -546,6 +545,14 @@ module.exports = function (RED) {
         then the command is send to the shelly.
         */
 
+        var mode = node.mode;
+        if(mode === "color" || mode === "white"){
+            shellyGet('/settings?mode=' + mode, node, function(result) {
+                var result = JSON.parse(result);
+                // here we can not check if the mode is already changed so we can not display a proper status.
+            });
+        }
+        
         this.on('input', function (msg) {
 
             var route;
@@ -560,7 +567,8 @@ module.exports = function (RED) {
                     mode = "color";
                 }
 
-                if(mode === "color") {
+                if(node.mode === "color") {
+
                     var red;
                     if(command.red !== undefined) {
                         if(command.red >= 0 && command.red <= 255) {
@@ -673,8 +681,8 @@ module.exports = function (RED) {
                         route += "&timer=" + timer;
                     }
                 }
-                else if(mode === "white") {
-                    
+                else if(node.mode === "white") {
+
                     var light;
                     if (command.light !== undefined) {
                         if (command.light >=0) {
@@ -730,12 +738,8 @@ module.exports = function (RED) {
                     if(timer !== undefined && timer > 0) {
                         route += "&timer=" + timer;
                     }
-
-                } else {
-                    // TODO error handling: unknown mode.
                 }
             
-
                 if (route !== undefined){
                     shellyGet(route, node, function(result) {
                         if (node.ledStat) {

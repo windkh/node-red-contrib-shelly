@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.9.3] - 2021-07-17
+### reworked RGBW2 node now supports setting white and color mode from within the config node.
+
 ## [1.9.2] - 2021-07-13
 ### reworked RGBW2 node: white mode supported. - [#25](https://github.com/windkh/node-red-contrib-shelly/issues/25)
 

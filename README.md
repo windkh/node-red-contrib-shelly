@@ -257,7 +257,6 @@ The node accepts the following input
 
 ```
 {
-    mode : "color",
     red : 0,
     green : 0,
 	blue : 0,
@@ -277,8 +276,7 @@ timer can be a value in seconds to flip back on/off
 
 ```
 {
-	mode : "white",
-    light : 0,
+	light : 0,
     on : true,
     brightness: 100,
 	timer : 0

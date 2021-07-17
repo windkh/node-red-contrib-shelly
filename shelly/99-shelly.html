@@ -63,6 +63,7 @@
     <p>Description of the device.</p>
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
+    <p>Ping interval is the time between the status pollings.</p>
 
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
@@ -297,6 +298,7 @@
     <p>Description of the device.</p>
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
+    <p>Ping interval is the time between the status pollings.</p>
 
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for open or close the roller shutter:</p>
@@ -421,6 +423,7 @@
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
     <p>Status enables a node status payload following every command.</p>
+    <p>Ping interval is the time between the status pollings.</p>
 
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for turning the dimmer on or off:</p>
@@ -501,6 +504,7 @@
             description: { value:"" },
             ledStat: { value: true },
             pollinginterval: { value: 5000 },
+            mode: { value:"color", required: true  },
         },
         credentials: {
             username: { type: "text" },
@@ -546,6 +550,21 @@
         <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
         <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
     </div>
+
+    <hr align="middle"/>
+
+    <div class="form-row">
+        <label for="node-input-mode"><i class="fa fa-pencil"></i> Device Type</label>
+        <div style="display: inline-block; position: relative; width: 70%; height: 19.1333px;">
+        <div style="position: absolute; left: 0; right: 0;">
+          <select id="node-input-mode" style="width:100%">
+            <option value="color">Color - Shelly controls Red, Blue, Green and White LED stripes</option>
+            <option value="white">White - Shelly controls 4x White LED stripes</option>
+          </select>
+        </div>
+        </div>
+    </div>
+
 </script>
 
 <script type="text/x-red" data-help-name="shelly-rgbw2">
@@ -556,6 +575,8 @@
     <p>Description of the device.</p>
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
+    <p>Status enables a node status payload following every command.</p>
+    <p>Ping interval is the time between the status pollings.</p>
 
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
@@ -672,6 +693,7 @@
     <p>Description of the device.</p>
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
+    <p>Ping interval is the time between the status pollings.</p>
 
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
