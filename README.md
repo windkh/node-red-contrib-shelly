@@ -291,6 +291,7 @@ timer can be a value in seconds to flip back on/off
 
 # Shelly Motion Node
 The node is able to poll a shelly motion sensor. It outputs the sensor status together with battery and lux sensor values on every change of the motion status.
+You can enable two extra outputs which are triggered exclusively only when either motion or vibration is detected.
 
 The output of the node is as follows:
 

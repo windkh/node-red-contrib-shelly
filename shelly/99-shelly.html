@@ -638,6 +638,8 @@
             description: { value:"" },
             pollinginterval: { value: 1000 },
             sendfullstatus: { value: false },
+            hasextraoutputs: { value: false, required: false },
+            outputs: {value: 1}
         },
         credentials: {
             username: { type: "text" },
@@ -652,6 +654,20 @@
         },
         labelStyle: function() {
             return this.description?"node_label_italic":"";
+        },
+        oneditprepare: function() {
+            var that = this;
+            // hasextraoutputs on / off
+            var hasextraoutputs = function() {
+                var mode = $("#node-input-hasextraoutputs").prop('checked');
+                if (mode === true) {
+                    that.outputs = 3;
+                } else {
+                    that.outputs = 1;
+                }
+            };
+            hasextraoutputs();
+            $("#node-input-hasextraoutputs").change(hasextraoutputs);
         }
     });
 
@@ -679,6 +695,13 @@
         <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
         <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
     </div>
+
+    <hr align="middle"/>
+
+    <div class="form-row">
+        <label for="node-input-hasextraoutputs"><i class="fa fa-flash"></i> Enable extra outputs for motion and vibration.</label>
+        <input type="checkbox" id="node-input-hasextraoutputs" style="display: inline-block; width: auto; vertical-align: top;">
+    </div>
     <div class="form-row">
         <label for="node-input-sendfullstatus"><i class="fa fa-search"></i> Send full status object.</label>
         <input type="checkbox" id="node-input-sendfullstatus" style="display: inline-block; width: auto; vertical-align: top;">
@@ -694,6 +717,8 @@
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
     <p>Ping interval is the time between the status pollings.</p>
+    <p>Enable extra outputs for motion and vibration is optional when you want an extra output that is triggered for motion and vibration.</p>
+    <p>Send full status object is optional when you want to see the raw response at the output.</p>
 
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>

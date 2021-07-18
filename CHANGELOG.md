@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.9.5] - 2021-07-18
+### reworked Motion node now supports extra outputs for motion detected and vibration detected.
+
 ## [1.9.4] - 2021-07-17
 ### reworked RGBW2 node now supports setting white and color mode from within the config node.
 

@@ -799,6 +799,11 @@ module.exports = function (RED) {
         node.sendRawStatus = config.sendfullstatus;
         node.pollInterval = parseInt(config.pollinginterval);
 
+        let hasextraoutputs = config.hasextraoutputs;
+        if (hasextraoutputs === undefined) {
+            hasextraoutputs = false;
+        }
+
         node.timer = setInterval(function() {
             node.emit("input", {});
         }, node.pollInterval);
@@ -834,7 +839,27 @@ module.exports = function (RED) {
                     }
 
                     msg.payload = payload;
-                    node.send([msg]);
+
+                    if (!hasextraoutputs) {
+                        node.send([msg]);   
+                    } 
+                    else {
+                        let motionMsg;
+                        let motionDetected = status.sensor.motion;
+                        if(motionDetected)
+                        {
+                            motionMsg = msg;
+                        }
+
+                        let vibrationMsg;
+                        let vibrationDetected = status.sensor.vibration;
+                        if(vibrationDetected)
+                        {
+                            vibrationMsg = msg;
+                        }
+
+                        node.send([msg, motionMsg, vibrationMsg]);
+                    }
                 },
                 function(error){
                     if(msg.payload){
