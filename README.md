@@ -22,6 +22,7 @@ This package is under construction. Right now the following devices are supporte
 - shelly uni
 - shelly RGBW2
 - shelly motion
+- shelly emeasure (EM)
 
 Others may work but are not really tested so far.
 
@@ -319,6 +320,88 @@ The output of the node is as follows:
 		value: 100,
 		voltage: 6.01
 	}
+}
+```
+
+# Shelly EM Node
+The node is able to turn on and turn off a relay in a shelly EM node. It outputs the status of all measuring devices and the status of the relay after every interaction with the shelly device.
+Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
+
+
+```
+{
+    relay : 0,
+	on : true
+}
+```
+
+or you can make use of the alternative notation:
+
+
+```
+{
+    relay : 0,
+	turn : "toggle"
+}
+```
+turn can be one of the following: "toggle", "on", "off"
+
+Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
+
+If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
+This is useful, when you want to poll for the status cyclically.
+
+The output of the node is an array of status objects for every relay of the switch:
+
+
+```
+[
+    {
+        ison : true,
+	    ...
+    },
+    {
+        ison : true,
+	    ...
+    },
+]
+```
+
+The output of the node is as follows:
+
+
+```
+{
+    "relays": [
+        {
+            "ison": false,
+            "has_timer": false,
+            "timer_started": 0,
+            "timer_duration": 0,
+            "timer_remaining": 0,
+            "overpower": false,
+            "is_valid": true,
+            "source": "http"
+        }
+    ],
+    "emeters": [
+        {
+            "power": 0,
+            "reactive": 0,
+            "voltage": 0,
+            "is_valid": true,
+            "total": 0,
+            "total_returned": 0
+        },
+        {
+            "power": 0,
+            "reactive": 0,
+            "voltage": 0,
+            "is_valid": true,
+            "total": 0,
+            "total_returned": 0
+        }
+    ]
 }
 ```
 

@@ -721,7 +721,82 @@
     <p>Send full status object is optional when you want to see the raw response at the output.</p>
 
     <h3>Inputs</h3>
-    <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
+    <p>Empty payload for getting the status.</p>
+    
+    <h3>Outputs</h3>
+    <p>1. Standard Ouput: A status objects.</p>
+    <p><code>msg.payload</code></p>
+</script>
+
+
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/javascript">
+    RED.nodes.registerType('shelly-emeasure', {
+        category: 'shelly',
+        color: '#319DD7',
+        defaults: {
+            hostname: { value:"", required:true },
+            description: { value:"" },
+            pollinginterval: { value: 1000 },
+            outputs: {value: 1}
+        },
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "shelly.png",
+        paletteLabel: "emeasure",
+        label: function () {
+            return this.description || this.hostname || "Shelly EM";
+        },
+        labelStyle: function() {
+            return this.description?"node_label_italic":"";
+        },
+        oneditprepare: function() {
+            var that = this;
+        }
+    });
+
+</script>
+
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/x-red" data-template-name="shelly-emeasure">
+    <div class="form-row">
+        <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
+        <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the switch">
+    </div>
+    <div class="form-row">
+        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
+        <input type="text" id="node-input-description" placeholder="The description of the switch (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
+    </div>
+    <div class="form-row">
+        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
+        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="shelly-emeasure">
+    <p>A node that controls a shelly EM device.</p>
+
+    <h3>Configuration</h3>
+    <p>Hostname is the IP address or the hostname of the device.</p>
+    <p>Description of the device.</p>
+    <p>User is optional and must only be set if security is enabled.</p>
+    <p>Password is optional and must only be set if security is enabled.</p>
+    <p>Ping interval is the time between the status pollings.</p>
+   
+    <h3>Inputs</h3>
+    <p>Empty payload for getting the status.</p>
     
     <h3>Outputs</h3>
     <p>1. Standard Ouput: A status objects.</p>

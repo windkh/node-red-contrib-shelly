@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.10.0] - 2021-09-09
+### Beta support for shelly EM. - [#26](https://github.com/windkh/node-red-contrib-shelly/issues/26)
+
 ## [1.9.5] - 2021-07-18
 ### reworked Motion node now supports extra outputs for motion detected and vibration detected.
 
