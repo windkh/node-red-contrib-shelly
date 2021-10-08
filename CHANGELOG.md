@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.11.0] - 2021-10-08
+### fixed auth problem with motion sensor - [#31](https://github.com/windkh/node-red-contrib-shelly/issues/31)
+
 ## [1.10.1] - 2021-09-09
 ### new release
 

@@ -18,6 +18,10 @@ module.exports = function (RED) {
                 username: node.credentials.username,
                 password: node.credentials.password
             };
+            let auth = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
+            options.headers = {
+                "Authorization" : auth
+            };
         };
 
         request.get(options, function (error, response, body) {
@@ -36,14 +40,24 @@ module.exports = function (RED) {
     // Note that this function has a reduced timeout.
     function shellyTryGet(route, node, timeout, callback, errorCallback){
 
+        // We avoid an invalid timeout by taking a default if 0.
+        let requestTimeout = timeout;
+        if(requestTimeout <= 0){
+            requestTimeout = 5000;
+        }
+
         var options = {
             url: 'http://' + node.hostname + route,
-            timeout: timeout
+            timeout: requestTimeout
         };
         if(node.credentials.username !== undefined && node.credentials.password !== undefined) {
             options.auth = {
                 username: node.credentials.username,
                 password: node.credentials.password
+            };
+            let auth = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
+            options.headers = {
+                "Authorization" : auth
             };
         };
 
@@ -156,6 +170,9 @@ module.exports = function (RED) {
             if(route !== undefined){
                 shellyGet(route, node, function(result) {
                     shellyGet('/status', node, function(result) {
+
+                        node.status({ fill: "green", shape: "ring", text: "Connected." });
+
                         var status = JSON.parse(result);
                         msg.status = status;
                         msg.payload = status.relays;
@@ -165,6 +182,9 @@ module.exports = function (RED) {
             }
             else{
                 shellyGet('/status', node, function(result) {
+
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+                        
                     var status = JSON.parse(result);
                     msg.status = status;
                     msg.payload = status.relays;
@@ -345,6 +365,9 @@ module.exports = function (RED) {
             if(route !== undefined){
                 shellyGet(route, node, function(result) {
                     shellyGet('/status', node, function(result) {
+
+                        node.status({ fill: "green", shape: "ring", text: "Connected." });
+
                         var status = JSON.parse(result);
                         msg.status = status;
                         msg.payload = status.rollers;
@@ -354,6 +377,9 @@ module.exports = function (RED) {
             }
             else{
                 shellyGet('/status', node, function(result) {
+
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+
                     var status = JSON.parse(result);
                     msg.status = status;
                     msg.payload = status.rollers;
@@ -465,6 +491,9 @@ module.exports = function (RED) {
                 shellyGet(route, node, function(result) {
 		            if (node.dimmerStat) {
 			            shellyGet('/status', node, function(result) {
+
+                            node.status({ fill: "green", shape: "ring", text: "Connected." });
+
                             var status = JSON.parse(result);
                             msg.status = status;
                             msg.payload = status.lights;
@@ -475,6 +504,9 @@ module.exports = function (RED) {
             }
             else {
                 shellyGet('/status', node, function(result) {
+
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+
                     var status = JSON.parse(result);
                     msg.status = status;
                     msg.payload = status.lights;
@@ -744,6 +776,9 @@ module.exports = function (RED) {
                     shellyGet(route, node, function(result) {
                         if (node.ledStat) {
                             shellyGet('/status', node, function(result) {
+
+                                node.status({ fill: "green", shape: "ring", text: "Connected." });
+
                                 var status = JSON.parse(result);
                                 msg.status = status;
                                 msg.payload = status.lights;
@@ -754,6 +789,9 @@ module.exports = function (RED) {
                 }
                 else {
                     shellyGet('/status', node, function(result) {
+
+                        node.status({ fill: "green", shape: "ring", text: "Connected." });
+
                         var status = JSON.parse(result);
                         msg.status = status;
                         msg.payload = status.lights;
@@ -808,9 +846,11 @@ module.exports = function (RED) {
         // Not used right now.
         // var types = ["SHMOS"];
 
-        node.timer = setInterval(function() {
-            node.emit("input", {});
-        }, node.pollInterval);
+        if(node.pollInterval > 0) {
+            node.timer = setInterval(function() {
+                node.emit("input", {});
+            }, node.pollInterval);
+        }
 
         node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
 
@@ -914,12 +954,15 @@ module.exports = function (RED) {
         node.pollInterval = parseInt(config.pollinginterval);
 
         var types = ["SHEM"];
+        shellyPing(node, types);
 
-        node.timer = setInterval(function() {   
-            shellyPing(node, types);
+        if(node.pollInterval > 0) {
+            node.timer = setInterval(function() {   
+                shellyPing(node, types);
 
-            node.emit("input", {});
-        }, node.pollInterval);
+                node.emit("input", {});
+            }, node.pollInterval);
+        }
 
         node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
 
@@ -955,6 +998,9 @@ module.exports = function (RED) {
             if(route !== undefined){
                 shellyGet(route, node, function(result) {
                     shellyGet('/status', node, function(result) {
+
+                        node.status({ fill: "green", shape: "ring", text: "Connected." });
+
                         var status = JSON.parse(result);
                         msg.status = status;
                         
@@ -970,6 +1016,9 @@ module.exports = function (RED) {
             }
             else{
                 shellyGet('/status', node, function(result) {
+
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+
                     var status = JSON.parse(result);
                     msg.status = status;
 
@@ -997,6 +1046,3 @@ module.exports = function (RED) {
         }
     });
 }
-
-
-
