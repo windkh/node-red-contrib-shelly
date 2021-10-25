@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.12.0] - 2021-10-25
+### fixed RGBW2 node: when empty payload is received then status is polled from device.
+
 ## [1.11.0] - 2021-10-08
 ### fixed auth problem with motion sensor - [#31](https://github.com/windkh/node-red-contrib-shelly/issues/31)
 

@@ -591,15 +591,15 @@ module.exports = function (RED) {
             if(msg.payload !== undefined) {
                 var command = msg.payload;
 
-                var mode;
+                var nodeMode;
                 if(command.mode !== undefined) {
-                    mode = command.mode;
+                    nodeMode = command.mode;
                 }
                 else {
-                    mode = "color";
+                    nodeMode = node.mode;
                 }
 
-                if(node.mode === "color") {
+                if(nodeMode === "color") {
 
                     var red;
                     if(command.red !== undefined) {
@@ -712,8 +712,20 @@ module.exports = function (RED) {
                     if(timer !== undefined && timer > 0) {
                         route += "&timer=" + timer;
                     }
+
+                    // prevend empty input being used as valid command.
+                    if(route === "/color/0?turn=on" &&  
+                        gain === undefined &&
+                        red === undefined &&
+                        green === undefined &&
+                        blue === undefined &&
+                        white === undefined &&
+                        effect === undefined &&
+                        timer === undefined){
+                            route = undefined;
+                        }
                 }
-                else if(node.mode === "white") {
+                else if(nodeMode === "white") {
 
                     var light;
                     if (command.light !== undefined) {
@@ -761,7 +773,9 @@ module.exports = function (RED) {
 
 
                     // create route
-                    route = "/white/" + light + "?turn=" + turn;
+                    if(light !== undefined) {
+                        route = "/white/" + light + "?turn=" + turn;
+                    }
 
                     if(brightness !== undefined) {
                         route += "&brightness=" + brightness;
