@@ -18,10 +18,10 @@ This package is under construction. Right now the following devices are supporte
 - shelly switch 1 (PM), 2 
 - shelly plug
 - shelly 2.5 (roller shutter) 
-- shelly dimmer
+- shelly dimmer / shelly bulb duo
+- shelly door / shelly door 2
 - shelly uni
-- shelly RGBW2
-- shelly buib RGBW
+- shelly RGBW2 / shelly bulb RGBW
 - shelly motion
 - shelly emeasure (EM)
 
@@ -100,8 +100,11 @@ The output of the node is an array of status objects for every relay of the swit
 ]
 ```
 
+Examples:
+[**shelly switch flow**](examples/switch.json) 
 
-# Shelly Door Node
+
+# Shelly Door Node / Shelly Door Node 2
 The node is able to poll a shelly door sensor. It outputs the sensor status together with battery and lux sensor values on every change of the door status.
 Note that the sensor sleeps when nothing is detected and is thus not accessible via REST.
 
@@ -130,6 +133,10 @@ The output of the node is as follows:
 	}
 }
 ```
+
+Examples:
+[**shelly door flow**](examples/door.json)  
+
 
 # Shelly Roller Shutter Node
 
@@ -193,16 +200,24 @@ The output of the node is an array of status objects for every roller of the rol
 ]
 ```
 
-# Shelly Dimmer (SL) Node
-The node is able to turn on and turn off a shelly dimmer and set its brightness. It outputs the status of all lights after every interaction with the shelly device.
+Examples:
+[**shelly roller flow**](examples/roller.json)  
+[**shelly roller2 flow**](examples/roller2.json)  
+
+
+# Shelly Dimmer (SL) Node / Shelly Bulb Duo
+The node is able to turn on and turn off a shelly dimmer or shelly bulb duo and set its brightness. It outputs the status of all lights after every interaction with the shelly device.
 Turning on is done by sending the following payload into the input. The light number is optional and defaults to 0. The brightness can be set between 0 and 100.
 
 
 ```
 {
-    light : 0,
+    light : 0, // default = 0 (not needed for bulb duo)
     on : true,
-    brightness: 100
+    brightness: 100,
+	white: 100, // for bulb duo
+	temp : 2700, // for bulb duo (same as white but in K 2700 - 6500)
+	transition : 0 // for bulb duo (0..5000ms)
 }
 ```
 
@@ -247,6 +262,9 @@ The output of the node is an array of status objects for every light of the dimm
 ]
 ```
 
+Examples:
+[**shelly dimmer flow**](examples/bulbduo.json)  
+[**shelly bulb duo flow**](examples/dimmer.json)  
 
 
 # Shelly RGBW2 Node / Shelly bulb RGWB
@@ -295,6 +313,11 @@ light 0 .. 3 is the number of the strip.
 brightness can be a value between 0 and 100. 
 timer can be a value in seconds to flip back on/off
 
+Examples:
+[**shelly RGBW2 color flow**](examples/rgbw2color.json)  
+[**shelly RGBW2 color effect flow**](examples/rgbw2colorloop.json)  
+[**shelly RGBW2 white flow**](examples/rgbw2white.json)  
+[**shelly bulb RGBW flow**](examples/bulbrgbw.json)  
 
 
 # Shelly Motion Node
@@ -329,6 +352,10 @@ The output of the node is as follows:
 	}
 }
 ```
+
+Examples:
+[**shelly motion flow**](examples/motion.json)  
+
 
 # Shelly EM Node
 The node is able to turn on and turn off a relay in a shelly EM node. It outputs the status of all measuring devices and the status of the relay after every interaction with the shelly device.
@@ -412,6 +439,8 @@ The output of the node is as follows:
 }
 ```
 
+Examples:
+[**shelly EM flow**](examples/emeasure.json)  
 
 
 # Shelly REST API

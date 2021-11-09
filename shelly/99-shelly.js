@@ -399,7 +399,7 @@ module.exports = function (RED) {
 
 
     // --------------------------------------------------------------------------------------------
-    // The dimmer node controls a shelly dimmer.
+    // The dimmer node controls a shelly dimmer or Shelly Duo.
     function ShellyDimmerNode(config) {
         RED.nodes.createNode(this, config);
         var node = this;
@@ -419,7 +419,7 @@ module.exports = function (RED) {
         }
         */
 
-        var types = ["SHDM-"];
+        var types = ["SHDM-", "SHBDUO-1"];
         shellyPing(node, types);
 
         if(node.pollInterval > 0) {
@@ -432,7 +432,10 @@ module.exports = function (RED) {
             {
                 light : 0,
                 on : true,
-                brightness : 75
+                brightness : 75,
+                white : 100 // optional for Duo
+                transition : 0 // optional for Duo
+                temp : 2700 // optional for Duo
             }
             or in alternative format 
             {
@@ -477,6 +480,34 @@ module.exports = function (RED) {
                   }
                 }
 
+                var white;
+                if(command.white !== undefined){
+                    if(command.white >=1 && command.white <= 100){
+                        white = command.white;
+                  } else { 
+                      // Default is undefined
+                  }
+                }
+
+                var temperature;
+                if(command.temp !== undefined){
+                    if(command.temp >=2700 && command.temp <= 6500){
+                        temperature = command.temp;
+                  } else { 
+                      // Default is undefined
+                  }
+                }
+
+                var transition;
+                if(command.transition !== undefined){
+                    if(command.transition >=0 && command.transition <= 5000){
+                        transition = command.transition;
+                  } else { 
+                      // Default is undefined
+                  }
+                }
+
+
                 if (turn != undefined && brightness != undefined){
                   route = "/light/" + light + "?turn=" + turn + "&brightness=" + brightness;
                 }
@@ -485,6 +516,20 @@ module.exports = function (RED) {
                 }
                 else if (turn != undefined){
                     route = "/light/" + light + "?turn=" + turn;
+                }
+
+                if(route !== undefined) {
+                    if(white !== undefined) {
+                        route += "&white=" + white;
+                    }
+
+                    if(temperature !== undefined) {
+                        route += "&temp=" + temperature;
+                    }
+
+                    if(transition !== undefined) {
+                        route += "&transition=" + transition;
+                    }
                 }
             }
 

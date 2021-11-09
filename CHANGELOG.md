@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.14.0] - 2021-11-09
+### added support for shelly bulb Duo - [#32](https://github.com/windkh/node-red-contrib-shelly/issues/32)
+
 ## [1.13.0] - 2021-11-09
 ### added support for shelly bulb RGBW - [#32](https://github.com/windkh/node-red-contrib-shelly/issues/32)
 
