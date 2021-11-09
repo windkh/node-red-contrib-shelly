@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.13.0] - 2021-11-09
+### added support for shelly bulb RGBW - [#32](https://github.com/windkh/node-red-contrib-shelly/issues/32)
+
 ## [1.12.0] - 2021-10-25
 ### fixed RGBW2 node: when empty payload is received then status is polled from device.
 

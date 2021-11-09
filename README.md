@@ -21,6 +21,7 @@ This package is under construction. Right now the following devices are supporte
 - shelly dimmer
 - shelly uni
 - shelly RGBW2
+- shelly buib RGBW
 - shelly motion
 - shelly emeasure (EM)
 
@@ -248,10 +249,10 @@ The output of the node is an array of status objects for every light of the dimm
 
 
 
-# Shelly RGBW2 Node
-The node is able to control a RGBW LED light strip. 
+# Shelly RGBW2 Node / Shelly bulb RGWB
+The node is able to control a RGBW LED light strip or a bulb RGBW. 
 
-If you only want to get the current status of the dimmer without turning on or off you should leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
+If you only want to get the current status of the node without turning on or off you should leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
 
 The node accepts the following input
 
@@ -262,17 +263,23 @@ The node accepts the following input
     green : 0,
 	blue : 0,
 	white : 0,
+	temp : 5000, // bulb
 	gain : 0,
+	brightness : 0, // bulb
 	effect : 1,
 	on : true,
-	timer : 0
+	timer : 0,
+	transition : 0, // bulb
 }
 ```
 
 red, green, blue, white can be between 0 and 255. 
 gain can be a value between 0 and 100.
+brightness can be a value between 0 and 100.
 effect = 0 means no effect. 
 timer can be a value in seconds to flip back on/off
+transition can be a value in milliseconds between 0 and 5000
+temp can be a value in K between 3000 and 6500 for white
 
 
 ```
@@ -280,7 +287,7 @@ timer can be a value in seconds to flip back on/off
 	light : 0,
     on : true,
     brightness: 100,
-	timer : 0
+	timer : 0,
 }
 ```
 

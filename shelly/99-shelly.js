@@ -526,7 +526,7 @@ module.exports = function (RED) {
 
 
     // --------------------------------------------------------------------------------------------
-    // The RGBW2 node controls a shelly LED stripe.
+    // The RGBW2 node controls a shelly LED stripe or a shelly builb RGBW.
     function ShellyRGBW2Node(config) {
         RED.nodes.createNode(this, config);
         var node = this;
@@ -546,7 +546,7 @@ module.exports = function (RED) {
         }
         */
 
-        var types = ["SHRGBW2"];
+        var types = ["SHRGBW2", "SHCB-1"];
         shellyPing(node, types);
 
         if(node.pollInterval > 0) {
@@ -557,6 +557,7 @@ module.exports = function (RED) {
 
         /* when a payload is received in the format
             {
+                mode : 'color'
                 red : 0,
                 green : 0,
                 blue : 0,
@@ -564,12 +565,15 @@ module.exports = function (RED) {
                 timer : 0,
                 white : 75,
                 gain: 100,
-                effect: 1
+                effect: 1,
+                brightness: 100 // optional fpr bulb
+                temp: 3000 // optional for bulb
             }
 
             or
 
             {
+                mode : 'white'
                 light : 0,
                 brightness : 100,
                 on: true,
@@ -638,6 +642,15 @@ module.exports = function (RED) {
                         }
                     }
 
+                    var temperature;
+                    if(command.temp !== undefined) {
+                        if (command.temp >= 3000 && command.temp <= 6500) {
+                            temperature = command.temp;
+                        } else {
+                            // Default is undefined
+                        }
+                    }
+
                     var gain;
                     if (command.gain !== undefined) {
                         if (command.gain >= 0 && command.gain <= 100) {
@@ -647,12 +660,30 @@ module.exports = function (RED) {
                         }
                     }
 
+                    var brightness;
+                    if (command.brightness !== undefined) {
+                        if (command.brightness >= 0 && command.brightness <= 100) {
+                            brightness = command.brightness;
+                        } else {
+                            // Default to undefined
+                        }
+                    }
+
                     var effect;
                     if (command.effect !== undefined) {
                         if (command.effect >=0) {
                             effect = command.effect;
                         } else {
                             effect = 0  // Default to no effect
+                        }
+                    }
+
+                    var transition;
+                    if (command.transition !== undefined) {
+                        if (command.transition >= 0 && command.transition <= 5000) {
+                            transition = command.transition;
+                        } else {
+                            // Default is undefined
                         }
                     }
 
@@ -706,8 +737,20 @@ module.exports = function (RED) {
                         route += "&white=" + white;
                     }
 
+                    if(temperature !== undefined) {
+                        route += "&temp=" + temperature;
+                    }
+
+                    if(brightness !== undefined) {
+                        route += "&brightness=" + brightness;
+                    }
+
                     if(effect !== undefined) {
                         route += "&effect=" + effect;
+                    }
+
+                    if(transition !== undefined) {
+                        route += "&transition=" + transition;
                     }
 
                     if(timer !== undefined && timer > 0) {
@@ -746,6 +789,24 @@ module.exports = function (RED) {
                         }
                     }
 
+                    var temperature;
+                    if(command.temp !== undefined) {
+                        if (command.temp >= 3000 && command.temp <= 6500) {
+                            temperature = command.temp;
+                        } else {
+                            // Default is undefined
+                        }
+                    }
+
+                    var transition;
+                    if (command.transition !== undefined) {
+                        if (command.transition >= 0 && command.transition <= 5000) {
+                            transition = command.transition;
+                        } else {
+                            // Default is undefined
+                        }
+                    }
+
                     var timer;
                     if (command.timer !== undefined) {
                         if (command.timer >=0) {
@@ -780,6 +841,14 @@ module.exports = function (RED) {
 
                     if(brightness !== undefined) {
                         route += "&brightness=" + brightness;
+                    }
+
+                    if(temperature !== undefined) {
+                        route += "&temp=" + temperature;
+                    }
+
+                    if(transition !== undefined) {
+                        route += "&transition=" + transition;
                     }
 
                     if(timer !== undefined && timer > 0) {

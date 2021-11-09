@@ -513,9 +513,9 @@
         inputs: 1,
         outputs: 1,
         icon: "shelly.png",
-        paletteLabel: "rgbw2",
+        paletteLabel: "rgbw",
         label: function () {
-            return this.description || this.hostname || "Shelly RGBW2";
+            return this.description || this.hostname || "Shelly RGBW";
         },
         labelStyle: function() {
             return this.description?"node_label_italic":"";
@@ -568,7 +568,7 @@
 </script>
 
 <script type="text/x-red" data-help-name="shelly-rgbw2">
-    <p>A node that controls a shelly RGBW2 device.</p>
+    <p>A node that controls a shelly RGBW2 or shelly bulb RGBW device.</p>
 
     <h3>Configuration</h3>
     <p>Hostname is the IP address or the hostname of the device.</p>
@@ -592,20 +592,32 @@
         <br/>
         <code>    white : 255,</code>
         <br/>
+        <code>    temp : 4750,</code>
+        <br/>
         <code>    gain : 100,</code>
         <br/>
         <code>    effect : 0,</code>
         <br/>
-        <code>    on : true</code>
+        <code>    on : true,</code>
         <br/>
-        <code>    timer : 0</code>
+        <code>    timer : 0,</code>
+        <br/>
+        <code>    mode : 'color',</code>
+        <br/>
+        <code>    transition : 0,</code>
+        <br/>
+        <code>    brightness : 100,</code>
         <br/>
         <code>}</code>
     </ul>
     <p>Values or colors must be betweem 0..255.</p>
     <p>Value of gain must be between 0..100.</p>
+    <p>temp = 3000..6500 means temperature of white which is supported by the shelly bulb RGBW.</p>
     <p>effect = 0 is default means that no effect is used.</p>
     <p>timer = 0 time in seconds to flip back. 0 is default means that no flip back is used.</p>
+    <p>mode = 'color' the mode is optional and can either be passed in the payload or set in the node configuration itself.</p>
+    <p>transition = 0..5000ms the transition is optional.</p>
+    <p>brightness = 0..100% the brightness is optional.</p>
     <p> or </p>
     <p><code>msg.payload</code></p>
     <ul>
@@ -615,9 +627,13 @@
         <br/>
         <code>    brightness : 100,</code>
         <br/>
-        <code>    on : true</code>
+        <code>    on : true,</code>
         <br/>
-        <code>    timer : 0</code>
+        <code>    timer : 0,</code>
+        <br/>
+        <code>    mode : 'white',</code>
+        <br/>
+        <code>    transition : 0</code>
         <br/>
         <code>}</code>
     </ul>
