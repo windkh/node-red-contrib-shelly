@@ -23,7 +23,8 @@ This package is under construction. Right now the following devices are supporte
 - shelly uni
 - shelly RGBW2 / shelly bulb RGBW
 - shelly motion
-- shelly emeasure (EM)
+- shelly emeasure (EM, EM3)
+- shelly UNI
 
 Others may work but are not really tested so far.
 
@@ -100,7 +101,7 @@ The output of the node is an array of status objects for every relay of the swit
 ]
 ```
 
-Examples:
+Examples:  
 [**shelly switch flow**](examples/switch.json) 
 
 
@@ -134,7 +135,7 @@ The output of the node is as follows:
 }
 ```
 
-Examples:
+Examples:  
 [**shelly door flow**](examples/door.json)  
 
 
@@ -200,7 +201,7 @@ The output of the node is an array of status objects for every roller of the rol
 ]
 ```
 
-Examples:
+Examples:  
 [**shelly roller flow**](examples/roller.json)  
 [**shelly roller2 flow**](examples/roller2.json)  
 
@@ -262,7 +263,7 @@ The output of the node is an array of status objects for every light of the dimm
 ]
 ```
 
-Examples:
+Examples:  
 [**shelly dimmer flow**](examples/bulbduo.json)  
 [**shelly bulb duo flow**](examples/dimmer.json)  
 
@@ -313,7 +314,7 @@ light 0 .. 3 is the number of the strip.
 brightness can be a value between 0 and 100. 
 timer can be a value in seconds to flip back on/off
 
-Examples:
+Examples:  
 [**shelly RGBW2 color flow**](examples/rgbw2color.json)  
 [**shelly RGBW2 color effect flow**](examples/rgbw2colorloop.json)  
 [**shelly RGBW2 white flow**](examples/rgbw2white.json)  
@@ -353,7 +354,7 @@ The output of the node is as follows:
 }
 ```
 
-Examples:
+Examples:  
 [**shelly motion flow**](examples/motion.json)  
 
 
@@ -439,8 +440,57 @@ The output of the node is as follows:
 }
 ```
 
-Examples:
+Examples:  
 [**shelly EM flow**](examples/emeasure.json)  
+
+
+# Shelly UNI Node
+The node is able to turn on and turn off a shelly UNI. It outputs the status of all relays, inputs and ADCs after every interaction with the shelly device.
+Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
+
+
+```
+{
+    relay : 0,
+	on : true
+}
+```
+
+or you can make use of the alternative notation:
+
+
+```
+{
+    relay : 0,
+	turn : "toggle"
+}
+```
+turn can be one of the following: "toggle", "on", "off"
+
+Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
+
+If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
+This is useful, when you want to poll for the status cyclically.
+
+The output of the node is an array of status objects for every relay of the switch:
+
+
+```
+[
+    {
+        ison : true,
+	    ...
+    },
+    {
+        ison : true,
+	    ...
+    },
+]
+```
+
+Examples:  
+[**shelly uni flow**](examples/uni.json) 
+
 
 
 # Shelly REST API

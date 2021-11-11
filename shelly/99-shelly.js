@@ -1056,24 +1056,14 @@ module.exports = function (RED) {
 
     
     // --------------------------------------------------------------------------------------------
-    // The motion node controls a shelly motion device.
-    /* The device can disconnect but wakes up when the switch changes the state or after every 4-5 minutes
+    // The EM node controls a shelly EM or EM3 device.
+    /* 
     GET /status
     {
-        lux: 
-            value: 88
-            illumination: "dark"
-            is_valid: true
-        sensor: 
-            motion: true
-            vibration: false
-            timestamp: 1626034808
-            active: true
-            is_valid: true
-        bat:
-            value: 100
-            voltage: 4.207
-            charger: true
+        relays: 
+            []
+        emeters: 
+            []
     }
     */
     function ShellyEMNode(config) {
@@ -1169,6 +1159,115 @@ module.exports = function (RED) {
     }
 
     RED.nodes.registerType("shelly-emeasure", ShellyEMNode, {
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        }
+    });
+
+    // --------------------------------------------------------------------------------------------
+    // The UNI node controls a shelly UNI device.
+    /* 
+    GET /status
+    {
+       
+    }
+    */
+    function ShellyUniNode(config) {
+        RED.nodes.createNode(this, config);
+        var node = this;
+        node.hostname = config.hostname;
+        node.pollInterval = parseInt(config.pollinginterval);
+
+        var types = ["SHUNI"];
+        shellyPing(node, types);
+
+        if(node.pollInterval > 0) {
+            node.timer = setInterval(function() {   
+                shellyPing(node, types);
+
+                node.emit("input", {});
+            }, node.pollInterval);
+        }
+
+        node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
+
+        this.on('input', function (msg) {
+
+            var route;
+            if(msg.payload !== undefined){
+                var command = msg.payload;
+
+                var relay = 0;
+                if(command.relay !== undefined){
+                    relay = command.relay;
+                }
+
+                var turn;
+                if(command.on !== undefined){
+                    if(command.on == true){
+                        turn = "on";
+                    }
+                    else{
+                        turn = "off"
+                    }
+                }
+                else if(command.turn !== undefined){
+                    turn = command.turn;
+                }
+
+                if(turn != undefined){
+                    route = "/relay/" + relay + "?turn=" + turn;
+                }
+            }
+
+            if(route !== undefined){
+                shellyGet(route, node, function(result) {
+                    shellyGet('/status', node, function(result) {
+
+                        node.status({ fill: "green", shape: "ring", text: "Connected." });
+
+                        var status = JSON.parse(result);
+                        msg.status = status;
+                        
+                        var payload = {
+                            relays : status.relays,
+                            inputs : status.inputs,
+                            adcs : status.adcs
+                          };
+                        msg.payload = payload;
+
+                        node.send([msg]);
+                    });
+                });
+            }
+            else{
+                shellyGet('/status', node, function(result) {
+
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+
+                    var status = JSON.parse(result);
+                    msg.status = status;
+
+                    var payload = {
+                        relays : status.relays,
+                        inputs : status.inputs,
+                        adcs : status.adcs
+                      };
+                    msg.payload = payload;
+
+                    node.send([msg]);
+                });
+            }
+        });
+
+        this.on('close', function(done) {
+            clearInterval(node.timer);
+            done();
+        });
+    }
+
+    RED.nodes.registerType("shelly-uni", ShellyUniNode, {
         credentials: {
             username: { type: "text" },
             password: { type: "password" },

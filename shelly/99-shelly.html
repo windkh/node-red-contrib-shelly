@@ -90,7 +90,7 @@
     </ul>
 
     <h3>Outputs</h3>
-    <p>1. Standard Ouput: An array of relay status objects.</p>
+    <p>1. Standard Ouput: An array of relay status object.</p>
     <p><code>msg.payload</code></p>
     <ul>
         <code>[</code>
@@ -101,6 +101,8 @@
         <br/>
         <code>]</code>
     </ul>
+    <p>Full status object is available at.</p>
+    <p><code>msg.status</code></p>
 </script>
 
 <!-- ------------------------------------------------------------------------------------------ -->
@@ -234,7 +236,6 @@
         <br/>
         <code>}</code>
     </ul>
-
 </script>
 
 <!-- ------------------------------------------------------------------------------------------ -->
@@ -336,7 +337,7 @@
     </ul>
 
     <h3>Outputs</h3>
-    <p>1. Standard Ouput: An array of relay status objects.</p>
+    <p>1. Standard Ouput: An array of relay status object.</p>
     <p><code>msg.payload</code></p>
     <ul>
         <code>[</code>
@@ -353,6 +354,8 @@
         <br/>
         <code>]</code>
     </ul>
+    <p>Full status object is available at.</p>
+    <p><code>msg.status</code></p>
 </script>
 
 <!-- ------------------------------------------------------------------------------------------ -->
@@ -464,7 +467,7 @@
     </ul>
 
     <h3>Outputs</h3>
-    <p>1. Standard Ouput: An array of light status objects.</p>
+    <p>1. Standard Ouput: An array of light status object.</p>
     <p><code>msg.payload</code></p>
     <ul>
         <code>[</code>
@@ -475,33 +478,8 @@
         <br/>
         <code>]</code>
     </ul>
-</script>
-<!-- ------------------------------------------------------------------------------------------ -->
-<script type="text/javascript">
-    RED.nodes.registerType('shelly-switch', {
-        category: 'shelly',
-        color: '#319DD7',
-        defaults: {
-            hostname: { value:"", required:true },
-            description: { value:"" },
-            pollinginterval: { value: 5000 },
-        },
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        },
-        inputs: 1,
-        outputs: 1,
-        icon: "shelly.png",
-        paletteLabel: "switch",
-        label: function () {
-            return this.description || this.hostname || "Shelly switch";
-        },
-        labelStyle: function() {
-            return this.description?"node_label_italic":"";
-        }
-    });
-
+    <p>Full status object is available at.</p>
+    <p><code>msg.status</code></p>
 </script>
 
 
@@ -651,8 +629,10 @@
     <p>light = 0..3 the light (0 for shelly bulb duo).</p>
 
     <h3>Outputs</h3>
-    <p>1. Standard Ouput: A status objects.</p>
+    <p>1. Standard Ouput: A status object.</p>
     <p><code>msg.payload</code></p>
+    <p>Full status object is available at.</p>
+    <p><code>msg.status</code></p>
 </script>
 
 
@@ -752,7 +732,7 @@
     <p>Empty payload for getting the status.</p>
     
     <h3>Outputs</h3>
-    <p>1. Standard Ouput: A status objects.</p>
+    <p>1. Standard Ouput: A status object.</p>
     <p><code>msg.payload</code></p>
 </script>
 
@@ -827,6 +807,85 @@
     <p>Empty payload for getting the status.</p>
     
     <h3>Outputs</h3>
-    <p>1. Standard Ouput: A status objects.</p>
+    <p>1. Standard Ouput: A status object.</p>
     <p><code>msg.payload</code></p>
+    <p>Full status object is available at.</p>
+    <p><code>msg.status</code></p>
+</script>
+
+
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/javascript">
+    RED.nodes.registerType('shelly-uni', {
+        category: 'shelly',
+        color: '#319DD7',
+        defaults: {
+            hostname: { value:"", required:true },
+            description: { value:"" },
+            pollinginterval: { value: 1000 },
+            outputs: {value: 1}
+        },
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "shelly.png",
+        paletteLabel: "uni",
+        label: function () {
+            return this.description || this.hostname || "Shelly UNI";
+        },
+        labelStyle: function() {
+            return this.description?"node_label_italic":"";
+        },
+        oneditprepare: function() {
+            var that = this;
+        }
+    });
+
+</script>
+
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/x-red" data-template-name="shelly-uni">
+    <div class="form-row">
+        <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
+        <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the device">
+    </div>
+    <div class="form-row">
+        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
+        <input type="text" id="node-input-description" placeholder="The description of the device (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
+    </div>
+    <div class="form-row">
+        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
+        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="shelly-uni">
+    <p>A node that controls a shelly UNI device.</p>
+
+    <h3>Configuration</h3>
+    <p>Hostname is the IP address or the hostname of the device.</p>
+    <p>Description of the device.</p>
+    <p>User is optional and must only be set if security is enabled.</p>
+    <p>Password is optional and must only be set if security is enabled.</p>
+    <p>Ping interval is the time between the status pollings.</p>
+   
+    <h3>Inputs</h3>
+    <p>Empty payload for getting the status.</p>
+    
+    <h3>Outputs</h3>
+    <p>1. Standard Ouput: A status object.</p>
+    <p><code>msg.payload</code></p>
+    <p>Full status object is available at.</p>
+    <p><code>msg.status</code></p>
 </script>
