@@ -56,7 +56,7 @@
 </script>
 
 <script type="text/x-red" data-help-name="shelly-switch">
-    <p>A node that controls a shelly switch device.</p>
+    <p>A node that controls a shelly switch device (Shelly 1, 1PM, 1L, 2, Plug, PlugS).</p>
 
     <h3>Configuration</h3>
     <p>Hostname is the IP address or the hostname of the device.</p>
@@ -71,9 +71,9 @@
     <ul>
         <code>{</code>
         <br/>
-        <code>    relay : 0,</code>
+        <code>    relay : 0, </code>
         <br/>
-        <code>    on : true</code>
+        <code>    on : true </code>
         <br/>
         <code>}</code>
     </ul>
@@ -82,9 +82,9 @@
     <ul>
         <code>{</code>
         <br/>
-        <code>    relay : 0,</code>
+        <code>    relay : 0, </code>
         <br/>
-        <code>    turn : on/off/toggle</code>
+        <code>    turn : on/off/toggle </code>
         <br/>
         <code>}</code>
     </ul>
@@ -95,9 +95,9 @@
     <ul>
         <code>[</code>
         <br/>
-        <code>    { ison : false }</code>
+        <code>    { ison : false } </code>
         <br/>
-        <code>    { ison : true }</code>
+        <code>    { ison : true } </code>
         <br/>
         <code>]</code>
     </ul>
@@ -113,7 +113,6 @@
         defaults: {
             hostname: { value:"", required:true  },
             description: { value:"" },
-            sendfullstatus: { value: false },
             usepolling: { value: true },
             pollinginterval: { value: 2000 },
             inputs: {value:0},
@@ -176,11 +175,6 @@
     </div>
 
     <div class="form-row">
-        <label for="node-input-sendfullstatus"><i class="fa fa-search"></i> Send full status object.</label>
-        <input type="checkbox" id="node-input-sendfullstatus" style="display: inline-block; width: auto; vertical-align: top;">
-    </div>
-
-    <div class="form-row">
         <label for="node-input-usepolling"><i class="fa fa-clock"></i> Polling Mode</label>
         <input type="checkbox" id="node-input-usepolling" style="display: inline-block; width: auto; vertical-align: top;">
     </div>
@@ -208,7 +202,7 @@
 </script>
 
 <script type="text/x-red" data-help-name="shelly-door">
-    <p>A node that controls a shelly door device.</p>
+    <p>A node that controls a shelly door device (Shelly Door, Window 1/2).</p>
 
     <h3>Configuration</h3>
     <p>Hostname is the IP address or the hostname of the device.</p>
@@ -228,11 +222,11 @@
     <ul>
         <code>{</code>
         <br/>
-        <code>    sensor { state: "close", is_valid: true }</code>
+        <code>    sensor { state: "close", is_valid: true } </code>
         <br/>
-        <code>    lux { value: 150, illumination: "twilight", is_valid: true }</code>
+        <code>    lux { value: 150, illumination: "twilight", is_valid: true } </code>
         <br/>
-        <code>    bat { value: 100, voltage: 6.01 }</code>
+        <code>    bat { value: 100, voltage: 6.01 } </code>
         <br/>
         <code>}</code>
     </ul>
@@ -307,19 +301,9 @@
     <ul>
         <code>{</code>
         <br/>
-        <code>    roller : 0,</code>
+        <code>    roller : 0, </code>
         <br/>
-        <code>    go : "open"</code>
-        <br/>
-        <code>}</code>
-        <br/>
-        or
-        <br/>
-        <code>{</code>
-        <br/>
-        <code>    roller : 0,</code>
-        <br/>
-        <code>    go : "close"</code>
+        <code>    go : "open" </code>
         <br/>
         <code>}</code>
         <br/>
@@ -327,11 +311,21 @@
         <br/>
         <code>{</code>
         <br/>
-        <code>    roller : 0,</code>
+        <code>    roller : 0, </code>
         <br/>
-        <code>    go : "to_pos"</code>
+        <code>    go : "close" </code>
         <br/>
-        <code>    roller_pos : 50</code>
+        <code>}</code>
+        <br/>
+        or
+        <br/>
+        <code>{</code>
+        <br/>
+        <code>    roller : 0, </code>
+        <br/>
+        <code>    go : "to_pos", </code>
+        <br/>
+        <code>    roller_pos : 50 </code>
         <br/>
         <code>}</code>
     </ul>
@@ -342,15 +336,15 @@
     <ul>
         <code>[</code>
         <br/>
-        <code>    { state : "close" }</code>
+        <code>    { state : "close" } </code>
         <br/>
         or
         <br/>
-        <code>    { state : "open" }</code>
+        <code>    { state : "open" } </code>
         <br/>
         or
         <br/>
-        <code>    { state : "open", current_pos: 50 }</code>
+        <code>    { state : "open", current_pos: 50 } </code>
         <br/>
         <code>]</code>
     </ul>
@@ -418,7 +412,7 @@
 </script>
 
 <script type="text/x-red" data-help-name="shelly-dimmer">
-    <p>A node that controls a shelly dimmer device or shelly bulb duo device.</p>
+    <p>A node that controls a shelly dimmer (Shelly Dimmer 1/2, Shelly Bulb Duo, Vintage)).</p>
 
     <h3>Configuration</h3>
     <p>Hostname is the IP address or the hostname of the device.</p>
@@ -434,17 +428,17 @@
     <ul>
         <code>{</code>
         <br/>
-        <code>    light : 0,</code>
+        <code>    light : 0, </code>
         <br/>
-        <code>    on : true,</code>
-        <<br/>
-        <<code>   brightness: 75</code>
+        code>    on : true, </code>
         <br/>
-        <<code>   white: 100</code>
+        <code>   brightness: 75, </code>
         <br/>
-        <<code>   temp: 2700</code>
+        <code>   white: 100, </code>
         <br/>
-        <<code>   transition: 0</code>
+        <code>   temp: 2700, </code>
+        <br/>
+        <code>   transition: 0, </code>
         <br/>
         <code>}</code>
     </ul>
@@ -457,11 +451,11 @@
     <ul>
         <code>{</code>
         <br/>
-        <code>    light : 0,</code>
+        <code>    light : 0, </code>
         <br/>
-        <code>    turn : on/off/toggle,</code>
-        <<br/>
-        <<code>   brightness: 75</code>
+        <code>    turn : on/off/toggle, </code>
+        <br/>
+        <code>   brightness: 75, </code>
         <br/>
         <code>}</code>
     </ul>
@@ -472,9 +466,9 @@
     <ul>
         <code>[</code>
         <br/>
-        <code>    { ison : false }</code>
+        <code>    { ison : false } </code>
         <br/>
-        <code>    { ison : true }</code>
+        <code>    { ison : true } </code>
         <br/>
         <code>]</code>
     </ul>
@@ -557,7 +551,7 @@
 </script>
 
 <script type="text/x-red" data-help-name="shelly-rgbw2">
-    <p>A node that controls a shelly RGBW2 or shelly bulb RGBW device.</p>
+    <p>A node that controls a shelly RGBW device (Shelly RGBW2, Shelly Bulb RGBW).</p>
 
     <h3>Configuration</h3>
     <p>Hostname is the IP address or the hostname of the device.</p>
@@ -573,29 +567,29 @@
     <ul>
         <code>{</code>
         <br/>
-        <code>    red : 255,</code>
+        <code>    red : 255, </code>
         <br/>
-        <code>    green : 255,</code>
+        <code>    green : 255, </code>
         <br/>
-        <code>    blue : 255,</code>
+        <code>    blue : 255, </code>
         <br/>
-        <code>    white : 255,</code>
+        <code>    white : 255, </code>
         <br/>
-        <code>    temp : 4750,</code>
+        <code>    temp : 4750, </code>
         <br/>
-        <code>    gain : 100,</code>
+        <code>    gain : 100, </code>
         <br/>
-        <code>    effect : 0,</code>
+        <code>    effect : 0, </code>
         <br/>
-        <code>    on : true,</code>
+        <code>    on : true, </code>
         <br/>
-        <code>    timer : 0,</code>
+        <code>    timer : 0, </code>
         <br/>
-        <code>    mode : 'color',</code>
+        <code>    mode : 'color', </code>
         <br/>
-        <code>    transition : 0,</code>
+        <code>    transition : 0, </code>
         <br/>
-        <code>    brightness : 100,</code>
+        <code>    brightness : 100, </code>
         <br/>
         <code>}</code>
     </ul>
@@ -612,17 +606,17 @@
     <ul>
         <code>{</code>
         <br/>
-        <code>    light : 0,</code>
+        <code>    light : 0, </code>
         <br/>
-        <code>    brightness : 100,</code>
+        <code>    brightness : 100, </code>
         <br/>
-        <code>    on : true,</code>
+        <code>    on : true, </code>
         <br/>
-        <code>    timer : 0,</code>
+        <code>    timer : 0, </code>
         <br/>
-        <code>    mode : 'white',</code>
+        <code>    mode : 'white', </code>
         <br/>
-        <code>    transition : 0</code>
+        <code>    transition : 0< /code>
         <br/>
         <code>}</code>
     </ul>
@@ -645,7 +639,6 @@
             hostname: { value:"", required:true },
             description: { value:"" },
             pollinginterval: { value: 1000 },
-            sendfullstatus: { value: false },
             hasextraoutputs: { value: false, required: false },
             outputs: {value: 1}
         },
@@ -710,14 +703,10 @@
         <label for="node-input-hasextraoutputs"><i class="fa fa-flash"></i> Enable extra outputs for motion and vibration.</label>
         <input type="checkbox" id="node-input-hasextraoutputs" style="display: inline-block; width: auto; vertical-align: top;">
     </div>
-    <div class="form-row">
-        <label for="node-input-sendfullstatus"><i class="fa fa-search"></i> Send full status object.</label>
-        <input type="checkbox" id="node-input-sendfullstatus" style="display: inline-block; width: auto; vertical-align: top;">
-    </div>
 </script>
 
 <script type="text/x-red" data-help-name="shelly-motion">
-    <p>A node that controls a shelly motion device.</p>
+    <p>A node that controls a shelly motion device (Shelly Motion).</p>
 
     <h3>Configuration</h3>
     <p>Hostname is the IP address or the hostname of the device.</p>
@@ -794,7 +783,7 @@
 </script>
 
 <script type="text/x-red" data-help-name="shelly-emeasure">
-    <p>A node that controls a shelly EM device.</p>
+    <p>A node that controls a shelly EM device (Shelly EM, 3EM).</p>
 
     <h3>Configuration</h3>
     <p>Hostname is the IP address or the hostname of the device.</p>
@@ -875,7 +864,7 @@
 </script>
 
 <script type="text/x-red" data-help-name="shelly-uni">
-    <p>A node that controls a shelly UNI device.</p>
+    <p>A node that controls a shelly UNI device (Shelly UNI).</p>
 
     <h3>Configuration</h3>
     <p>Hostname is the IP address or the hostname of the device.</p>

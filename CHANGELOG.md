@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [2.0.0] - 2021-11-14
+### removed config option sendFullStatus for motion and door - [#36](https://github.com/windkh/node-red-contrib-shelly/issues/36)
+
 ## [1.16.0] - 2021-11-14
 ### added support for downloading CSV files from Shelly EM - [#37](https://github.com/windkh/node-red-contrib-shelly/issues/37)
 

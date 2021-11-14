@@ -15,12 +15,11 @@ This package contains nodes for controlling shelly devices
 
 # Warning
 This package is under construction. Right now the following devices are supported
-- shelly switch 1 (PM), 2 
-- shelly plug
+- shelly switch 1 (PM), 2, L,  
+- shelly plug plugS
 - shelly 2.5 (roller shutter) 
-- shelly dimmer / shelly bulb duo
+- shelly dimmer / shelly bulb duo, Vintage
 - shelly door / shelly door 2
-- shelly uni
 - shelly RGBW2 / shelly bulb RGBW
 - shelly motion
 - shelly emeasure (EM, EM3)
@@ -57,7 +56,7 @@ after a input is received from the node. This answer is directly available at th
 contains a lightweight version of this status object.
 
 
-# Shelly Switch Node
+# Shelly Switch Node (1, 2, 1PM, 1L, Plug, PlugS)
 The node is able to turn on and turn off a shelly switch. It outputs the status of all relays after every interaction with the shelly device.
 Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
 
@@ -105,8 +104,8 @@ Examples:
 [**shelly switch flow**](examples/switch.json) 
 
 
-# Shelly Door Node / Shelly Door Node 2
-The node is able to poll a shelly door sensor. It outputs the sensor status together with battery and lux sensor values on every change of the door status.
+# Shelly Window/Door Node 1/2
+The node is able to poll a shelly window/door sensor. It outputs the sensor status together with battery and lux sensor values on every change of the door status.
 Note that the sensor sleeps when nothing is detected and is thus not accessible via REST.
 
 The output of the node is as follows:
@@ -139,7 +138,7 @@ Examples:
 [**shelly door flow**](examples/door.json)  
 
 
-# Shelly Roller Shutter Node
+# Shelly Roller Shutter Node (Shelly 2.5)
 
 A node that controls a shelly roller shutter device (Shelly 2.5).
 The relay number is optional and defaults to 0. The following object for open or close the roller shutter:
@@ -206,7 +205,7 @@ Examples:
 [**shelly roller2 flow**](examples/roller2.json)  
 
 
-# Shelly Dimmer (SL) Node / Shelly Bulb Duo
+# Shelly Dimmer (SL) Node / Shelly Bulb Duo / Vintage
 The node is able to turn on and turn off a shelly dimmer or shelly bulb duo and set its brightness. It outputs the status of all lights after every interaction with the shelly device.
 Turning on is done by sending the following payload into the input. The light number is optional and defaults to 0. The brightness can be set between 0 and 100.
 
@@ -268,7 +267,7 @@ Examples:
 [**shelly bulb duo flow**](examples/dimmer.json)  
 
 
-# Shelly RGBW2 Node / Shelly bulb RGWB
+# Shelly RGBW2 Node / Shelly Bulb RGWB
 The node is able to control a RGBW LED light strip or a bulb RGBW. 
 
 If you only want to get the current status of the node without turning on or off you should leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
@@ -358,7 +357,7 @@ Examples:
 [**shelly motion flow**](examples/motion.json)  
 
 
-# Shelly EM Node
+# Shelly EM(3) Node
 The node is able to turn on and turn off a relay in a shelly EM node. It outputs the status of all measuring devices and the status of the relay after every interaction with the shelly device.
 Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
 

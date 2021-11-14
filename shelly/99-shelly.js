@@ -262,7 +262,6 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
         var node = this;
         node.hostname = config.hostname;
-        node.sendRawStatus = config.sendfullstatus;
         node.usePolling = config.usepolling;
         node.pollInterval = parseInt(config.pollinginterval);
 
@@ -294,19 +293,13 @@ module.exports = function (RED) {
                         node.status({ fill: "red", shape: "ring", text: "Status: invalid" });
                     }
 
-                    var payload;
-                    if(!node.sendRawStatus){
-                        payload = {
-                            sensor : status.sensor,
-                            lux : status.lux,
-                            bat :  status.bat,
-                        }
-                    }
-                    else{
-                        payload = status;
-                    }
-
-                    msg.payload = payload;
+                    msg.status = status;
+                    msg.payload = {
+                        sensor : status.sensor,
+                        lux : status.lux,
+                        bat :  status.bat,
+                    };
+                    
                     node.send([msg]);
                 },
                 function(error){
@@ -993,7 +986,6 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
         var node = this;
         node.hostname = config.hostname;
-        node.sendRawStatus = config.sendfullstatus;
         node.pollInterval = parseInt(config.pollinginterval);
 
         let hasextraoutputs = config.hasextraoutputs;
@@ -1028,20 +1020,13 @@ module.exports = function (RED) {
                         node.status({ fill: "red", shape: "ring", text: "Status: invalid" });
                     }
 
-                    var payload;
-                    if(!node.sendRawStatus){
-                        payload = {
-                            sensor : status.sensor,
-                            lux : status.lux,
-                            bat :  status.bat,
-                          }
-                    }
-                    else{
-                        payload = status;
-                    }
-
-                    msg.payload = payload;
-
+                    msg.status = status;
+                    msg.payload = {
+                        sensor : status.sensor,
+                        lux : status.lux,
+                        bat :  status.bat,
+                    };
+                    
                     if (!hasextraoutputs) {
                         node.send([msg]);   
                     } 
@@ -1156,12 +1141,10 @@ module.exports = function (RED) {
 
                         var status = JSON.parse(body);
                         msg.status = status;
-                        
-                        var payload = {
+                        msg.payload = {
                             relays : status.relays,
                             emeters : status.emeters
-                          };
-                        msg.payload = payload;
+                        };
 
                         node.send([msg]);
                     });
@@ -1175,12 +1158,10 @@ module.exports = function (RED) {
 
                         var status = JSON.parse(body);
                         msg.status = status;
-
-                        var payload = {
+                        msg.payload = {
                             relays : status.relays,
                             emeters : status.emeters
                         };
-                        msg.payload = payload;
 
                         node.send([msg]);
                     });
@@ -1197,8 +1178,14 @@ module.exports = function (RED) {
                     
                     node.status({ fill: "green", shape: "ring", text: "Downloading CSV " + emeter});
 
-                    let body = await shellyGetAsync(route, node);
-                    data.push(body);
+                    try {
+                        let body = await shellyGetAsync(route, node);
+                        data.push(body);
+                    }
+                    catch (error) {
+                        node.error("Downloading CSV failed " + emeter, error);
+                        node.status({ fill: "red", shape: "ring", text: "Downloading CSV failed " + emeter});
+                    }
                 }
 
                 node.status({ fill: "green", shape: "ring", text: "Connected."});
@@ -1285,13 +1272,11 @@ module.exports = function (RED) {
 
                         var status = JSON.parse(body);
                         msg.status = status;
-                        
-                        var payload = {
+                        msg.payload = {
                             relays : status.relays,
                             inputs : status.inputs,
                             adcs : status.adcs
-                          };
-                        msg.payload = payload;
+                        };
 
                         node.send([msg]);
                     });
@@ -1304,14 +1289,12 @@ module.exports = function (RED) {
 
                     var status = JSON.parse(body);
                     msg.status = status;
-
-                    var payload = {
+                    msg.payload = {
                         relays : status.relays,
                         inputs : status.inputs,
                         adcs : status.adcs
-                      };
-                    msg.payload = payload;
-
+                    };
+                    
                     node.send([msg]);
                 });
             }
