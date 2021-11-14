@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.16.0] - 2021-11-14
+### added support for downloading CSV files from Shelly EM - [#37](https://github.com/windkh/node-red-contrib-shelly/issues/37)
+
 ## [1.15.0] - 2021-11-11
 ### added support for shelly UNI - [#34](https://github.com/windkh/node-red-contrib-shelly/issues/34)
 

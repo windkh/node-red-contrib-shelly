@@ -746,14 +746,14 @@
             hostname: { value:"", required:true },
             description: { value:"" },
             pollinginterval: { value: 1000 },
-            outputs: {value: 1}
+            outputs: {value: 2}
         },
         credentials: {
             username: { type: "text" },
             password: { type: "password" },
         },
         inputs: 1,
-        outputs: 1,
+        outputs: 2,
         icon: "shelly.png",
         paletteLabel: "emeasure",
         label: function () {
@@ -811,6 +811,10 @@
     <p><code>msg.payload</code></p>
     <p>Full status object is available at.</p>
     <p><code>msg.status</code></p>
+    <p></p>
+    <p>2. CSV Ouput: The downloaded csv history.</p>
+    <p><code>msg.payload</code></p>
+    
 </script>
 
 

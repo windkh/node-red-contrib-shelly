@@ -440,8 +440,24 @@ The output of the node is as follows:
 }
 ```
 
+
+Next to polling data you can also download the historical time series data which is stored inside the device as follows:
+
+```
+[
+    {
+        download : [0, 1, 2],
+	    ...
+    },
+]
+```
+
+The download variable contains a list of channels that should be downloaded. This can be either one or more numbers. Note that downloading
+from the device can take some seconds as it depends on the size of the gathered data.
+
 Examples:  
 [**shelly EM flow**](examples/emeasure.json)  
+[**shelly EM download CSV flow**](examples/emeasure2.json)  
 
 
 # Shelly UNI Node

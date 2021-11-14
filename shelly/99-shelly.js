@@ -6,7 +6,7 @@
 module.exports = function (RED) {
     "use strict";
     var request = require('request');
-
+    
     // generic REST get wrapper
     function shellyGet(route, node, callback){
 
@@ -27,7 +27,7 @@ module.exports = function (RED) {
         request.get(options, function (error, response, body) {
             if(!error){
                 if(response.statusMessage == "OK"){
-                callback(body);
+                    callback(body);
                 } else {
                     node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusMessage });
                 }
@@ -64,7 +64,7 @@ module.exports = function (RED) {
         request.get(options, function (error, response, body) {
             if(!error){
                 if(response.statusMessage == "OK"){
-                callback(body);
+                    callback(body);
                 } else {
                     node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusMessage });
                 }
@@ -74,9 +74,38 @@ module.exports = function (RED) {
         });
     }
 
+    // generic REST get wrapper with promise
+    function shellyGetAsync(route, node){
+        return new Promise(function (resolve, reject) {
+
+            var options = {
+                url: 'http://' + node.hostname + route
+            };
+            if(node.credentials.username !== undefined && node.credentials.password !== undefined) {
+                options.auth = {
+                    username: node.credentials.username,
+                    password: node.credentials.password
+                };
+                let auth = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
+                options.headers = {
+                    "Authorization" : auth
+                };
+            };
+    
+            request.get(options, function (error, response, body) {
+                if(!error && response.statusMessage == "OK"){
+                    resolve(body)
+                } else {
+                    reject(error);
+                }
+            });
+
+          });
+    }
+
     function shellyPing(node, types){
-        shellyGet('/shelly', node, function(result) {
-            node.shellyInfo = JSON.parse(result);
+        shellyGet('/shelly', node, function(body) {
+            node.shellyInfo = JSON.parse(body);
 
             var found = false;
             for (var i = 0; i < types.length; i++) {
@@ -168,12 +197,12 @@ module.exports = function (RED) {
             }
 
             if(route !== undefined){
-                shellyGet(route, node, function(result) {
-                    shellyGet('/status', node, function(result) {
+                shellyGet(route, node, function(body) {
+                    shellyGet('/status', node, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = JSON.parse(result);
+                        var status = JSON.parse(body);
                         msg.status = status;
                         msg.payload = status.relays;
                         node.send([msg]);
@@ -181,11 +210,11 @@ module.exports = function (RED) {
                 });
             }
             else{
-                shellyGet('/status', node, function(result) {
+                shellyGet('/status', node, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
                         
-                    var status = JSON.parse(result);
+                    var status = JSON.parse(body);
                     msg.status = status;
                     msg.payload = status.relays;
                     node.send([msg]);
@@ -254,8 +283,8 @@ module.exports = function (RED) {
                     node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
                 }
 
-                shellyTryGet('/status', node, node.pollInterval, function(result) {
-                    var status = JSON.parse(result);
+                shellyTryGet('/status', node, node.pollInterval, function(body) {
+                    var status = JSON.parse(body);
                     var timestamp=new Date().toLocaleTimeString();
 
                     if(status.sensor !== undefined && status.sensor.is_valid){
@@ -364,12 +393,12 @@ module.exports = function (RED) {
             }
 
             if(route !== undefined){
-                shellyGet(route, node, function(result) {
-                    shellyGet('/status', node, function(result) {
+                shellyGet(route, node, function(body) {
+                    shellyGet('/status', node, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = JSON.parse(result);
+                        var status = JSON.parse(body);
                         msg.status = status;
                         msg.payload = status.rollers;
                         node.send([msg]);
@@ -377,11 +406,11 @@ module.exports = function (RED) {
                 });
             }
             else{
-                shellyGet('/status', node, function(result) {
+                shellyGet('/status', node, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    var status = JSON.parse(result);
+                    var status = JSON.parse(body);
                     msg.status = status;
                     msg.payload = status.rollers;
                     node.send([msg]);
@@ -534,13 +563,13 @@ module.exports = function (RED) {
             }
 
             if(route !== undefined) {
-                shellyGet(route, node, function(result) {
+                shellyGet(route, node, function(body) {
 		            if (node.dimmerStat) {
-			            shellyGet('/status', node, function(result) {
+			            shellyGet('/status', node, function(body) {
 
                             node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                            var status = JSON.parse(result);
+                            var status = JSON.parse(body);
                             msg.status = status;
                             msg.payload = status.lights;
                             node.send([msg]);
@@ -549,11 +578,11 @@ module.exports = function (RED) {
                 });
             }
             else {
-                shellyGet('/status', node, function(result) {
+                shellyGet('/status', node, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    var status = JSON.parse(result);
+                    var status = JSON.parse(body);
                     msg.status = status;
                     msg.payload = status.lights;
                     node.send([msg]);
@@ -629,8 +658,8 @@ module.exports = function (RED) {
 
         var mode = node.mode;
         if(mode === "color" || mode === "white"){
-            shellyGet('/settings?mode=' + mode, node, function(result) {
-                var result = JSON.parse(result);
+            shellyGet('/settings?mode=' + mode, node, function(body) {
+                var result = JSON.parse(body);
                 // here we can not check if the mode is already changed so we can not display a proper status.
             });
         }
@@ -902,13 +931,13 @@ module.exports = function (RED) {
                 }
             
                 if (route !== undefined){
-                    shellyGet(route, node, function(result) {
+                    shellyGet(route, node, function(body) {
                         if (node.ledStat) {
-                            shellyGet('/status', node, function(result) {
+                            shellyGet('/status', node, function(body) {
 
                                 node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                                var status = JSON.parse(result);
+                                var status = JSON.parse(body);
                                 msg.status = status;
                                 msg.payload = status.lights;
                                 node.send([msg]);
@@ -917,11 +946,11 @@ module.exports = function (RED) {
                     });
                 }
                 else {
-                    shellyGet('/status', node, function(result) {
+                    shellyGet('/status', node, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = JSON.parse(result);
+                        var status = JSON.parse(body);
                         msg.status = status;
                         msg.payload = status.lights;
                         node.send([msg]);
@@ -989,8 +1018,8 @@ module.exports = function (RED) {
                     node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
                 }
 
-                shellyTryGet('/status', node, node.pollInterval, function(result) {
-                    var status = JSON.parse(result);
+                shellyTryGet('/status', node, node.pollInterval, function(body) {
+                    var status = JSON.parse(body);
                     var timestamp=new Date().toLocaleTimeString();
                     if(status.sensor !== undefined && status.sensor.is_valid){
                         node.status({ fill: "green", shape: "ring", text: "Motion: " + status.sensor.motion + " Vibration: " + status.sensor.vibration + " " + timestamp});
@@ -1085,9 +1114,10 @@ module.exports = function (RED) {
 
         node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
 
-        this.on('input', function (msg) {
+        this.on('input', async function (msg) {
 
             var route;
+            var emetersToDownload;    
             if(msg.payload !== undefined){
                 var command = msg.payload;
 
@@ -1112,15 +1142,19 @@ module.exports = function (RED) {
                 if(turn != undefined){
                     route = "/relay/" + relay + "?turn=" + turn;
                 }
+
+                if(command.download !== undefined){
+                    emetersToDownload = command.download;
+                }
             }
 
             if(route !== undefined){
-                shellyGet(route, node, function(result) {
-                    shellyGet('/status', node, function(result) {
+                shellyGet(route, node, function(body) {
+                    shellyGet('/status', node, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = JSON.parse(result);
+                        var status = JSON.parse(body);
                         msg.status = status;
                         
                         var payload = {
@@ -1134,21 +1168,43 @@ module.exports = function (RED) {
                 });
             }
             else{
-                shellyGet('/status', node, function(result) {
+                if(emetersToDownload === undefined){
+                    shellyGet('/status', node, function(body) {
 
-                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+                        node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    var status = JSON.parse(result);
-                    msg.status = status;
+                        var status = JSON.parse(body);
+                        msg.status = status;
 
-                    var payload = {
-                        relays : status.relays,
-                        emeters : status.emeters
-                      };
-                    msg.payload = payload;
+                        var payload = {
+                            relays : status.relays,
+                            emeters : status.emeters
+                        };
+                        msg.payload = payload;
 
-                    node.send([msg]);
-                });
+                        node.send([msg]);
+                    });
+                }
+            }
+
+            if(emetersToDownload !== undefined){
+
+                let data = [];
+                for (let i = 0; i < emetersToDownload.length; i++) {
+                    let emeter = emetersToDownload[i];
+
+                    route = "/emeter/" + emeter + "/em_data.csv";
+                    
+                    node.status({ fill: "green", shape: "ring", text: "Downloading CSV " + emeter});
+
+                    let body = await shellyGetAsync(route, node);
+                    data.push(body);
+                }
+
+                node.status({ fill: "green", shape: "ring", text: "Connected."});
+
+                msg.payload = data;
+                node.send([null, msg]);
             }
         });
 
@@ -1222,12 +1278,12 @@ module.exports = function (RED) {
             }
 
             if(route !== undefined){
-                shellyGet(route, node, function(result) {
-                    shellyGet('/status', node, function(result) {
+                shellyGet(route, node, function(body) {
+                    shellyGet('/status', node, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = JSON.parse(result);
+                        var status = JSON.parse(body);
                         msg.status = status;
                         
                         var payload = {
@@ -1242,11 +1298,11 @@ module.exports = function (RED) {
                 });
             }
             else{
-                shellyGet('/status', node, function(result) {
+                shellyGet('/status', node, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    var status = JSON.parse(result);
+                    var status = JSON.parse(body);
                     msg.status = status;
 
                     var payload = {
