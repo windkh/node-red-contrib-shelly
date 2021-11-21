@@ -15,6 +15,8 @@ This package contains nodes for controlling shelly devices
 
 # Warning
 This package is under construction. Right now the following devices are supported
+
+Generation 1 devices:
 - shelly switch 1 (PM), 2, L,  
 - shelly plug plugS
 - shelly 2.5 (roller shutter) 
@@ -24,6 +26,9 @@ This package is under construction. Right now the following devices are supporte
 - shelly motion
 - shelly emeasure (EM, EM3)
 - shelly UNI
+
+Generation 2 devices:
+- shelly 1 (PM) plus
 
 Others may work but are not really tested so far.
 
@@ -102,6 +107,41 @@ The output of the node is an array of status objects for every relay of the swit
 
 Examples:  
 [**shelly switch flow**](examples/switch.json) 
+
+
+# Shelly Switch Node Generation 2 (1 Plus, 1 PM Plus)
+The node is able to turn on and turn off a shelly switch. It outputs the status after every interaction with the shelly device.
+Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
+
+
+```
+{
+    id : 0,
+	on : true
+}
+```
+
+or you can make use of the alternative notation:
+
+
+```
+{
+    id : 0,
+	method : "Switch.Toggle"
+}
+```
+
+Right after having sent the request to the shelly device a status request is done.
+
+If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
+This is useful, when you want to poll for the status cyclically.
+
+The output of the node is the full status object of the device.
+See https://shelly-api-docs.shelly.cloud/gen2/Overview/CommonServices/Shelly
+
+Examples:  
+[**shelly switch gen 2 flow**](examples/switchplus.json) 
+
 
 
 # Shelly Window/Door Node 1/2

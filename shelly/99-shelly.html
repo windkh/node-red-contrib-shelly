@@ -2,10 +2,12 @@
 <!-- see also // https://shelly-api-docs.shelly.cloud/#common-http-api -->
 
 
+<!-- GEN 1 ------------------------------------------------------------------------------------ -->
+
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
     RED.nodes.registerType('shelly-switch', {
-        category: 'shelly',
+        category: 'Shelly Gen 1',
         color: '#319DD7',
         defaults: {
             hostname: { value:"", required:true },
@@ -29,8 +31,6 @@
     });
 
 </script>
-
-<!-- ------------------------------------------------------------------------------------------ -->
 
 <script type="text/x-red" data-template-name="shelly-switch">
     <div class="form-row">
@@ -105,10 +105,11 @@
     <p><code>msg.status</code></p>
 </script>
 
+
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
     RED.nodes.registerType('shelly-door', {
-        category: 'shelly',
+        category: 'Shelly Gen 1',
         color: '#319DD7',
         defaults: {
             hostname: { value:"", required:true  },
@@ -232,10 +233,11 @@
     </ul>
 </script>
 
+
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
     RED.nodes.registerType('shelly-roller-shutter', {
-        category: 'shelly',
+        category: 'Shelly Gen 1',
         color: '#319DD7',
         defaults: {
             hostname: { value:"", required:true },
@@ -259,8 +261,6 @@
     });
 
 </script>
-
-<!-- ------------------------------------------------------------------------------------------ -->
 
 <script type="text/x-red" data-template-name="shelly-roller-shutter">
     <div class="form-row">
@@ -352,10 +352,11 @@
     <p><code>msg.status</code></p>
 </script>
 
+
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
     RED.nodes.registerType('shelly-dimmer', {
-        category: 'shelly',
+        category: 'Shelly Gen 1',
         color: '#319DD7',
         defaults: {
             hostname: { value:"", required:true },
@@ -380,8 +381,6 @@
     });
 
 </script>
-
-<!-- ------------------------------------------------------------------------------------------ -->
 
 <script type="text/x-red" data-template-name="shelly-dimmer">
     <div class="form-row">
@@ -480,7 +479,7 @@
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
     RED.nodes.registerType('shelly-rgbw2', {
-        category: 'shelly',
+        category: 'Shelly Gen 1',
         color: '#319DD7',
         defaults: {
             hostname: { value:"", required:true },
@@ -507,7 +506,6 @@
 
 </script>
 
-<!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/x-red" data-template-name="shelly-rgbw2">
     <div class="form-row">
         <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
@@ -633,7 +631,7 @@
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
     RED.nodes.registerType('shelly-motion', {
-        category: 'shelly',
+        category: 'Shelly Gen 1',
         color: '#319DD7',
         defaults: {
             hostname: { value:"", required:true },
@@ -674,7 +672,6 @@
 
 </script>
 
-<!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/x-red" data-template-name="shelly-motion">
     <div class="form-row">
         <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
@@ -729,7 +726,7 @@
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
     RED.nodes.registerType('shelly-emeasure', {
-        category: 'shelly',
+        category: 'Shelly Gen 1',
         color: '#319DD7',
         defaults: {
             hostname: { value:"", required:true },
@@ -758,7 +755,6 @@
 
 </script>
 
-<!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/x-red" data-template-name="shelly-emeasure">
     <div class="form-row">
         <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
@@ -810,7 +806,7 @@
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
     RED.nodes.registerType('shelly-uni', {
-        category: 'shelly',
+        category: 'Shelly Gen 1',
         color: '#319DD7',
         defaults: {
             hostname: { value:"", required:true },
@@ -839,7 +835,6 @@
 
 </script>
 
-<!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/x-red" data-template-name="shelly-uni">
     <div class="form-row">
         <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
@@ -882,3 +877,91 @@
     <p>Full status object is available at.</p>
     <p><code>msg.status</code></p>
 </script>
+
+
+<!-- GEN 2 ------------------------------------------------------------------------------------ -->
+
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/javascript">
+    RED.nodes.registerType('shelly-switch2', {
+        category: 'Shelly Gen 2',
+        color: '#6C95CE',
+        defaults: {
+            hostname: { value:"", required:true },
+            description: { value:"" },
+            pollinginterval: { value: 5000 },
+        },
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "shelly2.png",
+        paletteLabel: "switch2",
+        label: function () {
+            return this.description || this.hostname || "Shelly switch 2";
+        },
+        labelStyle: function() {
+            return this.description?"node_label_italic":"";
+        }
+    });
+
+</script>
+
+<script type="text/x-red" data-template-name="shelly-switch2">
+    <div class="form-row">
+        <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
+        <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the device">
+    </div>
+    <div class="form-row">
+        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
+        <input type="text" id="node-input-description" placeholder="The description of the device (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
+    </div>
+    <div class="form-row">
+        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
+        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="shelly-switch2">
+    <p>A node that controls a shelly switch device (Shelly Plus 1, Shelly Plus 1 PM).</p>
+
+    <h3>Configuration</h3>
+    <p>Hostname is the IP address or the hostname of the device.</p>
+    <p>Description of the device.</p>
+    <p>User is optional and must only be set if security is enabled.</p>
+    <p>Password is optional and must only be set if security is enabled.</p>
+    <p>Ping interval is the time between the status pollings.</p>
+
+    <h3>Inputs</h3>
+    <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>{</code>
+        <br/>
+        <code>    id : 0, </code>
+        <br/>
+        <code>    on : true </code>
+        <br/>
+        <code>    toggle_after : 1 </code>
+        <br/>
+        <code>}</code>
+    </ul>
+    <p>id is the relay 0..n.</p>
+    <p>on can be true or false.</p>
+    <p>toggle_after is optional time in seconds to flip back.</p>
+
+    <h3>Outputs</h3>
+    <p>1. Standard Ouput: The full status object.</p>
+    <p><code>msg.payload</code></p>
+</script>
+

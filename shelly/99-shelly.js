@@ -202,7 +202,7 @@ module.exports = function (RED) {
                     turn = command.turn;
                 }
 
-                if(turn != undefined){
+                if(turn !== undefined){
                     route = "/relay/" + relay + "?turn=" + turn;
                 }
             }
@@ -391,7 +391,7 @@ module.exports = function (RED) {
                     }
                 }
 
-                if(go != undefined){
+                if(go !== undefined){
                     route = "/roller/" + roller + "?go=" + go;
                 }
             }
@@ -541,13 +541,13 @@ module.exports = function (RED) {
                 }
 
 
-                if (turn != undefined && brightness != undefined){
+                if (turn !== undefined && brightness !== undefined){
                   route = "/light/" + light + "?turn=" + turn + "&brightness=" + brightness;
                 }
-                else if (brightness != undefined){
+                else if (brightness !== undefined){
                     route = "/light/" + light + "?brightness=" + brightness;
                 }
-                else if (turn != undefined){
+                else if (turn !== undefined){
                     route = "/light/" + light + "?turn=" + turn;
                 }
 
@@ -1135,7 +1135,7 @@ module.exports = function (RED) {
                     turn = command.turn;
                 }
 
-                if(turn != undefined){
+                if(turn !== undefined){
                     route = "/relay/" + relay + "?turn=" + turn;
                 }
 
@@ -1270,7 +1270,7 @@ module.exports = function (RED) {
                     turn = command.turn;
                 }
 
-                if(turn != undefined){
+                if(turn !== undefined){
                     route = "/relay/" + relay + "?turn=" + turn;
                 }
             }
@@ -1318,6 +1318,119 @@ module.exports = function (RED) {
     }
 
     RED.nodes.registerType("shelly-uni", ShellyUniNode, {
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        }
+    });
+
+    
+    // GEN 2 --------------------------------------------------------------------------------------
+    
+    // --------------------------------------------------------------------------------------------
+    // The switch node controls a shelly switch gen 2: Shelly 1 plus Shelly 1 PM plus
+    function ShellySwitch2Node(config) {
+        RED.nodes.createNode(this, config);
+        var node = this;
+        node.hostname = config.hostname;
+        node.pollInterval = parseInt(config.pollinginterval);
+
+        /* node.shellyInfo
+        GET /shelly
+        { 
+            "id":"shellyplus1pm-44179394b8d0",
+            "mac":"44179394B8D0",
+            "model":"SNSW-001P16EU",
+            "gen":2, 
+            "fw_id":"20210921-202918/0.8.1-g52de872",
+            "ver":"0.8.1",
+            "app":"Plus1PM",
+            "auth_en":false,
+            "auth_domain":null }
+        */
+
+        var types = ["SNSW-"];
+        shellyPing(node, types);
+
+        if(node.pollInterval > 0) {
+            node.timer = setInterval(function() {
+                shellyPing(node, types);
+            }, node.pollInterval);
+        }
+
+        /* when a payload is received in the format
+            {
+                id : 0,
+                on : true,
+                toggle_after : 1
+            }
+        then the command is send to the shelly.
+
+        The output gets the status of the relay with id.
+        */
+        this.on('input', function (msg) {
+
+            var route;
+            if(msg.payload !== undefined){
+                var command = msg.payload;
+
+                var id;
+                if(command.id !== undefined){
+                    id = command.id;
+                }
+
+                var method;
+                if(command.method !== undefined){
+                    method = command.method;
+                }
+
+                // Switch.Set (default)
+                if(method === undefined){
+                    if(id !== undefined && command.on !== undefined){
+                        route = "/rpc/Switch.Set?id=" + id + "&on=" + command.on;
+                    
+                        if(command.toggle_after !== undefined){
+                            route += "&toggle_after=" + command.toggle_after;
+                        }
+                    }
+                }
+                else if (method === "Switch.Toggle"){
+                    if(id !== undefined){
+                        route = "/rpc/Switch.Toggle?id=" + id;
+                    }
+                }
+                else{
+                    // nothing to do.
+                }
+            }
+
+            var getStatusRoute = '/rpc/Shelly.GetStatus';
+            if(route !== undefined){
+                shellyGet(route, node, function(body) {
+                    shellyGet(getStatusRoute, node, function(body) {
+
+                        node.status({ fill: "green", shape: "ring", text: "Connected." });
+
+                        var status = JSON.parse(body);
+                        msg.payload = status;
+                        node.send([msg]);
+                    });
+                });
+            }
+            else{
+                shellyGet(getStatusRoute, node, function(body) {
+
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+                        
+                    var status = JSON.parse(body);
+                    msg.payload = status;
+                    node.send([msg]);
+                });
+            }
+        });
+
+    }
+    RED.nodes.registerType("shelly-switch2", ShellySwitch2Node, {
         credentials: {
             username: { type: "text" },
             password: { type: "password" },
