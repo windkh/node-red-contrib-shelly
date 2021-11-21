@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [2.1.0] - 2021-11-21
+## [2.1.1] - 2021-11-21
 ### Shelly (PM) 1 plus support (first generation 2 device) - [#41](https://github.com/windkh/node-red-contrib-shelly/issues/41)
 
 ## [2.0.1] - 2021-11-21
