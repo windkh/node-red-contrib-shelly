@@ -110,10 +110,21 @@ module.exports = function (RED) {
             var found = false;
             for (var i = 0; i < types.length; i++) {
                 var type = types[i];
-                found  = node.shellyInfo.type.startsWith(type)
-                if (found) {
-                    break;
-                }    
+
+                // Generation 1 devices
+                if(node.shellyInfo.type !== undefined){
+                    found  = node.shellyInfo.type.startsWith(type)
+                    if (found) {
+                        break;
+                    }    
+                } // Generation 2 devices 
+                else if(node.shellyInfo.model !== undefined && node.shellyInfo.gen === 2)
+                {
+                    found  = node.shellyInfo.model.startsWith(type)
+                    if (found) {
+                        break;
+                    }    
+                }
             }
             
             if(found){

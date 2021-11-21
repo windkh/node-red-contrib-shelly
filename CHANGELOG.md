@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [2.0.1] - 2021-11-21
+### ping does not crash node-red for gen 2 devices like Shelly PM 1 plus - [#41](https://github.com/windkh/node-red-contrib-shelly/issues/41)
+
 ## [2.0.0] - 2021-11-14
 ### removed config option sendFullStatus for motion and door - [#36](https://github.com/windkh/node-red-contrib-shelly/issues/36)
 
