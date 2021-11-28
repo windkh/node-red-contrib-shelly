@@ -348,6 +348,29 @@
         <br/>
         <code>]</code>
     </ul>
+    <p></p>
+    <p>If the device type is set to relay use the following object for turning the switch on or off:</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>{</code>
+        <br/>
+        <code>    relay : 0, </code>
+        <br/>
+        <code>    on : true </code>
+        <br/>
+        <code>}</code>
+    </ul>
+    <p>As an alternative you can also make use of the following notation:</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>{</code>
+        <br/>
+        <code>    relay : 0, </code>
+        <br/>
+        <code>    turn : on/off/toggle </code>
+        <br/>
+        <code>}</code>
+    </ul>
     <p>Full status object is available at.</p>
     <p><code>msg.status</code></p>
 </script>

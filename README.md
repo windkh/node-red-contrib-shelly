@@ -205,44 +205,55 @@ The relay number is optional and defaults to 0. The following object for open or
 }
 ```
 
+
+If device is in relay mode: Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
+
+```
+{
+    relay : 0,
+	on : true
+}
+```
+
+or you can make use of the alternative notation:
+
+
+```
+{
+    relay : 0,
+	turn : "toggle"
+}
+```
+turn can be one of the following: "toggle", "on", "off"
+
 Right after having sent the request to the shelly device a status request is done. The roller property of the response is output on output 1.
 
 If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
 This is useful, when you want to poll for the status cyclically.
 
-The output of the node is an array of status objects for every roller of the roller shutter:
+The output of the node is an array of status objects for every roller and every relay of the roller shutter:
 
 ```
-[
-    {
-        state : "open",
-	    ...
-    }
-]
-```
-
-```
-[
-    {
-        state : "close",
-	    ...
-    }
-]
-```
-
-```
-[
-    {
-        state : "open",
-        current_pos: 50,
-	    ...
-    }
-]
+{
+rollers : [
+        {
+            state : "open",
+			current_pos: 50,
+	        ...
+        },
+    ],
+relays : [
+        {
+		    ison : true,
+			...
+		},
+	]
 ```
 
 Examples:  
 [**shelly roller flow**](examples/roller.json)  
 [**shelly roller2 flow**](examples/roller2.json)  
+[**shelly roller3 flow**](examples/roller3.json)  
 
 
 # Shelly Dimmer (SL) Node / Shelly Bulb Duo / Vintage

@@ -371,6 +371,19 @@ module.exports = function (RED) {
 
         The output gets the status of all rollers.
         */
+        /* when a payload is received in the format
+            {
+                relay : 0,
+                on : true
+            }
+            or in alternative format 
+            {
+                relay : 0,
+                turn : on/off/toggle
+            }
+        then the command is send to the shelly.
+        */
+
         this.on('input', function (msg) {
 
             var route;
@@ -394,6 +407,32 @@ module.exports = function (RED) {
                 if(go !== undefined){
                     route = "/roller/" + roller + "?go=" + go;
                 }
+
+                // we fall back to relay mode if no valid roller command is received.
+                if(route === undefined)
+                {
+                    var relay = 0;
+                    if(command.relay !== undefined){
+                        relay = command.relay;
+                    }
+    
+                    var turn;
+                    if(command.on !== undefined){
+                        if(command.on == true){
+                            turn = "on";
+                        }
+                        else{
+                            turn = "off"
+                        }
+                    }
+                    else if(command.turn !== undefined){
+                        turn = command.turn;
+                    }
+    
+                    if(turn !== undefined){
+                        route = "/relay/" + relay + "?turn=" + turn;
+                    }
+                }
             }
 
             if(route !== undefined){
@@ -404,7 +443,10 @@ module.exports = function (RED) {
 
                         var status = JSON.parse(body);
                         msg.status = status;
-                        msg.payload = status.rollers;
+                        msg.payload = {
+                            rollers : status.rollers,
+                            relays : status.relays
+                        };
                         node.send([msg]);
                     });
                 });
@@ -416,7 +458,10 @@ module.exports = function (RED) {
 
                     var status = JSON.parse(body);
                     msg.status = status;
-                    msg.payload = status.rollers;
+                    msg.payload = {
+                        rollers : status.rollers,
+                        relays : status.relays
+                    };
                     node.send([msg]);
                 });
             }
