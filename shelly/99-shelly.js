@@ -8,14 +8,22 @@ module.exports = function (RED) {
     var axios = require('axios').default;
       
     // generic REST get wrapper
-    function shellyGet(route, node, callback){
+    function shellyGet(route, node, hostname, callback){
 
         let headers = {};
         if(node.credentials.username !== undefined && node.credentials.password !== undefined) {
             headers.Authorization = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
         };
 
-        let url = 'http://' + node.hostname + route;
+        let url = 'http://';
+        if(hostname === undefined){
+            url += node.hostname;;
+        }
+        else {
+            url += hostname;;
+        }
+        url += route;
+
         const request = axios.get(url, {
             headers : headers
         });
@@ -34,7 +42,7 @@ module.exports = function (RED) {
     }
 
     // Note that this function has a reduced timeout.
-    function shellyTryGet(route, node, timeout, callback, errorCallback){
+    function shellyTryGet(route, node, timeout, hostname, callback, errorCallback){
 
         // We avoid an invalid timeout by taking a default if 0.
         let requestTimeout = timeout;
@@ -47,7 +55,15 @@ module.exports = function (RED) {
             headers.Authorization = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
         };
 
-        let url = 'http://' + node.hostname + route;
+        let url = 'http://';
+        if(hostname === undefined){
+            url += node.hostname;;
+        }
+        else {
+            url += hostname;;
+        }
+        url += route;
+
         const request = axios.get(url, {}, {
             headers : headers,
             timeout: requestTimeout
@@ -67,7 +83,7 @@ module.exports = function (RED) {
     }
 
     // generic REST get wrapper with promise
-    function shellyGetAsync(route, node){
+    function shellyGetAsync(route, node, hostname){
         return new Promise(function (resolve, reject) {
 
             let headers = {};
@@ -75,7 +91,15 @@ module.exports = function (RED) {
                 headers.Authorization = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
             };
 
-            let url = 'http://' + node.hostname + route;
+            let url = 'http://';
+            if(hostname === undefined){
+                url += node.hostname;;
+            }
+            else {
+                url += hostname;;
+            }
+            url += route;
+            
             const request = axios.get(url, {}, {
                 headers : headers
             });
@@ -94,7 +118,7 @@ module.exports = function (RED) {
     }
 
     function shellyPing(node, types){
-        shellyGet('/shelly', node, function(body) {
+        shellyGet('/shelly', node, node.hostname, function(body) {
             node.shellyInfo = body;
 
             var found = false;
@@ -145,13 +169,18 @@ module.exports = function (RED) {
         }
         */
 
-        var types = ["SHPLG-", "SHSW-", "SHUNI-"];
-        shellyPing(node, types);
+        if(node.hostname !== ''){    
+            var types = ["SHPLG-", "SHSW-", "SHUNI-"];
+            shellyPing(node, types);
 
-        if(node.pollInterval > 0) {
-            node.timer = setInterval(function() {
-                shellyPing(node, types);
-            }, node.pollInterval);
+            if(node.pollInterval > 0) {
+                node.timer = setInterval(function() {
+                    shellyPing(node, types);
+                }, node.pollInterval);
+            }
+        }
+        else {
+            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
         }
 
         /* when a payload is received in the format
@@ -170,8 +199,10 @@ module.exports = function (RED) {
         */
         this.on('input', function (msg) {
 
+            var hostname;
             var route;
             if(msg.payload !== undefined){
+                hostname = msg.payload.hostname;
                 var command = msg.payload;
 
                 var relay = 0;
@@ -198,8 +229,8 @@ module.exports = function (RED) {
             }
 
             if(route !== undefined){
-                shellyGet(route, node, function(body) {
-                    shellyGet('/status', node, function(body) {
+                shellyGet(route, node, hostname, function(body) {
+                    shellyGet('/status', node, hostname, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -211,7 +242,7 @@ module.exports = function (RED) {
                 });
             }
             else{
-                shellyGet('/status', node, function(body) {
+                shellyGet('/status', node, hostname, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
                         
@@ -279,35 +310,37 @@ module.exports = function (RED) {
 
         this.on('input', function (msg) {
 
-                if(msg.payload){
-                    node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
+            var hostname;
+            if(msg.payload){
+                hostname = msg.payload.hostname;
+                node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
+            }
+
+            shellyTryGet('/status', node, node.pollInterval, hostname, function(body) {
+                var status = body;
+                var timestamp=new Date().toLocaleTimeString();
+
+                if(status.sensor !== undefined && status.sensor.is_valid){
+                    node.status({ fill: "green", shape: "ring", text: "Status: " + status.sensor.state + " " + timestamp});
+                }
+                else {
+                    node.status({ fill: "red", shape: "ring", text: "Status: invalid" });
                 }
 
-                shellyTryGet('/status', node, node.pollInterval, function(body) {
-                    var status = body;
-                    var timestamp=new Date().toLocaleTimeString();
-
-                    if(status.sensor !== undefined && status.sensor.is_valid){
-                        node.status({ fill: "green", shape: "ring", text: "Status: " + status.sensor.state + " " + timestamp});
-                    }
-                    else {
-                        node.status({ fill: "red", shape: "ring", text: "Status: invalid" });
-                    }
-
-                    msg.status = status;
-                    msg.payload = {
-                        sensor : status.sensor,
-                        lux : status.lux,
-                        bat :  status.bat,
-                    };
-                    
-                    node.send([msg]);
-                },
-                function(error){
-                    if(msg.payload){
-                        node.status({ fill: "yellow", shape: "ring", text: "Status unknown: device not reachable." });
-                    }
-                });
+                msg.status = status;
+                msg.payload = {
+                    sensor : status.sensor,
+                    lux : status.lux,
+                    bat :  status.bat,
+                };
+                
+                node.send([msg]);
+            },
+            function(error){
+                if(msg.payload){
+                    node.status({ fill: "yellow", shape: "ring", text: "Status unknown: device not reachable." });
+                }
+            });
         });
 
         this.on('close', function(done) {
@@ -343,13 +376,18 @@ module.exports = function (RED) {
         }
         */
 
-        var types = ["SHPLG-", "SHSW-"];
-        shellyPing(node, types);
+        if(node.hostname !== ''){
+            var types = ["SHPLG-", "SHSW-"];
+            shellyPing(node, types);
 
-        if(node.pollInterval > 0) {
-            node.timer = setInterval(function() {
-                shellyPing(node, types);
-            }, node.pollInterval);
+            if(node.pollInterval > 0) {
+                node.timer = setInterval(function() {
+                    shellyPing(node, types);
+                }, node.pollInterval);
+            }
+        }
+        else {
+            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
         }
 
         /* when a payload is received in the format
@@ -376,8 +414,10 @@ module.exports = function (RED) {
 
         this.on('input', function (msg) {
 
+            var hostname;
             var route;
             if(msg.payload !== undefined){
+                hostname = msg.payload.hostname;
                 var command = msg.payload;
 
                 var roller = 0;
@@ -426,8 +466,8 @@ module.exports = function (RED) {
             }
 
             if(route !== undefined){
-                shellyGet(route, node, function(body) {
-                    shellyGet('/status', node, function(body) {
+                shellyGet(route, node, hostname, function(body) {
+                    shellyGet('/status', node, hostname, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -443,7 +483,7 @@ module.exports = function (RED) {
                 });
             }
             else{
-                shellyGet('/status', node, function(body) {
+                shellyGet('/status', node, hostname, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -489,13 +529,18 @@ module.exports = function (RED) {
         }
         */
 
-        var types = ["SHDM-", "SHBDUO-1"];
-        shellyPing(node, types);
+        if(node.hostname !== ''){
+            var types = ["SHDM-", "SHBDUO-1"];
+            shellyPing(node, types);
 
-        if(node.pollInterval > 0) {
-            node.timer = setInterval(function() {
-                shellyPing(node, types);
-            }, node.pollInterval);
+            if(node.pollInterval > 0) {
+                node.timer = setInterval(function() {
+                    shellyPing(node, types);
+                }, node.pollInterval);
+            }
+        }
+        else {
+            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
         }
 
         /* when a payload is received in the format
@@ -519,8 +564,10 @@ module.exports = function (RED) {
         */
         this.on('input', function (msg) {
 
+            var hostname;
             var route;
             if(msg.payload !== undefined){
+                hostname = msg.payload.hostname;
                 var command = msg.payload;
 
                 var light = 0;
@@ -604,9 +651,9 @@ module.exports = function (RED) {
             }
 
             if(route !== undefined) {
-                shellyGet(route, node, function(body) {
+                shellyGet(route, node, hostname, function(body) {
 		            if (node.dimmerStat) {
-			            shellyGet('/status', node, function(body) {
+			            shellyGet('/status', node, hostname, function(body) {
 
                             node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -619,7 +666,7 @@ module.exports = function (RED) {
                 });
             }
             else {
-                shellyGet('/status', node, function(body) {
+                shellyGet('/status', node, hostname, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -661,13 +708,18 @@ module.exports = function (RED) {
         }
         */
 
-        var types = ["SHRGBW2", "SHCB-1"];
-        shellyPing(node, types);
+        if(node.hostname !== ''){
+            var types = ["SHRGBW2", "SHCB-1"];
+            shellyPing(node, types);
 
-        if(node.pollInterval > 0) {
-            node.timer = setInterval(function() {
-                shellyPing(node, types);
-            }, node.pollInterval);
+            if(node.pollInterval > 0) {
+                node.timer = setInterval(function() {
+                    shellyPing(node, types);
+                }, node.pollInterval);
+            }
+        }
+        else {
+            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
         }
 
         /* when a payload is received in the format
@@ -699,7 +751,7 @@ module.exports = function (RED) {
 
         var mode = node.mode;
         if(mode === "color" || mode === "white"){
-            shellyGet('/settings?mode=' + mode, node, function(body) {
+            shellyGet('/settings?mode=' + mode, node, node.hostname, function(body) {
                 var result = body;
                 // here we can not check if the mode is already changed so we can not display a proper status.
             });
@@ -707,8 +759,10 @@ module.exports = function (RED) {
         
         this.on('input', function (msg) {
 
+            var hostname;
             var route;
             if(msg.payload !== undefined) {
+                hostname = msg.payload.hostname;
                 var command = msg.payload;
 
                 var nodeMode;
@@ -972,9 +1026,9 @@ module.exports = function (RED) {
                 }
             
                 if (route !== undefined){
-                    shellyGet(route, node, function(body) {
+                    shellyGet(route, node, hostname, function(body) {
                         if (node.ledStat) {
-                            shellyGet('/status', node, function(body) {
+                            shellyGet('/status', node, hostname, function(body) {
 
                                 node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -987,7 +1041,7 @@ module.exports = function (RED) {
                     });
                 }
                 else {
-                    shellyGet('/status', node, function(body) {
+                    shellyGet('/status', node, hostname, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -1054,54 +1108,56 @@ module.exports = function (RED) {
 
         this.on('input', function (msg) {
 
-                if(msg.payload){
-                    node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
+            var hostname;
+            if(msg.payload){
+                hostname = msg.payload.hostname;
+                node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
+            }
+
+            shellyTryGet('/status', node, node.pollInterval, hostname, function(body) {
+                var status = body;
+                var timestamp=new Date().toLocaleTimeString();
+                
+                if(status.sensor !== undefined && status.sensor.is_valid){
+                    node.status({ fill: "green", shape: "ring", text: "Motion: " + status.sensor.motion + " Vibration: " + status.sensor.vibration + " " + timestamp});
+                }
+                else {
+                    node.status({ fill: "red", shape: "ring", text: "Status: invalid" });
                 }
 
-                shellyTryGet('/status', node, node.pollInterval, function(body) {
-                    var status = body;
-                    var timestamp=new Date().toLocaleTimeString();
-                    
-                    if(status.sensor !== undefined && status.sensor.is_valid){
-                        node.status({ fill: "green", shape: "ring", text: "Motion: " + status.sensor.motion + " Vibration: " + status.sensor.vibration + " " + timestamp});
-                    }
-                    else {
-                        node.status({ fill: "red", shape: "ring", text: "Status: invalid" });
+                msg.status = status;
+                msg.payload = {
+                    sensor : status.sensor,
+                    lux : status.lux,
+                    bat :  status.bat,
+                };
+                
+                if (!hasextraoutputs) {
+                    node.send([msg]);   
+                } 
+                else {
+                    let motionMsg;
+                    let motionDetected = status.sensor.motion;
+                    if(motionDetected)
+                    {
+                        motionMsg = msg;
                     }
 
-                    msg.status = status;
-                    msg.payload = {
-                        sensor : status.sensor,
-                        lux : status.lux,
-                        bat :  status.bat,
-                    };
-                    
-                    if (!hasextraoutputs) {
-                        node.send([msg]);   
-                    } 
-                    else {
-                        let motionMsg;
-                        let motionDetected = status.sensor.motion;
-                        if(motionDetected)
-                        {
-                            motionMsg = msg;
-                        }
-
-                        let vibrationMsg;
-                        let vibrationDetected = status.sensor.vibration;
-                        if(vibrationDetected)
-                        {
-                            vibrationMsg = msg;
-                        }
-
-                        node.send([msg, motionMsg, vibrationMsg]);
+                    let vibrationMsg;
+                    let vibrationDetected = status.sensor.vibration;
+                    if(vibrationDetected)
+                    {
+                        vibrationMsg = msg;
                     }
-                },
-                function(error){
-                    if(msg.payload){
-                        node.status({ fill: "yellow", shape: "ring", text: "Status unknown: device not reachable." });
-                    }
-                });
+
+                    node.send([msg, motionMsg, vibrationMsg]);
+                }
+            },
+            function(error){
+                if(msg.payload){
+                    node.status({ fill: "yellow", shape: "ring", text: "Status unknown: device not reachable." });
+                }
+            });
         });
 
         this.on('close', function(done) {
@@ -1135,24 +1191,31 @@ module.exports = function (RED) {
         node.hostname = config.hostname;
         node.pollInterval = parseInt(config.pollinginterval);
 
-        var types = ["SHEM"];
-        shellyPing(node, types);
+        if(node.hostname !== ''){
+            var types = ["SHEM"];
+            shellyPing(node, types);
 
-        if(node.pollInterval > 0) {
-            node.timer = setInterval(function() {   
-                shellyPing(node, types);
+            if(node.pollInterval > 0) {
+                node.timer = setInterval(function() {   
+                    shellyPing(node, types);
 
-                node.emit("input", {});
-            }, node.pollInterval);
+                    node.emit("input", {});
+                }, node.pollInterval);
+            }
+
+            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
         }
-
-        node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
+        else {
+            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
+        }
 
         this.on('input', async function (msg) {
 
+            var hostname;
             var route;
             var emetersToDownload;    
             if(msg.payload !== undefined){
+                hostname = msg.payload.hostname;
                 var command = msg.payload;
 
                 var relay = 0;
@@ -1183,8 +1246,8 @@ module.exports = function (RED) {
             }
 
             if(route !== undefined){
-                shellyGet(route, node, function(body) {
-                    shellyGet('/status', node, function(body) {
+                shellyGet(route, node, hostname, function(body) {
+                    shellyGet('/status', node, hostname, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -1201,7 +1264,7 @@ module.exports = function (RED) {
             }
             else{
                 if(emetersToDownload === undefined){
-                    shellyGet('/status', node, function(body) {
+                    shellyGet('/status', node, hostname, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -1228,7 +1291,7 @@ module.exports = function (RED) {
                     node.status({ fill: "green", shape: "ring", text: "Downloading CSV " + emeter});
 
                     try {
-                        let body = await shellyGetAsync(route, node);
+                        let body = await shellyGetAsync(route, node, hostname);
                         data.push(body);
                     }
                     catch (error) {
@@ -1271,23 +1334,30 @@ module.exports = function (RED) {
         node.hostname = config.hostname;
         node.pollInterval = parseInt(config.pollinginterval);
 
-        var types = ["SHUNI"];
-        shellyPing(node, types);
+        if(node.hostname !== ''){    
+            var types = ["SHUNI"];
+            shellyPing(node, types);
 
-        if(node.pollInterval > 0) {
-            node.timer = setInterval(function() {   
-                shellyPing(node, types);
+            if(node.pollInterval > 0) {
+                node.timer = setInterval(function() {   
+                    shellyPing(node, types);
 
-                node.emit("input", {});
-            }, node.pollInterval);
+                    node.emit("input", {});
+                }, node.pollInterval);
+            }
+
+            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
         }
-
-        node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
-
+        else {
+            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
+        }
+        
         this.on('input', function (msg) {
 
+            var hostname;
             var route;
             if(msg.payload !== undefined){
+                hostname = msg.payload.hostname;
                 var command = msg.payload;
 
                 var relay = 0;
@@ -1314,8 +1384,8 @@ module.exports = function (RED) {
             }
 
             if(route !== undefined){
-                shellyGet(route, node, function(body) {
-                    shellyGet('/status', node, function(body) {
+                shellyGet(route, node, hostname, function(body) {
+                    shellyGet('/status', node, hostname, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -1332,7 +1402,7 @@ module.exports = function (RED) {
                 });
             }
             else{
-                shellyGet('/status', node, function(body) {
+                shellyGet('/status', node, hostname, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -1387,13 +1457,18 @@ module.exports = function (RED) {
             "auth_domain":null }
         */
 
-        var types = ["SNSW-"];
-        shellyPing(node, types);
+        if(node.hostname !== ''){
+            var types = ["SNSW-"];
+            shellyPing(node, types);
 
-        if(node.pollInterval > 0) {
-            node.timer = setInterval(function() {
-                shellyPing(node, types);
-            }, node.pollInterval);
+            if(node.pollInterval > 0) {
+                node.timer = setInterval(function() {
+                    shellyPing(node, types);
+                }, node.pollInterval);
+            }
+        }
+        else {
+            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
         }
 
         /* when a payload is received in the format
@@ -1408,8 +1483,10 @@ module.exports = function (RED) {
         */
         this.on('input', function (msg) {
 
+            var hostname;
             var route;
             if(msg.payload !== undefined){
+                hostname = msg.payload.hostname;
                 var command = msg.payload;
 
                 var id;
@@ -1444,8 +1521,8 @@ module.exports = function (RED) {
 
             var getStatusRoute = '/rpc/Shelly.GetStatus';
             if(route !== undefined){
-                shellyGet(route, node, function(body) {
-                    shellyGet(getStatusRoute, node, function(body) {
+                shellyGet(route, node, hostname, function(body) {
+                    shellyGet(getStatusRoute, node, hostname, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -1456,7 +1533,7 @@ module.exports = function (RED) {
                 });
             }
             else{
-                shellyGet(getStatusRoute, node, function(body) {
+                shellyGet(getStatusRoute, node, hostname, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
                         

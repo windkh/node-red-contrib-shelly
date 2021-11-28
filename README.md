@@ -63,9 +63,19 @@ Changes can be followed [here](/CHANGELOG.md)
 
 # General
 To check if the node is available in the network, a HTTP GET to /shelly is issued. This route returns a type string which is 
-verified. You can configure an interval for the polling. The default is 5000ms. Most node will call HTTP GET to the /status route
-after a input is received from the node. This answer is directly available at the output via msg.status. The msg.payload property 
+verified. You can configure an interval for the polling. The default is 5000ms, 0 is off = no polling. 
+Most nodes will call HTTP GET to the /status route after a input is received from the node.
+This answer is directly available at the output via msg.status. The msg.payload property 
 contains a lightweight version of this status object.
+The hostname can be left empty in the configuration node. This deactivates polling, too. In this case you must pass the hostname in
+the msg.payload.hostname. This can be useful, if you want to use one node for several devices or if you want to make use of sub flows. 
+
+```
+{
+    hostname : '192.168.178.250'
+	...
+}
+```
 
 
 # Shelly Switch Node (1, 2, 1PM, 1L, Plug, PlugS)
@@ -86,10 +96,10 @@ or you can make use of the alternative notation:
 ```
 {
     relay : 0,
-	turn : "toggle"
+	turn : 'toggle'
 }
 ```
-turn can be one of the following: "toggle", "on", "off"
+turn can be one of the following: 'toggle', 'on', 'off'
 
 Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
 
@@ -134,7 +144,7 @@ or you can make use of the alternative notation:
 ```
 {
     id : 0,
-	method : "Switch.Toggle"
+	method : 'Switch.Toggle'
 }
 ```
 
@@ -162,14 +172,14 @@ The output of the node is as follows:
 {
     sensor
 	{
-		state: "close",
+		state: 'close',
 		is_valid: true
 	},
 
 	lux
 	{
 		value: 150,
-		illumination: "twilight",
+		illumination: 'twilight',
 		is_valid: true
 	},
 
@@ -193,21 +203,21 @@ The relay number is optional and defaults to 0. The following object for open or
 ```
 {
     roller : 0,
-	go : "open"
+	go : 'open'
 }
 ```
 
 ```
 {
     roller : 0,
-	go : "close"
+	go : 'close'
 }
 ```
 
 ```
 {
     roller : 0,
-	go : "to_pos",
+	go : 'to_pos',
 	roller_pos: 50
 }
 ```
@@ -228,10 +238,10 @@ or you can make use of the alternative notation:
 ```
 {
     relay : 0,
-	turn : "toggle"
+	turn : 'toggle'
 }
 ```
-turn can be one of the following: "toggle", "on", "off"
+turn can be one of the following: 'toggle', 'on', 'off'
 
 Right after having sent the request to the shelly device a status request is done. The roller property of the response is output on output 1.
 
@@ -244,7 +254,7 @@ The output of the node is an array of status objects for every roller and every 
 {
 rollers : [
         {
-            state : "open",
+            state : 'open',
 			current_pos: 50,
 	        ...
         },
@@ -279,7 +289,7 @@ Turning on is done by sending the following payload into the input. The light nu
 }
 ```
 
-Like in the switch node you can replace on with turn and choose a value from the following: "toggle", "on", "off"
+Like in the switch node you can replace on with turn and choose a value from the following: 'toggle', 'on', 'off'
 
 You can also control the shelly state and brightness independently.
 
@@ -399,7 +409,7 @@ The output of the node is as follows:
 	lux
 	{
 		value: 150,
-		illumination: "twilight",
+		illumination: 'twilight',
 		is_valid: true
 	},
 
@@ -433,10 +443,10 @@ or you can make use of the alternative notation:
 ```
 {
     relay : 0,
-	turn : "toggle"
+	turn : 'toggle'
 }
 ```
-turn can be one of the following: "toggle", "on", "off"
+turn can be one of the following: 'toggle', 'on', 'off'
 
 Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
 
@@ -464,34 +474,34 @@ The output of the node is as follows:
 
 ```
 {
-    "relays": [
+    'relays': [
         {
-            "ison": false,
-            "has_timer": false,
-            "timer_started": 0,
-            "timer_duration": 0,
-            "timer_remaining": 0,
-            "overpower": false,
-            "is_valid": true,
-            "source": "http"
+            'ison': false,
+            'has_timer': false,
+            'timer_started': 0,
+            'timer_duration': 0,
+            'timer_remaining': 0,
+            'overpower': false,
+            'is_valid': true,
+            'source': 'http'
         }
     ],
-    "emeters": [
+    'emeters': [
         {
-            "power": 0,
-            "reactive": 0,
-            "voltage": 0,
-            "is_valid": true,
-            "total": 0,
-            "total_returned": 0
+            'power': 0,
+            'reactive': 0,
+            'voltage': 0,
+            'is_valid': true,
+            'total': 0,
+            'total_returned': 0
         },
         {
-            "power": 0,
-            "reactive": 0,
-            "voltage": 0,
-            "is_valid": true,
-            "total": 0,
-            "total_returned": 0
+            'power': 0,
+            'reactive': 0,
+            'voltage': 0,
+            'is_valid': true,
+            'total': 0,
+            'total_returned': 0
         }
     ]
 }
@@ -535,10 +545,10 @@ or you can make use of the alternative notation:
 ```
 {
     relay : 0,
-	turn : "toggle"
+	turn : 'toggle'
 }
 ```
-turn can be one of the following: "toggle", "on", "off"
+turn can be one of the following: 'toggle', 'on', 'off'
 
 Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
 

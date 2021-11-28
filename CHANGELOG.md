@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.2.0] - 2021-11-28
+### hostname can be passed via msg.payload - [#42](https://github.com/windkh/node-red-contrib-shelly/issues/42)
+
 ## [3.1.0] - 2021-11-28
 ### replaced deprecated dependency request with axios - [#39](https://github.com/windkh/node-red-contrib-shelly/issues/39)
 
