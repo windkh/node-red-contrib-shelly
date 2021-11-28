@@ -5,35 +5,31 @@
 
 module.exports = function (RED) {
     "use strict";
-    var request = require('request');
-    
+    var axios = require('axios').default;
+      
     // generic REST get wrapper
     function shellyGet(route, node, callback){
 
-        var options = {
-            url: 'http://' + node.hostname + route
-        };
+        let headers = {};
         if(node.credentials.username !== undefined && node.credentials.password !== undefined) {
-            options.auth = {
-                username: node.credentials.username,
-                password: node.credentials.password
-            };
-            let auth = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
-            options.headers = {
-                "Authorization" : auth
-            };
+            headers.Authorization = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
         };
 
-        request.get(options, function (error, response, body) {
-            if(!error){
-                if(response.statusMessage == "OK"){
-                    callback(body);
-                } else {
-                    node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusMessage });
-                }
-            } else {
-                node.status({ fill: "red", shape: "ring", text: "Request failed " + error });
+        let url = 'http://' + node.hostname + route;
+        const request = axios.get(url, {
+            headers : headers
+        });
+
+        request.then(response => {
+            if(response.status == 200){
+                callback(response.data);
             }
+            else {
+                node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusText });
+            }
+        })
+        .catch(error => {
+            node.status({ fill: "red", shape: "ring", text: "Error: " + error });
         });
     }
 
@@ -46,31 +42,27 @@ module.exports = function (RED) {
             requestTimeout = 5000;
         }
 
-        var options = {
-            url: 'http://' + node.hostname + route,
-            timeout: requestTimeout
-        };
+        let headers = {};
         if(node.credentials.username !== undefined && node.credentials.password !== undefined) {
-            options.auth = {
-                username: node.credentials.username,
-                password: node.credentials.password
-            };
-            let auth = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
-            options.headers = {
-                "Authorization" : auth
-            };
+            headers.Authorization = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
         };
 
-        request.get(options, function (error, response, body) {
-            if(!error){
-                if(response.statusMessage == "OK"){
-                    callback(body);
-                } else {
-                    node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusMessage });
-                }
-            } else {
-                errorCallback(error);
+        let url = 'http://' + node.hostname + route;
+        const request = axios.get(url, {}, {
+            headers : headers,
+            timeout: requestTimeout
+        });
+
+        request.then(response => {
+            if(response.status == 200){
+                callback(response.data);
             }
+            else {
+                node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusText });
+            }
+        })
+        .catch(error => {
+            errorCallback(error);
         });
     }
 
@@ -78,34 +70,32 @@ module.exports = function (RED) {
     function shellyGetAsync(route, node){
         return new Promise(function (resolve, reject) {
 
-            var options = {
-                url: 'http://' + node.hostname + route
-            };
+            let headers = {};
             if(node.credentials.username !== undefined && node.credentials.password !== undefined) {
-                options.auth = {
-                    username: node.credentials.username,
-                    password: node.credentials.password
-                };
-                let auth = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
-                options.headers = {
-                    "Authorization" : auth
-                };
+                headers.Authorization = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
             };
-    
-            request.get(options, function (error, response, body) {
-                if(!error && response.statusMessage == "OK"){
+
+            let url = 'http://' + node.hostname + route;
+            const request = axios.get(url, {}, {
+                headers : headers
+            });
+
+            request.then(response => {
+                if(!error && response.status == 200){
                     resolve(body)
                 } else {
                     reject(error);
                 }
+            })
+            .catch(error => {
+                reject(error);
             });
-
           });
     }
 
     function shellyPing(node, types){
         shellyGet('/shelly', node, function(body) {
-            node.shellyInfo = JSON.parse(body);
+            node.shellyInfo = body;
 
             var found = false;
             for (var i = 0; i < types.length; i++) {
@@ -213,7 +203,7 @@ module.exports = function (RED) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = JSON.parse(body);
+                        var status = body;
                         msg.status = status;
                         msg.payload = status.relays;
                         node.send([msg]);
@@ -225,7 +215,7 @@ module.exports = function (RED) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
                         
-                    var status = JSON.parse(body);
+                    var status = body;
                     msg.status = status;
                     msg.payload = status.relays;
                     node.send([msg]);
@@ -294,7 +284,7 @@ module.exports = function (RED) {
                 }
 
                 shellyTryGet('/status', node, node.pollInterval, function(body) {
-                    var status = JSON.parse(body);
+                    var status = body;
                     var timestamp=new Date().toLocaleTimeString();
 
                     if(status.sensor !== undefined && status.sensor.is_valid){
@@ -441,11 +431,12 @@ module.exports = function (RED) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = JSON.parse(body);
+                        var status = body;
                         msg.status = status;
                         msg.payload = {
                             rollers : status.rollers,
-                            relays : status.relays
+                            relays : status.relays,
+                            meters : status.meters
                         };
                         node.send([msg]);
                     });
@@ -456,11 +447,12 @@ module.exports = function (RED) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    var status = JSON.parse(body);
+                    var status = body;
                     msg.status = status;
                     msg.payload = {
                         rollers : status.rollers,
-                        relays : status.relays
+                        relays : status.relays,
+                        meters : status.meters
                     };
                     node.send([msg]);
                 });
@@ -618,7 +610,7 @@ module.exports = function (RED) {
 
                             node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                            var status = JSON.parse(body);
+                            var status = body;
                             msg.status = status;
                             msg.payload = status.lights;
                             node.send([msg]);
@@ -631,7 +623,7 @@ module.exports = function (RED) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    var status = JSON.parse(body);
+                    var status = body;
                     msg.status = status;
                     msg.payload = status.lights;
                     node.send([msg]);
@@ -708,7 +700,7 @@ module.exports = function (RED) {
         var mode = node.mode;
         if(mode === "color" || mode === "white"){
             shellyGet('/settings?mode=' + mode, node, function(body) {
-                var result = JSON.parse(body);
+                var result = body;
                 // here we can not check if the mode is already changed so we can not display a proper status.
             });
         }
@@ -986,7 +978,7 @@ module.exports = function (RED) {
 
                                 node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                                var status = JSON.parse(body);
+                                var status = body;
                                 msg.status = status;
                                 msg.payload = status.lights;
                                 node.send([msg]);
@@ -999,7 +991,7 @@ module.exports = function (RED) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = JSON.parse(body);
+                        var status = body;
                         msg.status = status;
                         msg.payload = status.lights;
                         node.send([msg]);
@@ -1067,8 +1059,9 @@ module.exports = function (RED) {
                 }
 
                 shellyTryGet('/status', node, node.pollInterval, function(body) {
-                    var status = JSON.parse(body);
+                    var status = body;
                     var timestamp=new Date().toLocaleTimeString();
+                    
                     if(status.sensor !== undefined && status.sensor.is_valid){
                         node.status({ fill: "green", shape: "ring", text: "Motion: " + status.sensor.motion + " Vibration: " + status.sensor.vibration + " " + timestamp});
                     }
@@ -1195,7 +1188,7 @@ module.exports = function (RED) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = JSON.parse(body);
+                        var status = body;
                         msg.status = status;
                         msg.payload = {
                             relays : status.relays,
@@ -1212,7 +1205,7 @@ module.exports = function (RED) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = JSON.parse(body);
+                        var status = body;
                         msg.status = status;
                         msg.payload = {
                             relays : status.relays,
@@ -1326,7 +1319,7 @@ module.exports = function (RED) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = JSON.parse(body);
+                        var status = body;
                         msg.status = status;
                         msg.payload = {
                             relays : status.relays,
@@ -1343,7 +1336,7 @@ module.exports = function (RED) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    var status = JSON.parse(body);
+                    var status = body;
                     msg.status = status;
                     msg.payload = {
                         relays : status.relays,
@@ -1456,7 +1449,7 @@ module.exports = function (RED) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = JSON.parse(body);
+                        var status = body;
                         msg.payload = status;
                         node.send([msg]);
                     });
@@ -1467,7 +1460,7 @@ module.exports = function (RED) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
                         
-                    var status = JSON.parse(body);
+                    var status = body;
                     msg.payload = status;
                     node.send([msg]);
                 });

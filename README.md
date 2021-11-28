@@ -11,9 +11,16 @@
 [![Closed Issues](https://img.shields.io/github/issues-closed-raw/windkh/node-red-contrib-shelly.svg)](https://github.com/windkh/node-red-contrib-shelly/issues?q=is%3Aissue+is%3Aclosed)
 ...
 
-This package contains nodes for controlling shelly devices
+This package contains nodes for controlling shelly devices via the following API:
+https://shelly-api-docs.shelly.cloud/
 
-# Warning
+
+# Dependencies
+This package depends on the following libraries
+- Axios see https://github.com/axios/axios
+
+
+# Supported Devices
 This package is under construction. Right now the following devices are supported
 
 Generation 1 devices:

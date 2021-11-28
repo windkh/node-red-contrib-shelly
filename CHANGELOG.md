@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.1.0] - 2021-11-28
+### replaced deprecated dependency request with axios - [#39](https://github.com/windkh/node-red-contrib-shelly/issues/39)
+
 ## [2.2.0] - 2021-11-28
 ### Shelly 2.5 supports relay mode - [#43](https://github.com/windkh/node-red-contrib-shelly/issues/43)
 
