@@ -562,6 +562,8 @@
         <div style="display: inline-block; position: relative; width: 70%; height: 19.1333px;">
         <div style="position: absolute; left: 0; right: 0;">
           <select id="node-input-mode" style="width:100%">
+            <option value="none">None - Mode is passed in payload but device is not reconfigured.</option>
+            <option value="auto">Auto - Mode configures the device automatically using the mode in msg.payload.</option>
             <option value="color">Color - Shelly controls Red, Blue, Green and White LED stripes</option>
             <option value="white">White - Shelly controls 4x White LED stripes</option>
           </select>
@@ -581,6 +583,7 @@
     <p>Password is optional and must only be set if security is enabled.</p>
     <p>Status enables a node status payload following every command.</p>
     <p>Ping interval is the time between the status pollings.</p>
+    <p>DeviceType should match the setting of the device. If None is selected you should pass mode in msg.payload.</p>
 
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>

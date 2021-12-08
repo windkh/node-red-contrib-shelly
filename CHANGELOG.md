@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.3.0] - 2021-12-08
+### RGBW2 mode can be dynamically switched - [#44](https://github.com/windkh/node-red-contrib-shelly/issues/44)
+
 ## [3.2.0] - 2021-11-28
 ### hostname can be passed via msg.payload - [#42](https://github.com/windkh/node-red-contrib-shelly/issues/42)
 

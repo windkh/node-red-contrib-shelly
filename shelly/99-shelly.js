@@ -105,10 +105,10 @@ module.exports = function (RED) {
             });
 
             request.then(response => {
-                if(!error && response.status == 200){
-                    resolve(body)
+                if(response.status == 200){
+                    resolve(response.data)
                 } else {
-                    reject(error);
+                    reject(response.statusText);
                 }
             })
             .catch(error => {
@@ -200,7 +200,7 @@ module.exports = function (RED) {
         this.on('input', function (msg) {
 
             var hostname;
-            var route;
+            var route = '';
             if(msg.payload !== undefined){
                 hostname = msg.payload.hostname;
                 var command = msg.payload;
@@ -228,7 +228,7 @@ module.exports = function (RED) {
                 }
             }
 
-            if(route !== undefined){
+            if (route !== ''){
                 shellyGet(route, node, hostname, function(body) {
                     shellyGet('/status', node, hostname, function(body) {
 
@@ -241,7 +241,7 @@ module.exports = function (RED) {
                     });
                 });
             }
-            else{
+            else {
                 shellyGet('/status', node, hostname, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
@@ -415,7 +415,7 @@ module.exports = function (RED) {
         this.on('input', function (msg) {
 
             var hostname;
-            var route;
+            var route = '';
             if(msg.payload !== undefined){
                 hostname = msg.payload.hostname;
                 var command = msg.payload;
@@ -465,7 +465,7 @@ module.exports = function (RED) {
                 }
             }
 
-            if(route !== undefined){
+            if (route !== ''){
                 shellyGet(route, node, hostname, function(body) {
                     shellyGet('/status', node, hostname, function(body) {
 
@@ -565,7 +565,7 @@ module.exports = function (RED) {
         this.on('input', function (msg) {
 
             var hostname;
-            var route;
+            var route = '';
             if(msg.payload !== undefined){
                 hostname = msg.payload.hostname;
                 var command = msg.payload;
@@ -635,7 +635,7 @@ module.exports = function (RED) {
                     route = "/light/" + light + "?turn=" + turn;
                 }
 
-                if(route !== undefined) {
+                if (route !== '') {
                     if(white !== undefined) {
                         route += "&white=" + white;
                     }
@@ -650,7 +650,7 @@ module.exports = function (RED) {
                 }
             }
 
-            if(route !== undefined) {
+            if (route !== '') {
                 shellyGet(route, node, hostname, function(body) {
 		            if (node.dimmerStat) {
 			            shellyGet('/status', node, hostname, function(body) {
@@ -757,10 +757,10 @@ module.exports = function (RED) {
             });
         }
         
-        this.on('input', function (msg) {
+        this.on('input', async function (msg) {
 
             var hostname;
-            var route;
+            var route = '';
             if(msg.payload !== undefined) {
                 hostname = msg.payload.hostname;
                 var command = msg.payload;
@@ -768,6 +768,16 @@ module.exports = function (RED) {
                 var nodeMode;
                 if(command.mode !== undefined) {
                     nodeMode = command.mode;
+
+                    if (node.mode === 'auto') {
+                        try {
+                            let body = await shellyGetAsync('/settings?mode=' + nodeMode, node, hostname);
+                        }
+                        catch (error) {
+                            node.error("Failed to set mode to: " + nodeMode, error);
+                            node.status({ fill: "red", shape: "ring", text: "Failed to set mode to: " + nodeMode});
+                        }
+                    }
                 }
                 else {
                     nodeMode = node.mode;
@@ -1004,8 +1014,11 @@ module.exports = function (RED) {
 
 
                     // create route
-                    if(light !== undefined) {
+                    if (light !== undefined) {
                         route = "/white/" + light + "?turn=" + turn;
+                    }
+                    else {
+                        route = "/white/0?turn=" + turn;  
                     }
 
                     if(brightness !== undefined) {
@@ -1024,8 +1037,11 @@ module.exports = function (RED) {
                         route += "&timer=" + timer;
                     }
                 }
+                else {
+                    // node mode Auto or None
+                }
             
-                if (route !== undefined){
+                if (route !== ''){
                     shellyGet(route, node, hostname, function(body) {
                         if (node.ledStat) {
                             shellyGet('/status', node, hostname, function(body) {
@@ -1212,7 +1228,7 @@ module.exports = function (RED) {
         this.on('input', async function (msg) {
 
             var hostname;
-            var route;
+            var route = '';
             var emetersToDownload;    
             if(msg.payload !== undefined){
                 hostname = msg.payload.hostname;
@@ -1245,7 +1261,7 @@ module.exports = function (RED) {
                 }
             }
 
-            if(route !== undefined){
+            if (route !== ''){
                 shellyGet(route, node, hostname, function(body) {
                     shellyGet('/status', node, hostname, function(body) {
 
@@ -1355,7 +1371,7 @@ module.exports = function (RED) {
         this.on('input', function (msg) {
 
             var hostname;
-            var route;
+            var route = '';
             if(msg.payload !== undefined){
                 hostname = msg.payload.hostname;
                 var command = msg.payload;
@@ -1383,7 +1399,7 @@ module.exports = function (RED) {
                 }
             }
 
-            if(route !== undefined){
+            if (route !== ''){
                 shellyGet(route, node, hostname, function(body) {
                     shellyGet('/status', node, hostname, function(body) {
 
@@ -1484,7 +1500,7 @@ module.exports = function (RED) {
         this.on('input', function (msg) {
 
             var hostname;
-            var route;
+            var route = '';
             if(msg.payload !== undefined){
                 hostname = msg.payload.hostname;
                 var command = msg.payload;
@@ -1520,7 +1536,7 @@ module.exports = function (RED) {
             }
 
             var getStatusRoute = '/rpc/Shelly.GetStatus';
-            if(route !== undefined){
+            if (route !== ''){
                 shellyGet(route, node, hostname, function(body) {
                     shellyGet(getStatusRoute, node, hostname, function(body) {
 
@@ -1532,7 +1548,7 @@ module.exports = function (RED) {
                     });
                 });
             }
-            else{
+            else {
                 shellyGet(getStatusRoute, node, hostname, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
