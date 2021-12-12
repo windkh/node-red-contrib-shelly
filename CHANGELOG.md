@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.4.0] - 2021-12-12
+### Motion sensor configuration adapted - [#45](https://github.com/windkh/node-red-contrib-shelly/issues/45)
+
 ## [3.3.0] - 2021-12-08
 ### RGBW2 mode can be dynamically switched - [#44](https://github.com/windkh/node-red-contrib-shelly/issues/44)
 

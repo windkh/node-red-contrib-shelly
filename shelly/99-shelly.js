@@ -297,6 +297,9 @@ module.exports = function (RED) {
         node.usePolling = config.usepolling;
         node.pollInterval = parseInt(config.pollinginterval);
 
+        // Not used right now.
+        // var types = ["SHDW"];
+
         if(node.usePolling){
             node.timer = setInterval(function() {
                 node.emit("input", {});
@@ -1114,13 +1117,16 @@ module.exports = function (RED) {
         // Not used right now.
         // var types = ["SHMOS"];
 
-        if(node.pollInterval > 0) {
+        if(node.usePolling){
             node.timer = setInterval(function() {
                 node.emit("input", {});
             }, node.pollInterval);
-        }
 
-        node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
+            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
+        }
+        else{
+            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: waiting for trigger ..." });
+        }
 
         this.on('input', function (msg) {
 
