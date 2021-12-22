@@ -17,10 +17,10 @@ module.exports = function (RED) {
 
         let url = 'http://';
         if(hostname === undefined){
-            url += node.hostname;;
+            url += node.hostname;
         }
         else {
-            url += hostname;;
+            url += hostname;
         }
         url += route;
 
@@ -57,10 +57,10 @@ module.exports = function (RED) {
 
         let url = 'http://';
         if(hostname === undefined){
-            url += node.hostname;;
+            url += node.hostname;
         }
         else {
-            url += hostname;;
+            url += hostname;
         }
         url += route;
 
@@ -93,10 +93,10 @@ module.exports = function (RED) {
 
             let url = 'http://';
             if(hostname === undefined){
-                url += node.hostname;;
+                url += node.hostname;
             }
             else {
-                url += hostname;;
+                url += hostname;
             }
             url += route;
             
@@ -155,7 +155,7 @@ module.exports = function (RED) {
     function ShellySwitchNode(config) {
         RED.nodes.createNode(this, config);
         var node = this;
-        node.hostname = config.hostname;
+        node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
 
         /* node.shellyInfo
@@ -176,6 +176,8 @@ module.exports = function (RED) {
             if(node.pollInterval > 0) {
                 node.timer = setInterval(function() {
                     shellyPing(node, types);
+
+                    node.emit("input", {});
                 }, node.pollInterval);
             }
         }
@@ -293,7 +295,7 @@ module.exports = function (RED) {
     function ShellyDoorNode(config) {
         RED.nodes.createNode(this, config);
         var node = this;
-        node.hostname = config.hostname;
+        node.hostname = config.hostname.trim();
         node.usePolling = config.usepolling;
         node.pollInterval = parseInt(config.pollinginterval);
 
@@ -314,7 +316,7 @@ module.exports = function (RED) {
         this.on('input', function (msg) {
 
             var hostname;
-            if(msg.payload){
+            if(msg.payload !== undefined){
                 hostname = msg.payload.hostname;
                 node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
             }
@@ -365,7 +367,7 @@ module.exports = function (RED) {
     function ShellyRollerShutterNode(config) {
         RED.nodes.createNode(this, config);
         var node = this;
-        node.hostname = config.hostname;
+        node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
 
         /* node.shellyInfo
@@ -386,6 +388,8 @@ module.exports = function (RED) {
             if(node.pollInterval > 0) {
                 node.timer = setInterval(function() {
                     shellyPing(node, types);
+
+                    node.emit("input", {});
                 }, node.pollInterval);
             }
         }
@@ -516,7 +520,7 @@ module.exports = function (RED) {
     function ShellyDimmerNode(config) {
         RED.nodes.createNode(this, config);
         var node = this;
-        node.hostname = config.hostname;
+        node.hostname = config.hostname.trim();
 	    node.dimmerStat = config.dimmerStat || false;
         node.pollInterval = parseInt(config.pollinginterval);
 
@@ -539,6 +543,8 @@ module.exports = function (RED) {
             if(node.pollInterval > 0) {
                 node.timer = setInterval(function() {
                     shellyPing(node, types);
+
+                    node.emit("input", {});
                 }, node.pollInterval);
             }
         }
@@ -695,7 +701,7 @@ module.exports = function (RED) {
     function ShellyRGBW2Node(config) {
         RED.nodes.createNode(this, config);
         var node = this;
-        node.hostname = config.hostname;
+        node.hostname = config.hostname.trim();
         node.ledStat = config.ledStat || false;
         node.pollInterval = parseInt(config.pollinginterval);
         node.mode = config.mode;
@@ -718,6 +724,8 @@ module.exports = function (RED) {
             if(node.pollInterval > 0) {
                 node.timer = setInterval(function() {
                     shellyPing(node, types);
+
+                    node.emit("input", {});
                 }, node.pollInterval);
             }
         }
@@ -1106,7 +1114,7 @@ module.exports = function (RED) {
     function ShellyMotionNode(config) {
         RED.nodes.createNode(this, config);
         var node = this;
-        node.hostname = config.hostname;
+        node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
 
         let hasextraoutputs = config.hasextraoutputs;
@@ -1131,7 +1139,7 @@ module.exports = function (RED) {
         this.on('input', function (msg) {
 
             var hostname;
-            if(msg.payload){
+            if(msg.payload !== undefined){
                 hostname = msg.payload.hostname;
                 node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
             }
@@ -1210,7 +1218,7 @@ module.exports = function (RED) {
     function ShellyEMNode(config) {
         RED.nodes.createNode(this, config);
         var node = this;
-        node.hostname = config.hostname;
+        node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
 
         if(node.hostname !== ''){
@@ -1224,8 +1232,6 @@ module.exports = function (RED) {
                     node.emit("input", {});
                 }, node.pollInterval);
             }
-
-            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
         }
         else {
             node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
@@ -1353,7 +1359,7 @@ module.exports = function (RED) {
     function ShellyUniNode(config) {
         RED.nodes.createNode(this, config);
         var node = this;
-        node.hostname = config.hostname;
+        node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
 
         if(node.hostname !== ''){    
@@ -1367,8 +1373,6 @@ module.exports = function (RED) {
                     node.emit("input", {});
                 }, node.pollInterval);
             }
-
-            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
         }
         else {
             node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
@@ -1462,7 +1466,7 @@ module.exports = function (RED) {
     function ShellySwitch2Node(config) {
         RED.nodes.createNode(this, config);
         var node = this;
-        node.hostname = config.hostname;
+        node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
 
         /* node.shellyInfo
@@ -1486,6 +1490,8 @@ module.exports = function (RED) {
             if(node.pollInterval > 0) {
                 node.timer = setInterval(function() {
                     shellyPing(node, types);
+
+                    node.emit("input", {});
                 }, node.pollInterval);
             }
         }
