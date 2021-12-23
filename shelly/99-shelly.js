@@ -150,6 +150,26 @@ module.exports = function (RED) {
         });
     }
 
+    // Starts polling the status.
+    function start(node, types){
+        if(node.hostname !== ''){    
+            shellyPing(node, types);
+
+            if(node.pollInterval > 0) {
+                node.timer = setInterval(function() {
+                    shellyPing(node, types);
+
+                    if(node.pollStatus){
+                        node.emit("input", {});
+                    }    
+                }, node.pollInterval);
+            }
+        }
+        else {
+            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
+        }
+    }
+
     // --------------------------------------------------------------------------------------------
     // The switch node controls a shelly switch.
     function ShellySwitchNode(config) {
@@ -157,6 +177,7 @@ module.exports = function (RED) {
         var node = this;
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
+        node.pollStatus = config.pollstatus || false;
 
         /* node.shellyInfo
         GET /shelly
@@ -169,21 +190,8 @@ module.exports = function (RED) {
         }
         */
 
-        if(node.hostname !== ''){    
-            var types = ["SHPLG-", "SHSW-", "SHUNI-"];
-            shellyPing(node, types);
-
-            if(node.pollInterval > 0) {
-                node.timer = setInterval(function() {
-                    shellyPing(node, types);
-
-                    node.emit("input", {});
-                }, node.pollInterval);
-            }
-        }
-        else {
-            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
-        }
+        var types = ["SHPLG-", "SHSW-", "SHUNI-"];
+        start(node, types);
 
         /* when a payload is received in the format
             {
@@ -369,6 +377,7 @@ module.exports = function (RED) {
         var node = this;
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
+        node.pollStatus = config.pollstatus || false;
 
         /* node.shellyInfo
         GET /shelly
@@ -381,21 +390,8 @@ module.exports = function (RED) {
         }
         */
 
-        if(node.hostname !== ''){
-            var types = ["SHPLG-", "SHSW-"];
-            shellyPing(node, types);
-
-            if(node.pollInterval > 0) {
-                node.timer = setInterval(function() {
-                    shellyPing(node, types);
-
-                    node.emit("input", {});
-                }, node.pollInterval);
-            }
-        }
-        else {
-            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
-        }
+        var types = ["SHPLG-", "SHSW-"];
+        start(node, types);   
 
         /* when a payload is received in the format
             {
@@ -523,6 +519,7 @@ module.exports = function (RED) {
         node.hostname = config.hostname.trim();
 	    node.dimmerStat = config.dimmerStat || false;
         node.pollInterval = parseInt(config.pollinginterval);
+        node.pollStatus = config.pollstatus || false;
 
         /* node.shellyInfo
         GET /shelly
@@ -536,21 +533,8 @@ module.exports = function (RED) {
         }
         */
 
-        if(node.hostname !== ''){
-            var types = ["SHDM-", "SHBDUO-1"];
-            shellyPing(node, types);
-
-            if(node.pollInterval > 0) {
-                node.timer = setInterval(function() {
-                    shellyPing(node, types);
-
-                    node.emit("input", {});
-                }, node.pollInterval);
-            }
-        }
-        else {
-            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
-        }
+        var types = ["SHDM-", "SHBDUO-1"];
+        start(node, types);
 
         /* when a payload is received in the format
             {
@@ -704,8 +688,9 @@ module.exports = function (RED) {
         node.hostname = config.hostname.trim();
         node.ledStat = config.ledStat || false;
         node.pollInterval = parseInt(config.pollinginterval);
+        node.pollStatus = config.pollstatus || false;
         node.mode = config.mode;
-    
+        
         /* node.shellyInfo
         GET /shelly
         {
@@ -717,21 +702,8 @@ module.exports = function (RED) {
         }
         */
 
-        if(node.hostname !== ''){
-            var types = ["SHRGBW2", "SHCB-1"];
-            shellyPing(node, types);
-
-            if(node.pollInterval > 0) {
-                node.timer = setInterval(function() {
-                    shellyPing(node, types);
-
-                    node.emit("input", {});
-                }, node.pollInterval);
-            }
-        }
-        else {
-            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
-        }
+        var types = ["SHRGBW2", "SHCB-1"];
+        start(node, types);
 
         /* when a payload is received in the format
             {
@@ -760,12 +732,14 @@ module.exports = function (RED) {
         then the command is send to the shelly.
         */
 
-        var mode = node.mode;
-        if(mode === "color" || mode === "white"){
-            shellyGet('/settings?mode=' + mode, node, node.hostname, function(body) {
-                var result = body;
-                // here we can not check if the mode is already changed so we can not display a proper status.
-            });
+        if(node.hostname !== undefined){
+            var mode = node.mode;
+            if(mode === "color" || mode === "white"){
+                shellyGet('/settings?mode=' + mode, node, node.hostname, function(body) {
+                    var result = body;
+                    // here we can not check if the mode is already changed so we can not display a proper status.
+                });
+            }
         }
         
         this.on('input', async function (msg) {
@@ -1220,22 +1194,10 @@ module.exports = function (RED) {
         var node = this;
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
+        node.pollStatus = config.pollstatus || false;
 
-        if(node.hostname !== ''){
-            var types = ["SHEM"];
-            shellyPing(node, types);
-
-            if(node.pollInterval > 0) {
-                node.timer = setInterval(function() {   
-                    shellyPing(node, types);
-
-                    node.emit("input", {});
-                }, node.pollInterval);
-            }
-        }
-        else {
-            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
-        }
+        var types = ["SHEM"];
+        start(node, types);
 
         this.on('input', async function (msg) {
 
@@ -1361,22 +1323,10 @@ module.exports = function (RED) {
         var node = this;
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
+        node.pollStatus = config.pollstatus || false;
 
-        if(node.hostname !== ''){    
-            var types = ["SHUNI"];
-            shellyPing(node, types);
-
-            if(node.pollInterval > 0) {
-                node.timer = setInterval(function() {   
-                    shellyPing(node, types);
-
-                    node.emit("input", {});
-                }, node.pollInterval);
-            }
-        }
-        else {
-            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
-        }
+        var types = ["SHUNI"];
+        start(node, types);
         
         this.on('input', function (msg) {
 
@@ -1468,6 +1418,7 @@ module.exports = function (RED) {
         var node = this;
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
+        node.pollStatus = config.pollstatus || false;
 
         /* node.shellyInfo
         GET /shelly
@@ -1483,21 +1434,9 @@ module.exports = function (RED) {
             "auth_domain":null }
         */
 
-        if(node.hostname !== ''){
-            var types = ["SNSW-"];
-            shellyPing(node, types);
+        var types = ["SNSW-"];
+        start(node, types);
 
-            if(node.pollInterval > 0) {
-                node.timer = setInterval(function() {
-                    shellyPing(node, types);
-
-                    node.emit("input", {});
-                }, node.pollInterval);
-            }
-        }
-        else {
-            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
-        }
 
         /* when a payload is received in the format
             {

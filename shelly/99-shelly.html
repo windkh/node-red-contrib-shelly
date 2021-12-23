@@ -13,6 +13,7 @@
             hostname: { value:"" },
             description: { value:"" },
             pollinginterval: { value: 5000 },
+            pollstatus: { value: false, required: false },
         },
         credentials: {
             username: { type: "text" },
@@ -52,6 +53,10 @@
     <div class="form-row">
         <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
         <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
+    </div>    
+    <div class="form-row">
+        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
+        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
     </div>
 </script>
 
@@ -64,6 +69,7 @@
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
     <p>Ping interval is the time between the status pollings.</p>
+    <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
 
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
@@ -243,6 +249,7 @@
             hostname: { value:"" },
             description: { value:"" },
             pollinginterval: { value: 5000 },
+            pollstatus: { value: false, required: false },
         },
         credentials: {
             username: { type: "text" },
@@ -283,6 +290,10 @@
         <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
         <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
     </div>
+    <div class="form-row">
+        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
+        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="shelly-roller-shutter">
@@ -294,6 +305,7 @@
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
     <p>Ping interval is the time between the status pollings.</p>
+    <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
 
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for open or close the roller shutter:</p>
@@ -386,6 +398,7 @@
             description: { value:"" },
 	        dimmerStat: { value: true },
             pollinginterval: { value: 5000 },
+            pollstatus: { value: false, required: false },
         },
         credentials: {
             username: { type: "text" },
@@ -430,7 +443,10 @@
         <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
         <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
     </div>
-
+    <div class="form-row">
+        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
+        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="shelly-dimmer">
@@ -443,6 +459,7 @@
     <p>Password is optional and must only be set if security is enabled.</p>
     <p>Status enables a node status payload following every command.</p>
     <p>Ping interval is the time between the status pollings.</p>
+    <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
 
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for turning the dimmer on or off:</p>
@@ -510,6 +527,7 @@
             ledStat: { value: true },
             pollinginterval: { value: 5000 },
             mode: { value:"color", required: true  },
+            pollstatus: { value: false, required: false },
         },
         credentials: {
             username: { type: "text" },
@@ -554,6 +572,10 @@
         <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
         <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
     </div>
+    <div class="form-row">
+        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
+        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
+    </div>
 
     <hr align="middle"/>
 
@@ -584,6 +606,7 @@
     <p>Status enables a node status payload following every command.</p>
     <p>Ping interval is the time between the status pollings.</p>
     <p>DeviceType should match the setting of the device. If None is selected you should pass mode in msg.payload.</p>
+    <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
 
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
@@ -815,6 +838,7 @@
             hostname: { value:"" },
             description: { value:"" },
             pollinginterval: { value: 1000 },
+            pollstatus: { value: false, required: false },
             outputs: {value: 2}
         },
         credentials: {
@@ -859,6 +883,10 @@
         <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
         <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
     </div>
+    <div class="form-row">
+        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
+        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="shelly-emeasure">
@@ -870,7 +898,8 @@
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
     <p>Ping interval is the time between the status pollings.</p>
-   
+    <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
+
     <h3>Inputs</h3>
     <p>Empty payload for getting the status.</p>
     
@@ -895,6 +924,7 @@
             hostname: { value:"" },
             description: { value:"" },
             pollinginterval: { value: 1000 },
+            pollstatus: { value: false, required: false },
             outputs: {value: 1}
         },
         credentials: {
@@ -939,6 +969,10 @@
         <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
         <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
     </div>
+    <div class="form-row">
+        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
+        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="shelly-uni">
@@ -950,7 +984,8 @@
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
     <p>Ping interval is the time between the status pollings.</p>
-   
+    <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
+
     <h3>Inputs</h3>
     <p>Empty payload for getting the status.</p>
     
@@ -973,6 +1008,7 @@
             hostname: { value:"" },
             description: { value:"" },
             pollinginterval: { value: 5000 },
+            pollstatus: { value: false, required: false },
         },
         credentials: {
             username: { type: "text" },
@@ -1013,6 +1049,10 @@
         <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
         <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
     </div>
+    <div class="form-row">
+        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
+        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="shelly-switch2">
@@ -1024,6 +1064,7 @@
     <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
     <p>Ping interval is the time between the status pollings.</p>
+    <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
 
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>

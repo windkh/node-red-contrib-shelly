@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [4.1.0] - 2021-12-23
+### Cyclically sending of status can be turned off - [#47](https://github.com/windkh/node-red-contrib-shelly/issues/47)
+
 ## [4.0.0] - 2021-12-22
 ### fixed - [#46](https://github.com/windkh/node-red-contrib-shelly/issues/46)
 All nodes will now send the status to the output when polling. Not only the color of the node is updated, 
