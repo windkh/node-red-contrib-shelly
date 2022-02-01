@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [4.1.2] - 2022-02-01
+### updated axios dependency to 0.25.0
+
 ## [4.1.1] - 2022-02-01
 ### added missing node-red tags
 
