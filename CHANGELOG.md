@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [4.1.1] - 2022-02-01
+### added missing node-red tags
+
 ## [4.1.0] - 2021-12-23
 ### Cyclically sending of status can be turned off - [#47](https://github.com/windkh/node-red-contrib-shelly/issues/47)
 
