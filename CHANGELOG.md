@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [4.1.4] - 2022-02-03
+### changed node red to 1.3.7 and nodejs to 12.0.0
+
 ## [4.1.3] - 2022-02-03
 ### changed node red to 1.0 and nodejs to 10.0
 
