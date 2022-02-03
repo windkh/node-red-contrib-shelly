@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [4.1.3] - 2022-02-03
+### changed node red to 1.0 and nodejs to 10.0
+
 ## [4.1.2] - 2022-02-01
 ### updated axios dependency to 0.25.0
 
