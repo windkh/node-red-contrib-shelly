@@ -1409,6 +1409,153 @@ module.exports = function (RED) {
     });
 
     
+
+    // --------------------------------------------------------------------------------------------
+    // The dimmer node controls a shelly TRV.
+    function ShellyTrvNode(config) {
+        RED.nodes.createNode(this, config);
+        var node = this;
+        node.hostname = config.hostname.trim();
+	    node.pollInterval = parseInt(config.pollinginterval);
+        node.pollStatus = config.pollstatus || false;
+
+        /* node.shellyInfo
+        GET /shelly
+        {
+            "type":"SHTRV-01",
+            "mac":"60A423DCBA90",
+            "auth":false,
+            "fw":"20220202-080736/v2.1.3@d255ad74",
+            "longid":1}
+        */
+
+        var types = ["SHTRV-"];
+        start(node, types);
+
+        /* when a payload is received in the format
+            {
+                position : 0,
+                temperature : 25,
+                schedule : false,
+                schedule_profile = 1,
+                boostMinutes = 0
+            }
+        then the command is send to the shelly.
+
+        The output gets the status of all relays.
+        */
+        this.on('input', function (msg) {
+
+            var hostname;
+            var route = '';
+            if(msg.payload !== undefined){
+                hostname = msg.payload.hostname;
+                var command = msg.payload;
+
+                var thermostat = 0;
+            
+                var position;
+                if(command.position !== undefined){
+                    if(command.position >=0 && command.position <= 100){
+                        position = command.position;
+                    } else { 
+                        // Default is undefined
+                    }
+                }
+
+                var temperature;
+                if(command.temperature !== undefined){
+                    if(command.temperature >=4 && command.temperature <= 31){
+                        temperature = command.temperature;
+                  } else { 
+                      // Default is undefined
+                  }
+                }
+
+                var schedule;
+                if(command.schedule !== undefined){
+                    if(command.schedule == true || command.schedule == false){
+                        schedule = command.schedule;
+                    }
+                }
+
+                var scheduleProfile;
+                if(command.scheduleProfile !== undefined){
+                    if(command.scheduleProfile >= 1 || command.scheduleProfile <= 5){
+                        scheduleProfile = command.scheduleProfile;
+                    }
+                }
+
+                var boostMinutes;
+                if(command.boostMinutes !== undefined){
+                    if(command.boostMinutes >= 0){
+                        boostMinutes = command.boostMinutes;
+                    }
+                }
+
+
+                if (position !== undefined){
+                    route = "?pos=" + position;
+                }
+
+                if (temperature !== undefined){
+                    route += "?target_t=" + temperature;
+                }
+
+                if (schedule !== undefined){
+                    route += "?schedule=" + schedule;
+                }
+
+                if (scheduleProfile !== undefined){
+                    route += "?schedule_profile=" + scheduleProfile;
+                }
+
+                if (boostMinutes !== undefined){
+                    route += "?boost_minutes=" + boostMinutes;
+                }
+
+                if (route !== '') {
+                    route = "/thermostat/" + thermostat + route;
+                }
+            }
+
+            if (route !== '') {
+                shellyGet(route, node, hostname, function(body) {
+                    shellyGet('/status', node, hostname, function(body) {
+
+                        node.status({ fill: "green", shape: "ring", text: "Connected." });
+
+                        var status = body;
+                        msg.status = status;
+                        msg.payload = status.thermostats;
+                        node.send([msg]);
+                    });
+		        });
+            }
+            else {
+                shellyGet('/status', node, hostname, function(body) {
+
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+
+                    var status = body;
+                    msg.status = status;
+                    msg.payload = status.thermostats;
+                    node.send([msg]);
+                });
+            }
+        });
+
+    }
+    RED.nodes.registerType("shelly-trv", ShellyTrvNode, {
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        }
+    });
+
+
+
+
     // GEN 2 --------------------------------------------------------------------------------------
     
     // --------------------------------------------------------------------------------------------

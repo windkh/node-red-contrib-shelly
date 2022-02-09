@@ -33,6 +33,7 @@ Generation 1 devices:
 - shelly motion
 - shelly emeasure (EM, EM3)
 - shelly UNI
+- shelly TRV
 
 Generation 2 devices:
 - shelly 1 (PM) plus
@@ -574,6 +575,31 @@ The output of the node is an array of status objects for every relay of the swit
 
 Examples:  
 [**shelly uni flow**](examples/uni.json) 
+
+
+
+# Shelly TRV Node
+The node is able to control a shelly TRV. It outputs the status of all thermostats after every interaction with the shelly device.
+Turning on is done by sending the following payload into the input.
+
+
+```
+{
+    position : 0..100, // 0 = closed
+	temperature : 4..31, // target temperature in C
+    schedule : true,
+	scheduleProfile : 1..5,
+	boostMinutes : 0..n
+}
+```
+
+Right after having sent the request to the shelly device a status request is done. The thermostats property of the response is output on output 1.  
+This feature can optionally be disabled by unticking the `status` checkbox in the node configuration options.
+
+If you only want to get the current status of the TRV leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
+
+Examples:  
+[**shelly TRV flow**](examples/trv.json) 
 
 
 

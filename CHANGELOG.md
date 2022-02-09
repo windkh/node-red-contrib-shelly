@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [4.2.0] - 2022-02-09
+### added support for shelly TRV - [#48](https://github.com/windkh/node-red-contrib-shelly/issues/48)
+### removed node red tags in package json 
+
 ## [4.1.4] - 2022-02-03
 ### changed node red to 1.3.7 and nodejs to 12.0.0
 
