@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [4.3.0] - 2022-02-13
+### updated axios to 0.26.0
+
 ## [4.2.0] - 2022-02-09
 ### added support for shelly TRV - [#48](https://github.com/windkh/node-red-contrib-shelly/issues/48)
 ### removed node red tags in package json 
