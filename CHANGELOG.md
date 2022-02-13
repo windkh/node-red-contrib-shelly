@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [4.3.1] - 2022-02-13
+### updated lock file
+
 ## [4.3.0] - 2022-02-13
 ### updated axios to 0.26.0
 
