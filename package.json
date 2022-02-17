@@ -1,12 +1,16 @@
 {
     "name": "node-red-contrib-shelly",
-    "version": "4.3.1",
+    "version": "4.3.2",
     "description": "Shelly nodes.",
     "node-red": {
+	    "version": ">=0.1.0",
 	    "nodes": {
             "shelly": "shelly/99-shelly.js"
         }
     },
+	"engines": {
+		"node": ">=7.6.0"
+    }
     "keywords": [
         "node-red",
         "shelly"
