@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [4.4.0] - 2022-02-19
+### added support for button I3 - [#50](https://github.com/windkh/node-red-contrib-shelly/issues/50)
+### experimental 
+
 ## [4.3.1] - 2022-02-13
 ### updated lock file
 

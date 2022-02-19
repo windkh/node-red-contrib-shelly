@@ -1310,6 +1310,7 @@ module.exports = function (RED) {
         }
     });
 
+
     // --------------------------------------------------------------------------------------------
     // The UNI node controls a shelly UNI device.
     /* 
@@ -1437,7 +1438,7 @@ module.exports = function (RED) {
                 position : 0,
                 temperature : 25,
                 schedule : false,
-                schedule_profile = 1,
+                scheduleProfile = 1,
                 boostMinutes = 0
             }
         then the command is send to the shelly.
@@ -1553,6 +1554,100 @@ module.exports = function (RED) {
         }
     });
 
+
+    // --------------------------------------------------------------------------------------------
+    // The button node controls a shelly button or I3 device.
+    /* 
+    GET /status
+    {
+       
+    }
+    */
+    function ShellyButtonNode(config) {
+        RED.nodes.createNode(this, config);
+        var node = this;
+        node.hostname = config.hostname.trim();
+        node.pollInterval = parseInt(config.pollinginterval);
+        node.pollStatus = config.pollstatus || false;
+
+        var types = ["SHBTN", "SHIX3", "SHIX4"];
+        start(node, types);
+        
+        this.on('input', function (msg) {
+
+            var hostname;
+            var route = '';
+            if(msg.payload !== undefined){
+                hostname = msg.payload.hostname;
+                var command = msg.payload;
+
+                var input = 0;
+                if(command.input !== undefined){
+                    input = command.input;
+                }
+
+                var event = 'S';
+                if(command.event !== undefined){
+                    event = command.event;
+                }
+
+                var eventCount;
+                if(command.eventCount !== undefined){
+                    eventCount = command.eventCount;
+                }
+                
+                route = "/input/" + input + "?event=" + event;
+                if(eventCount !== undefined){
+                    route += "?event_cnt=" + eventCount;       
+                }
+            }
+
+            if (route !== ''){
+                shellyGet(route, node, hostname, function(body) {
+                    shellyGet('/status', node, hostname, function(body) {
+
+                        node.status({ fill: "green", shape: "ring", text: "Connected." });
+
+                        var status = body;
+                        msg.status = status;
+                        msg.payload = {
+                            inputs : status.inputs
+                        };
+
+                        node.send([msg]);
+                    });
+                });
+            }
+            else{
+                shellyGet('/status', node, hostname, function(body) {
+
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+
+                    var status = body;
+                    msg.status = status;
+                    msg.payload = {
+                        relays : status.relays,
+                        inputs : status.inputs,
+                        adcs : status.adcs
+                    };
+                    
+                    node.send([msg]);
+                });
+            }
+        });
+
+        this.on('close', function(done) {
+            clearInterval(node.timer);
+            done();
+        });
+    }
+
+    RED.nodes.registerType("shelly-button", ShellyButtonNode, {
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        }
+    });
 
 
 

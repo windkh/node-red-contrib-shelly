@@ -34,6 +34,7 @@ Generation 1 devices:
 - shelly emeasure (EM, EM3)
 - shelly UNI
 - shelly TRV
+- shelly button / I3
 
 Generation 2 devices:
 - shelly 1 (PM) plus
@@ -600,6 +601,37 @@ If you only want to get the current status of the TRV leave the msg.payload blan
 
 Examples:  
 [**shelly TRV flow**](examples/trv.json) 
+
+
+# Shelly Button Node (Button, I3)
+The node is able to control a shelly button. It outputs the status of all inputs after every interaction with the shelly device.
+Turning on is done by sending the following payload into the input. The input number defaults to 0.
+
+
+```
+{
+    input : 0,
+	event : 'S'
+}
+```
+
+Right after having sent the request to the shelly device a status request is done. The inputs property of the response is output on output 1.
+
+If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
+This is useful, when you want to poll for the status cyclically.
+
+The output of the node is an array of status objects for every relay of the switch:
+
+
+```
+[
+]
+```
+
+Note that the button is not always reachable as it falls to sleep. This is not the case for the I3.
+
+Examples:  
+[**shelly button flow**](examples/button.json) 
 
 
 
