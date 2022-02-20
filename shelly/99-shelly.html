@@ -985,8 +985,20 @@
     <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
 
     <h3>Inputs</h3>
-    <p>Empty payload for getting the status.</p>
-    
+    <p>Empty payload for getting the status. Or the following object for turning on or off:</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>{</code>
+        <br/>
+        code>    on : true, </code>
+        <br/>
+        <code>   timer: 1, </code>
+        <br/>
+        <code>}</code>
+    </ul>
+    <p>on = true or false.</p>
+    <p>timer = optional flip back timer in seconds.</p>
+
     <h3>Outputs</h3>
     <p>1. Standard Ouput: A status object.</p>
     <p><code>msg.payload</code></p>

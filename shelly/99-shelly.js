@@ -1372,8 +1372,17 @@ module.exports = function (RED) {
                     turn = command.turn;
                 }
 
+                var timerSeconds;
+                if(command.timer !== undefined){
+                    timerSeconds = command.timer;
+                }
+
                 if(turn !== undefined){
                     route = "/relay/" + relay + "?turn=" + turn;
+                }
+
+                if(timerSeconds !== undefined){
+                    route += "?timer=" + timerSeconds;
                 }
             }
 

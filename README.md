@@ -538,7 +538,8 @@ Turning on is done by sending the following payload into the input. The relay nu
 ```
 {
     relay : 0,
-	on : true
+	on : true,
+	timer : 1
 }
 ```
 
@@ -549,10 +550,12 @@ or you can make use of the alternative notation:
 {
     relay : 0,
 	turn : 'toggle'
+	timer : 1
 }
 ```
 turn can be one of the following: 'toggle', 'on', 'off'
-
+timer is optional flip back timer in seconds 
+ 
 Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
 
 If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.

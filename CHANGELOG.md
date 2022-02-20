@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [4.6.0] - 2022-02-20
+### timer support for uni - [#35](https://github.com/windkh/node-red-contrib-shelly/issues/35)
+
 ## [4.5.0] - 2022-02-20
 ### timer is stopped after redeploy - [#46](https://github.com/windkh/node-red-contrib-shelly/issues/46)
 
