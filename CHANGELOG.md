@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [4.5.0] - 2022-02-20
+### timer is stopped after redeploy - [#46](https://github.com/windkh/node-red-contrib-shelly/issues/46)
+
 ## [4.4.0] - 2022-02-19
 ### added support for button I3 - [#50](https://github.com/windkh/node-red-contrib-shelly/issues/50)
 ### experimental 

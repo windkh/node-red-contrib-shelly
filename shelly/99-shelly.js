@@ -264,6 +264,10 @@ module.exports = function (RED) {
             }
         });
 
+        this.on('close', function(done) {
+            clearInterval(node.timer);
+            done();
+        });
     }
     RED.nodes.registerType("shelly-switch", ShellySwitchNode, {
         credentials: {
@@ -502,6 +506,10 @@ module.exports = function (RED) {
             }
         });
 
+        this.on('close', function(done) {
+            clearInterval(node.timer);
+            done();
+        });
     }
     RED.nodes.registerType("shelly-roller-shutter", ShellyRollerShutterNode, {
         credentials: {
@@ -671,6 +679,10 @@ module.exports = function (RED) {
             }
         });
 
+        this.on('close', function(done) {
+            clearInterval(node.timer);
+            done();
+        });
     }
     RED.nodes.registerType("shelly-dimmer", ShellyDimmerNode, {
         credentials: {
@@ -1053,6 +1065,11 @@ module.exports = function (RED) {
                     });
                 }
             }
+        });
+
+        this.on('close', function(done) {
+            clearInterval(node.timer);
+            done();
         });
     }
 
@@ -1546,6 +1563,10 @@ module.exports = function (RED) {
             }
         });
 
+        this.on('close', function(done) {
+            clearInterval(node.timer);
+            done();
+        });
     }
     RED.nodes.registerType("shelly-trv", ShellyTrvNode, {
         credentials: {
@@ -1570,7 +1591,7 @@ module.exports = function (RED) {
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus || false;
 
-        var types = ["SHBTN", "SHIX3", "SHIX4"];
+        var types = ["SHBTN", "SHIX3"];
         start(node, types);
         
         this.on('input', function (msg) {
@@ -1611,7 +1632,9 @@ module.exports = function (RED) {
                         var status = body;
                         msg.status = status;
                         msg.payload = {
-                            inputs : status.inputs
+                            relays : status.relays,
+                            inputs : status.inputs,
+                            adcs : status.adcs
                         };
 
                         node.send([msg]);
@@ -1626,9 +1649,7 @@ module.exports = function (RED) {
                     var status = body;
                     msg.status = status;
                     msg.payload = {
-                        relays : status.relays,
-                        inputs : status.inputs,
-                        adcs : status.adcs
+                        inputs : status.inputs
                     };
                     
                     node.send([msg]);
@@ -1753,6 +1774,10 @@ module.exports = function (RED) {
             }
         });
 
+        this.on('close', function(done) {
+            clearInterval(node.timer);
+            done();
+        });
     }
     RED.nodes.registerType("shelly-switch2", ShellySwitch2Node, {
         credentials: {

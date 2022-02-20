@@ -615,6 +615,7 @@ Turning on is done by sending the following payload into the input. The input nu
 }
 ```
 
+Event can be one of the following S=short push, SS=double short push, SSS=triple short push, L=long push (and LS=long short and SL=short long for the I3).
 Right after having sent the request to the shelly device a status request is done. The inputs property of the response is output on output 1.
 
 If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
