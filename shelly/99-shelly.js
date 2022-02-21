@@ -7,6 +7,10 @@ module.exports = function (RED) {
     "use strict";
     var axios = require('axios').default;
       
+    function isEmpty(obj) {
+        return Object.keys(obj).length === 0;
+    }
+
     // generic REST get wrapper
     function shellyGet(route, node, hostname, callback){
 
@@ -758,7 +762,7 @@ module.exports = function (RED) {
 
             var hostname;
             var route = '';
-            if(msg.payload !== undefined) {
+            if(msg.payload !== undefined && !isEmpty(msg.payload)) {
                 hostname = msg.payload.hostname;
                 var command = msg.payload;
 
@@ -932,22 +936,10 @@ module.exports = function (RED) {
                     if(timer !== undefined && timer > 0) {
                         route += "&timer=" + timer;
                     }
-
-                    // prevend empty input being used as valid command.
-                    if(route === "/color/0?turn=on" &&  
-                        gain === undefined &&
-                        red === undefined &&
-                        green === undefined &&
-                        blue === undefined &&
-                        white === undefined &&
-                        effect === undefined &&
-                        timer === undefined){
-                            route = undefined;
-                        }
                 }
                 else if(nodeMode === "white") {
 
-                    var light;
+                    var light = 0;
                     if (command.light !== undefined) {
                         if (command.light >=0) {
                             light = command.light;
@@ -1011,12 +1003,7 @@ module.exports = function (RED) {
 
 
                     // create route
-                    if (light !== undefined) {
-                        route = "/white/" + light + "?turn=" + turn;
-                    }
-                    else {
-                        route = "/white/0?turn=" + turn;  
-                    }
+                    route = "/white/" + light + "?turn=" + turn;
 
                     if(brightness !== undefined) {
                         route += "&brightness=" + brightness;

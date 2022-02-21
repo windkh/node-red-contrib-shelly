@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [4.7.1] - 2022-02-21
+### fixed RGBW2 node - [#53](https://github.com/windkh/node-red-contrib-shelly/issues/53)
+
 ## [4.6.0] - 2022-02-20
 ### timer support for uni - [#35](https://github.com/windkh/node-red-contrib-shelly/issues/35)
 
