@@ -5,28 +5,54 @@
 
 module.exports = function (RED) {
     "use strict";
-    var axios = require('axios').default;
+    let axios = require('axios').default;
       
     function isEmpty(obj) {
         return Object.keys(obj).length === 0;
     }
 
-    // generic REST get wrapper
-    function shellyGet(route, node, hostname, callback){
+    // extracts the credentials from the message and the node.
+    function getCredentials(node, msg){
 
-        let headers = {};
-        if(node.credentials.username !== undefined && node.credentials.password !== undefined) {
-            headers.Authorization = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
+        let hostname;
+        let username;
+        let password;
+        if(msg !== undefined && msg.payload !== undefined){
+            hostname = msg.payload.hostname; 
+            username = msg.payload.username; 
+            password = msg.payload.password; 
+        }
+
+        if(hostname === undefined) {
+            hostname = node.hostname;
+        }
+
+        if(username === undefined) {
+            username = node.credentials.username;
+        }
+
+        if(password === undefined) {
+            password = node.credentials.password;
+        }
+
+        let credentials = {
+            hostname : hostname,
+            username : username,
+            password : password,
         };
 
-        let url = 'http://';
-        if(hostname === undefined){
-            url += node.hostname;
-        }
-        else {
-            url += hostname;
-        }
-        url += route;
+        return credentials;
+    }
+
+    // generic REST get wrapper
+    function shellyGet(route, node, credentials, callback){
+
+        let headers = {};
+        if(credentials.username !== undefined && credentials.password !== undefined) {
+            headers.Authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64");
+        };
+
+        let url = 'http://' + credentials.hostname + route;
 
         const request = axios.get(url, {
             headers : headers
@@ -46,7 +72,7 @@ module.exports = function (RED) {
     }
 
     // Note that this function has a reduced timeout.
-    function shellyTryGet(route, node, timeout, hostname, callback, errorCallback){
+    function shellyTryGet(route, node, timeout, credentials, callback, errorCallback){
 
         // We avoid an invalid timeout by taking a default if 0.
         let requestTimeout = timeout;
@@ -55,18 +81,11 @@ module.exports = function (RED) {
         }
 
         let headers = {};
-        if(node.credentials.username !== undefined && node.credentials.password !== undefined) {
-            headers.Authorization = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
+        if(credentials.username !== undefined && credentials.password !== undefined) {
+            headers.Authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64");
         };
 
-        let url = 'http://';
-        if(hostname === undefined){
-            url += node.hostname;
-        }
-        else {
-            url += hostname;
-        }
-        url += route;
+        let url = 'http://' + credentials.hostname + route;
 
         const request = axios.get(url, {}, {
             headers : headers,
@@ -87,22 +106,15 @@ module.exports = function (RED) {
     }
 
     // generic REST get wrapper with promise
-    function shellyGetAsync(route, node, hostname){
+    function shellyGetAsync(route, credentials){
         return new Promise(function (resolve, reject) {
 
             let headers = {};
-            if(node.credentials.username !== undefined && node.credentials.password !== undefined) {
-                headers.Authorization = "Basic " + Buffer.from(node.credentials.username + ":" + node.credentials.password).toString("base64");
+            if(credentials.username !== undefined && credentials.password !== undefined) {
+                headers.Authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64");
             };
 
-            let url = 'http://';
-            if(hostname === undefined){
-                url += node.hostname;
-            }
-            else {
-                url += hostname;
-            }
-            url += route;
+            let url = 'http://' + credentials.hostname + route;
             
             const request = axios.get(url, {}, {
                 headers : headers
@@ -121,13 +133,14 @@ module.exports = function (RED) {
           });
     }
 
-    function shellyPing(node, types){
-        shellyGet('/shelly', node, node.hostname, function(body) {
+    function shellyPing(node, credentials, types){
+
+        shellyGet('/shelly', node, credentials, function(body) {
             node.shellyInfo = body;
 
-            var found = false;
-            for (var i = 0; i < types.length; i++) {
-                var type = types[i];
+            let found = false;
+            for (let i = 0; i < types.length; i++) {
+                let type = types[i];
 
                 // Generation 1 devices
                 if(node.shellyInfo.type !== undefined){
@@ -157,11 +170,13 @@ module.exports = function (RED) {
     // Starts polling the status.
     function start(node, types){
         if(node.hostname !== ''){    
-            shellyPing(node, types);
+
+            let credentials = getCredentials(node);
+            shellyPing(node, credentials, types);
 
             if(node.pollInterval > 0) {
                 node.timer = setInterval(function() {
-                    shellyPing(node, types);
+                    shellyPing(node, credentials, types);
 
                     if(node.pollStatus){
                         node.emit("input", {});
@@ -178,7 +193,7 @@ module.exports = function (RED) {
     // The switch node controls a shelly switch.
     function ShellySwitchNode(config) {
         RED.nodes.createNode(this, config);
-        var node = this;
+        let node = this;
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus || false;
@@ -194,7 +209,7 @@ module.exports = function (RED) {
         }
         */
 
-        var types = ["SHPLG-", "SHSW-", "SHUNI-"];
+        let types = ["SHPLG-", "SHSW-", "SHUNI-"];
         start(node, types);
 
         /* when a payload is received in the format
@@ -213,18 +228,19 @@ module.exports = function (RED) {
         */
         this.on('input', function (msg) {
 
-            var hostname;
-            var route = '';
+            let credentials = getCredentials(node, msg);
+                
+            let route = '';
             if(msg.payload !== undefined){
-                hostname = msg.payload.hostname;
-                var command = msg.payload;
 
-                var relay = 0;
+                let command = msg.payload;
+
+                let relay = 0;
                 if(command.relay !== undefined){
                     relay = command.relay;
                 }
 
-                var turn;
+                let turn;
                 if(command.on !== undefined){
                     if(command.on == true){
                         turn = "on";
@@ -243,12 +259,12 @@ module.exports = function (RED) {
             }
 
             if (route !== ''){
-                shellyGet(route, node, hostname, function(body) {
-                    shellyGet('/status', node, hostname, function(body) {
+                shellyGet(route, node, credentials, function(body) {
+                    shellyGet('/status', node, credentials, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = body;
+                        let status = body;
                         msg.status = status;
                         msg.payload = status.relays;
                         node.send([msg]);
@@ -256,11 +272,11 @@ module.exports = function (RED) {
                 });
             }
             else {
-                shellyGet('/status', node, hostname, function(body) {
+                shellyGet('/status', node, credentials, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
                         
-                    var status = body;
+                    let status = body;
                     msg.status = status;
                     msg.payload = status.relays;
                     node.send([msg]);
@@ -310,13 +326,13 @@ module.exports = function (RED) {
     */
     function ShellyDoorNode(config) {
         RED.nodes.createNode(this, config);
-        var node = this;
+        let node = this;
         node.hostname = config.hostname.trim();
         node.usePolling = config.usepolling;
         node.pollInterval = parseInt(config.pollinginterval);
 
         // Not used right now.
-        // var types = ["SHDW"];
+        // let types = ["SHDW"];
 
         if(node.usePolling){
             node.timer = setInterval(function() {
@@ -331,15 +347,15 @@ module.exports = function (RED) {
 
         this.on('input', function (msg) {
 
-            var hostname;
+            letcredentials = getCredentials(node, msg);
+            
             if(msg.payload !== undefined){
-                hostname = msg.payload.hostname;
                 node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
             }
 
-            shellyTryGet('/status', node, node.pollInterval, hostname, function(body) {
-                var status = body;
-                var timestamp=new Date().toLocaleTimeString();
+            shellyTryGet('/status', node, node.pollInterval, credentials, function(body) {
+                let status = body;
+                let timestamp=new Date().toLocaleTimeString();
 
                 if(status.sensor !== undefined && status.sensor.is_valid){
                     node.status({ fill: "green", shape: "ring", text: "Status: " + status.sensor.state + " " + timestamp});
@@ -382,7 +398,7 @@ module.exports = function (RED) {
     // The roller shutter node controls a shelly roller shutter (2.5).
     function ShellyRollerShutterNode(config) {
         RED.nodes.createNode(this, config);
-        var node = this;
+        let node = this;
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus || false;
@@ -398,7 +414,7 @@ module.exports = function (RED) {
         }
         */
 
-        var types = ["SHPLG-", "SHSW-"];
+        let types = ["SHPLG-", "SHSW-"];
         start(node, types);   
 
         /* when a payload is received in the format
@@ -425,18 +441,18 @@ module.exports = function (RED) {
 
         this.on('input', function (msg) {
 
-            var hostname;
-            var route = '';
+            let credentials = getCredentials(node, msg);
+            
+            let route = '';
             if(msg.payload !== undefined){
-                hostname = msg.payload.hostname;
-                var command = msg.payload;
+                let command = msg.payload;
 
-                var roller = 0;
+                let roller = 0;
                 if(command.roller !== undefined){
                     roller = command.roller;
                 }
 
-                var go;
+                let go;
                 if(command.go !== undefined){
                     go = command.go;
 
@@ -452,12 +468,12 @@ module.exports = function (RED) {
                 // we fall back to relay mode if no valid roller command is received.
                 if(route === undefined)
                 {
-                    var relay = 0;
+                    let relay = 0;
                     if(command.relay !== undefined){
                         relay = command.relay;
                     }
     
-                    var turn;
+                    let turn;
                     if(command.on !== undefined){
                         if(command.on == true){
                             turn = "on";
@@ -477,12 +493,12 @@ module.exports = function (RED) {
             }
 
             if (route !== ''){
-                shellyGet(route, node, hostname, function(body) {
-                    shellyGet('/status', node, hostname, function(body) {
+                shellyGet(route, node, credentials, function(body) {
+                    shellyGet('/status', node, credentials, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = body;
+                        let status = body;
                         msg.status = status;
                         msg.payload = {
                             rollers : status.rollers,
@@ -494,11 +510,11 @@ module.exports = function (RED) {
                 });
             }
             else{
-                shellyGet('/status', node, hostname, function(body) {
+                shellyGet('/status', node, credentials, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    var status = body;
+                    let status = body;
                     msg.status = status;
                     msg.payload = {
                         rollers : status.rollers,
@@ -527,7 +543,7 @@ module.exports = function (RED) {
     // The dimmer node controls a shelly dimmer or Shelly Duo.
     function ShellyDimmerNode(config) {
         RED.nodes.createNode(this, config);
-        var node = this;
+        let node = this;
         node.hostname = config.hostname.trim();
 	    node.dimmerStat = config.dimmerStat || false;
         node.pollInterval = parseInt(config.pollinginterval);
@@ -545,7 +561,7 @@ module.exports = function (RED) {
         }
         */
 
-        var types = ["SHDM-", "SHBDUO-1"];
+        let types = ["SHDM-", "SHBDUO-1"];
         start(node, types);
 
         /* when a payload is received in the format
@@ -569,18 +585,18 @@ module.exports = function (RED) {
         */
         this.on('input', function (msg) {
 
-            var hostname;
-            var route = '';
+            let credentials = getCredentials(node, msg);
+            
+            let route = '';
             if(msg.payload !== undefined){
-                hostname = msg.payload.hostname;
-                var command = msg.payload;
+                let command = msg.payload;
 
-                var light = 0;
+                let light = 0;
                 if(command.light !== undefined){
                     light = command.light;
                 }
 
-                var turn;
+                let turn;
                 if(command.on !== undefined){
                     if(command.on == true){
                         turn = "on";
@@ -593,7 +609,7 @@ module.exports = function (RED) {
                     turn = command.turn;
                 }
 
-                var brightness;
+                let brightness;
                 if(command.brightness !== undefined){
                     if(command.brightness >=1 && command.brightness <= 100){
                         brightness = command.brightness;
@@ -602,7 +618,7 @@ module.exports = function (RED) {
                   }
                 }
 
-                var white;
+                let white;
                 if(command.white !== undefined){
                     if(command.white >=1 && command.white <= 100){
                         white = command.white;
@@ -611,7 +627,7 @@ module.exports = function (RED) {
                   }
                 }
 
-                var temperature;
+                let temperature;
                 if(command.temp !== undefined){
                     if(command.temp >=2700 && command.temp <= 6500){
                         temperature = command.temp;
@@ -620,7 +636,7 @@ module.exports = function (RED) {
                   }
                 }
 
-                var transition;
+                let transition;
                 if(command.transition !== undefined){
                     if(command.transition >=0 && command.transition <= 5000){
                         transition = command.transition;
@@ -656,13 +672,13 @@ module.exports = function (RED) {
             }
 
             if (route !== '') {
-                shellyGet(route, node, hostname, function(body) {
+                shellyGet(route, node, credentials, function(body) {
 		            if (node.dimmerStat) {
-			            shellyGet('/status', node, hostname, function(body) {
+			            shellyGet('/status', node, credentials, function(body) {
 
                             node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                            var status = body;
+                            let status = body;
                             msg.status = status;
                             msg.payload = status.lights;
                             node.send([msg]);
@@ -671,11 +687,11 @@ module.exports = function (RED) {
                 });
             }
             else {
-                shellyGet('/status', node, hostname, function(body) {
+                shellyGet('/status', node, credentials, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    var status = body;
+                    let status = body;
                     msg.status = status;
                     msg.payload = status.lights;
                     node.send([msg]);
@@ -700,7 +716,7 @@ module.exports = function (RED) {
     // The RGBW2 node controls a shelly LED stripe or a shelly builb RGBW.
     function ShellyRGBW2Node(config) {
         RED.nodes.createNode(this, config);
-        var node = this;
+        let node = this;
         node.hostname = config.hostname.trim();
         node.ledStat = config.ledStat || false;
         node.pollInterval = parseInt(config.pollinginterval);
@@ -718,7 +734,7 @@ module.exports = function (RED) {
         }
         */
 
-        var types = ["SHRGBW2", "SHCB-1"];
+        let types = ["SHRGBW2", "SHCB-1"];
         start(node, types);
 
         /* when a payload is received in the format
@@ -748,11 +764,11 @@ module.exports = function (RED) {
         then the command is send to the shelly.
         */
 
-        if(node.hostname !== undefined){
-            var mode = node.mode;
+        if(node.hostname !== ''){
+            let mode = node.mode;
             if(mode === "color" || mode === "white"){
                 shellyGet('/settings?mode=' + mode, node, node.hostname, function(body) {
-                    var result = body;
+                    let result = body;
                     // here we can not check if the mode is already changed so we can not display a proper status.
                 });
             }
@@ -760,19 +776,19 @@ module.exports = function (RED) {
         
         this.on('input', async function (msg) {
 
-            var hostname;
-            var route = '';
+            let credentials = getCredentials(node, msg);
+            
+            let route = '';
             if(msg.payload !== undefined && !isEmpty(msg.payload)) {
-                hostname = msg.payload.hostname;
-                var command = msg.payload;
+                let command = msg.payload;
 
-                var nodeMode;
+                let nodeMode;
                 if(command.mode !== undefined) {
                     nodeMode = command.mode;
 
                     if (node.mode === 'auto') {
                         try {
-                            let body = await shellyGetAsync('/settings?mode=' + nodeMode, node, hostname);
+                            let body = await shellyGetAsync('/settings?mode=' + nodeMode, credentials);
                         }
                         catch (error) {
                             node.error("Failed to set mode to: " + nodeMode, error);
@@ -786,7 +802,7 @@ module.exports = function (RED) {
 
                 if(nodeMode === "color") {
 
-                    var red;
+                    let red;
                     if(command.red !== undefined) {
                         if(command.red >= 0 && command.red <= 255) {
                             red = command.red;
@@ -795,7 +811,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var green;
+                    let green;
                     if (command.green !== undefined) {
                         if (command.green >= 0 && command.green <= 255) {
                             green = command.green;
@@ -804,7 +820,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var blue ;
+                    let blue ;
                     if(command.blue !== undefined){
                         if (command.blue >= 0 && command.blue <= 255){
                             blue = command.blue;
@@ -813,7 +829,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var white;
+                    let white;
                     if(command.white !== undefined) {
                         if (command.white >= 0 && command.white <= 255) {
                             white = command.white;
@@ -822,7 +838,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var temperature;
+                    let temperature;
                     if(command.temp !== undefined) {
                         if (command.temp >= 3000 && command.temp <= 6500) {
                             temperature = command.temp;
@@ -831,7 +847,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var gain;
+                    let gain;
                     if (command.gain !== undefined) {
                         if (command.gain >= 0 && command.gain <= 100) {
                             gain = command.gain;
@@ -840,7 +856,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var brightness;
+                    let brightness;
                     if (command.brightness !== undefined) {
                         if (command.brightness >= 0 && command.brightness <= 100) {
                             brightness = command.brightness;
@@ -849,7 +865,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var effect;
+                    let effect;
                     if (command.effect !== undefined) {
                         if (command.effect >=0) {
                             effect = command.effect;
@@ -858,7 +874,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var transition;
+                    let transition;
                     if (command.transition !== undefined) {
                         if (command.transition >= 0 && command.transition <= 5000) {
                             transition = command.transition;
@@ -867,7 +883,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var timer;
+                    let timer;
                     if (command.timer !== undefined) {
                         if (command.timer >=0) {
                             timer = command.timer;
@@ -876,7 +892,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var turn;
+                    let turn;
                     if (command.on !== undefined) {
                         if (command.on == true) {
                             turn = "on";
@@ -939,7 +955,7 @@ module.exports = function (RED) {
                 }
                 else if(nodeMode === "white") {
 
-                    var light = 0;
+                    let light = 0;
                     if (command.light !== undefined) {
                         if (command.light >=0) {
                             light = command.light;
@@ -948,7 +964,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var brightness;
+                    let brightness;
                     if (command.brightness !== undefined) {
                         if (command.brightness >= 0 && command.brightness <= 100) {
                             brightness = command.brightness;
@@ -957,7 +973,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var temperature;
+                    let temperature;
                     if(command.temp !== undefined) {
                         if (command.temp >= 3000 && command.temp <= 6500) {
                             temperature = command.temp;
@@ -966,7 +982,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var transition;
+                    let transition;
                     if (command.transition !== undefined) {
                         if (command.transition >= 0 && command.transition <= 5000) {
                             transition = command.transition;
@@ -975,7 +991,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var timer;
+                    let timer;
                     if (command.timer !== undefined) {
                         if (command.timer >=0) {
                             timer = command.timer;
@@ -984,7 +1000,7 @@ module.exports = function (RED) {
                         }
                     }
 
-                    var turn;
+                    let turn;
                     if (command.on !== undefined) {
                         if (command.on == true) {
                             turn = "on";
@@ -1026,13 +1042,13 @@ module.exports = function (RED) {
                 }
             
                 if (route !== ''){
-                    shellyGet(route, node, hostname, function(body) {
+                    shellyGet(route, node, credentials, function(body) {
                         if (node.ledStat) {
-                            shellyGet('/status', node, hostname, function(body) {
+                            shellyGet('/status', node, credentials, function(body) {
 
                                 node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                                var status = body;
+                                let status = body;
                                 msg.status = status;
                                 msg.payload = status.lights;
                                 node.send([msg]);
@@ -1041,11 +1057,11 @@ module.exports = function (RED) {
                     });
                 }
                 else {
-                    shellyGet('/status', node, hostname, function(body) {
+                    shellyGet('/status', node, credentials, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = body;
+                        let status = body;
                         msg.status = status;
                         msg.payload = status.lights;
                         node.send([msg]);
@@ -1091,7 +1107,7 @@ module.exports = function (RED) {
     */
     function ShellyMotionNode(config) {
         RED.nodes.createNode(this, config);
-        var node = this;
+        let node = this;
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
 
@@ -1101,7 +1117,7 @@ module.exports = function (RED) {
         }
 
         // Not used right now.
-        // var types = ["SHMOS"];
+        // let types = ["SHMOS"];
 
         if(node.usePolling){
             node.timer = setInterval(function() {
@@ -1116,15 +1132,15 @@ module.exports = function (RED) {
 
         this.on('input', function (msg) {
 
-            var hostname;
+            let credentials = getCredentials(node, msg);
+            
             if(msg.payload !== undefined){
-                hostname = msg.payload.hostname;
                 node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
             }
 
-            shellyTryGet('/status', node, node.pollInterval, hostname, function(body) {
-                var status = body;
-                var timestamp=new Date().toLocaleTimeString();
+            shellyTryGet('/status', node, node.pollInterval, credentials, function(body) {
+                let status = body;
+                let timestamp=new Date().toLocaleTimeString();
                 
                 if(status.sensor !== undefined && status.sensor.is_valid){
                     node.status({ fill: "green", shape: "ring", text: "Motion: " + status.sensor.motion + " Vibration: " + status.sensor.vibration + " " + timestamp});
@@ -1195,29 +1211,29 @@ module.exports = function (RED) {
     */
     function ShellyEMNode(config) {
         RED.nodes.createNode(this, config);
-        var node = this;
+        let node = this;
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus || false;
 
-        var types = ["SHEM"];
+        let types = ["SHEM"];
         start(node, types);
 
         this.on('input', async function (msg) {
 
-            var hostname;
-            var route = '';
-            var emetersToDownload;    
+            let credentials = getCredentials(node, msg);
+            
+            let route = '';
+            let emetersToDownload;    
             if(msg.payload !== undefined){
-                hostname = msg.payload.hostname;
-                var command = msg.payload;
+                let command = msg.payload;
 
-                var relay = 0;
+                let relay = 0;
                 if(command.relay !== undefined){
                     relay = command.relay;
                 }
 
-                var turn;
+                let turn;
                 if(command.on !== undefined){
                     if(command.on == true){
                         turn = "on";
@@ -1240,12 +1256,12 @@ module.exports = function (RED) {
             }
 
             if (route !== ''){
-                shellyGet(route, node, hostname, function(body) {
-                    shellyGet('/status', node, hostname, function(body) {
+                shellyGet(route, node, credentials, function(body) {
+                    shellyGet('/status', node, credentials, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = body;
+                        let status = body;
                         msg.status = status;
                         msg.payload = {
                             relays : status.relays,
@@ -1258,11 +1274,11 @@ module.exports = function (RED) {
             }
             else{
                 if(emetersToDownload === undefined){
-                    shellyGet('/status', node, hostname, function(body) {
+                    shellyGet('/status', node, credentials, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = body;
+                        let status = body;
                         msg.status = status;
                         msg.payload = {
                             relays : status.relays,
@@ -1285,7 +1301,7 @@ module.exports = function (RED) {
                     node.status({ fill: "green", shape: "ring", text: "Downloading CSV " + emeter});
 
                     try {
-                        let body = await shellyGetAsync(route, node, hostname);
+                        let body = await shellyGetAsync(route, credentials);
                         data.push(body);
                     }
                     catch (error) {
@@ -1325,28 +1341,28 @@ module.exports = function (RED) {
     */
     function ShellyUniNode(config) {
         RED.nodes.createNode(this, config);
-        var node = this;
+        let node = this;
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus || false;
 
-        var types = ["SHUNI"];
+        let types = ["SHUNI"];
         start(node, types);
         
         this.on('input', function (msg) {
 
-            var hostname;
-            var route = '';
+            let credentials = getCredentials(node, msg);
+            
+            let route = '';
             if(msg.payload !== undefined){
-                hostname = msg.payload.hostname;
-                var command = msg.payload;
+                let command = msg.payload;
 
-                var relay = 0;
+                let relay = 0;
                 if(command.relay !== undefined){
                     relay = command.relay;
                 }
 
-                var turn;
+                let turn;
                 if(command.on !== undefined){
                     if(command.on == true){
                         turn = "on";
@@ -1359,7 +1375,7 @@ module.exports = function (RED) {
                     turn = command.turn;
                 }
 
-                var timerSeconds;
+                let timerSeconds;
                 if(command.timer !== undefined){
                     timerSeconds = command.timer;
                 }
@@ -1374,12 +1390,12 @@ module.exports = function (RED) {
             }
 
             if (route !== ''){
-                shellyGet(route, node, hostname, function(body) {
-                    shellyGet('/status', node, hostname, function(body) {
+                shellyGet(route, node, credentials, function(body) {
+                    shellyGet('/status', node, credentials, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = body;
+                        let status = body;
                         msg.status = status;
                         msg.payload = {
                             relays : status.relays,
@@ -1392,11 +1408,11 @@ module.exports = function (RED) {
                 });
             }
             else{
-                shellyGet('/status', node, hostname, function(body) {
+                shellyGet('/status', node, credentials, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    var status = body;
+                    let status = body;
                     msg.status = status;
                     msg.payload = {
                         relays : status.relays,
@@ -1428,7 +1444,7 @@ module.exports = function (RED) {
     // The dimmer node controls a shelly TRV.
     function ShellyTrvNode(config) {
         RED.nodes.createNode(this, config);
-        var node = this;
+        let node = this;
         node.hostname = config.hostname.trim();
 	    node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus || false;
@@ -1443,7 +1459,7 @@ module.exports = function (RED) {
             "longid":1}
         */
 
-        var types = ["SHTRV-"];
+        let types = ["SHTRV-"];
         start(node, types);
 
         /* when a payload is received in the format
@@ -1460,15 +1476,15 @@ module.exports = function (RED) {
         */
         this.on('input', function (msg) {
 
-            var hostname;
-            var route = '';
-            if(msg.payload !== undefined){
-                hostname = msg.payload.hostname;
-                var command = msg.payload;
-
-                var thermostat = 0;
+            let credentials = getCredentials(node, msg);
             
-                var position;
+            let route = '';
+            if(msg.payload !== undefined){
+                let command = msg.payload;
+
+                let thermostat = 0;
+            
+                let position;
                 if(command.position !== undefined){
                     if(command.position >=0 && command.position <= 100){
                         position = command.position;
@@ -1477,7 +1493,7 @@ module.exports = function (RED) {
                     }
                 }
 
-                var temperature;
+                let temperature;
                 if(command.temperature !== undefined){
                     if(command.temperature >=4 && command.temperature <= 31){
                         temperature = command.temperature;
@@ -1486,21 +1502,21 @@ module.exports = function (RED) {
                   }
                 }
 
-                var schedule;
+                let schedule;
                 if(command.schedule !== undefined){
                     if(command.schedule == true || command.schedule == false){
                         schedule = command.schedule;
                     }
                 }
 
-                var scheduleProfile;
+                let scheduleProfile;
                 if(command.scheduleProfile !== undefined){
                     if(command.scheduleProfile >= 1 || command.scheduleProfile <= 5){
                         scheduleProfile = command.scheduleProfile;
                     }
                 }
 
-                var boostMinutes;
+                let boostMinutes;
                 if(command.boostMinutes !== undefined){
                     if(command.boostMinutes >= 0){
                         boostMinutes = command.boostMinutes;
@@ -1534,12 +1550,12 @@ module.exports = function (RED) {
             }
 
             if (route !== '') {
-                shellyGet(route, node, hostname, function(body) {
-                    shellyGet('/status', node, hostname, function(body) {
+                shellyGet(route, node, credentials, function(body) {
+                    shellyGet('/status', node, credentials, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = body;
+                        let status = body;
                         msg.status = status;
                         msg.payload = status.thermostats;
                         node.send([msg]);
@@ -1547,11 +1563,11 @@ module.exports = function (RED) {
 		        });
             }
             else {
-                shellyGet('/status', node, hostname, function(body) {
+                shellyGet('/status', node, credentials, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    var status = body;
+                    let status = body;
                     msg.status = status;
                     msg.payload = status.thermostats;
                     node.send([msg]);
@@ -1582,33 +1598,33 @@ module.exports = function (RED) {
     */
     function ShellyButtonNode(config) {
         RED.nodes.createNode(this, config);
-        var node = this;
+        let node = this;
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus || false;
 
-        var types = ["SHBTN", "SHIX3"];
+        let types = ["SHBTN", "SHIX3"];
         start(node, types);
         
         this.on('input', function (msg) {
 
-            var hostname;
-            var route = '';
+            let credentials = getCredentials(node, msg);
+            
+            let route = '';
             if(msg.payload !== undefined){
-                hostname = msg.payload.hostname;
-                var command = msg.payload;
+                let command = msg.payload;
 
-                var input = 0;
+                let input = 0;
                 if(command.input !== undefined){
                     input = command.input;
                 }
 
-                var event = 'S';
+                let event = 'S';
                 if(command.event !== undefined){
                     event = command.event;
                 }
 
-                var eventCount;
+                let eventCount;
                 if(command.eventCount !== undefined){
                     eventCount = command.eventCount;
                 }
@@ -1620,12 +1636,12 @@ module.exports = function (RED) {
             }
 
             if (route !== ''){
-                shellyGet(route, node, hostname, function(body) {
-                    shellyGet('/status', node, hostname, function(body) {
+                shellyGet(route, node, credentials, function(body) {
+                    shellyGet('/status', node, credentials, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = body;
+                        let status = body;
                         msg.status = status;
                         msg.payload = {
                             relays : status.relays,
@@ -1638,11 +1654,11 @@ module.exports = function (RED) {
                 });
             }
             else{
-                shellyGet('/status', node, hostname, function(body) {
+                shellyGet('/status', node, credentials, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    var status = body;
+                    let status = body;
                     msg.status = status;
                     msg.payload = {
                         inputs : status.inputs
@@ -1674,7 +1690,7 @@ module.exports = function (RED) {
     // The switch node controls a shelly switch gen 2: Shelly 1 plus Shelly 1 PM plus
     function ShellySwitch2Node(config) {
         RED.nodes.createNode(this, config);
-        var node = this;
+        let node = this;
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus || false;
@@ -1693,7 +1709,7 @@ module.exports = function (RED) {
             "auth_domain":null }
         */
 
-        var types = ["SNSW-"];
+        let types = ["SNSW-"];
         start(node, types);
 
 
@@ -1709,18 +1725,18 @@ module.exports = function (RED) {
         */
         this.on('input', function (msg) {
 
-            var hostname;
-            var route = '';
+            let credentials = getCredentials(node, msg);
+            
+            let route = '';
             if(msg.payload !== undefined){
-                hostname = msg.payload.hostname;
-                var command = msg.payload;
+                let command = msg.payload;
 
-                var id;
+                let id;
                 if(command.id !== undefined){
                     id = command.id;
                 }
 
-                var method;
+                let method;
                 if(command.method !== undefined){
                     method = command.method;
                 }
@@ -1745,25 +1761,25 @@ module.exports = function (RED) {
                 }
             }
 
-            var getStatusRoute = '/rpc/Shelly.GetStatus';
+            let getStatusRoute = '/rpc/Shelly.GetStatus';
             if (route !== ''){
-                shellyGet(route, node, hostname, function(body) {
-                    shellyGet(getStatusRoute, node, hostname, function(body) {
+                shellyGet(route, node, credentials, function(body) {
+                    shellyGet(getStatusRoute, node, credentials, function(body) {
 
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        var status = body;
+                        let status = body;
                         msg.payload = status;
                         node.send([msg]);
                     });
                 });
             }
             else {
-                shellyGet(getStatusRoute, node, hostname, function(body) {
+                shellyGet(getStatusRoute, node, credentials, function(body) {
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
                         
-                    var status = body;
+                    let status = body;
                     msg.payload = status;
                     node.send([msg]);
                 });

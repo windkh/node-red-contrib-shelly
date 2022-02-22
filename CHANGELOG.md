@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [4.8.0] - 2022-02-22
+### username and password can be passed via msg.payload (like hostname)
+
 ## [4.7.1] - 2022-02-21
 ### fixed RGBW2 node - [#53](https://github.com/windkh/node-red-contrib-shelly/issues/53)
 

@@ -70,11 +70,15 @@ Most nodes will call HTTP GET to the /status route after a input is received fro
 This answer is directly available at the output via msg.status. The msg.payload property 
 contains a lightweight version of this status object.
 The hostname can be left empty in the configuration node. This deactivates polling, too. In this case you must pass the hostname in
-the msg.payload.hostname. This can be useful, if you want to use one node for several devices or if you want to make use of sub flows. 
+the msg.payload.hostname. This can be useful, if you want to use one node for several devices or if you want to make use of sub flows.
+(username and password can be passed in msg.payload, too)
+
 
 ```
 {
     hostname : '192.168.178.250'
+    username : 'user'
+    password : 'password'
 	...
 }
 ```
