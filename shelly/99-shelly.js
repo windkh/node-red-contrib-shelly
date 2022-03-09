@@ -189,52 +189,64 @@ module.exports = function (RED) {
         }
     }
 
-    // --------------------------------------------------------------------------------------------
-    // The switch node controls a shelly switch.
-    function ShellySwitchNode(config) {
-        RED.nodes.createNode(this, config);
-        let node = this;
-        node.hostname = config.hostname.trim();
-        node.pollInterval = parseInt(config.pollinginterval);
-        node.pollStatus = config.pollstatus || false;
+    // Creates a route from the input.
+    function inputParserRelay(msg){
+        let route;
+        if(msg !== undefined && msg.payload !== undefined){
+            let command = msg.payload;
 
-        /* node.shellyInfo
-        GET /shelly
-        {
-            "type": "SHSW-21",
-            "mac": "5ECF7F1632E8",
-            "auth": true,
-            "fw": "20161223-111304/master@2bc16496",
-            "num_outputs": 1
+            let relay = 0;
+            if(command.relay !== undefined){
+                relay = command.relay;
+            }
+
+            let turn;
+            if(command.on !== undefined){
+                if(command.on == true){
+                    turn = "on";
+                }
+                else{
+                    turn = "off"
+                }
+            }
+            else if(command.turn !== undefined){
+                turn = command.turn;
+            }
+
+            if(turn !== undefined){
+                route = "/relay/" + relay + "?turn=" + turn;
+            }
         }
-        */
+        return route;
+    }
 
-        let types = ["SHPLG-", "SHSW-", "SHUNI-"];
-        start(node, types);
+    // Creates a route from the input.
+    function inputParserRoller(msg){
+        let route;
+        if(msg !== undefined && msg.payload !== undefined){
+            let command = msg.payload;
 
-        /* when a payload is received in the format
-            {
-                relay : 0,
-                on : true
+            let roller = 0;
+            if(command.roller !== undefined){
+                roller = command.roller;
             }
-            or in alternative format 
-            {
-                relay : 0,
-                turn : on/off/toggle
+
+            let go;
+            if(command.go !== undefined){
+                go = command.go;
+
+                if (command.go == "to_pos" && command.roller_pos !== undefined) {
+                    go += "&roller_pos=" + command.roller_pos;
+                }
             }
-        then the command is send to the shelly.
 
-        The output gets the status of all relays.
-        */
-        this.on('input', function (msg) {
+            if(go !== undefined){
+                route = "/roller/" + roller + "?go=" + go;
+            }
 
-            let credentials = getCredentials(node, msg);
-                
-            let route = '';
-            if(msg.payload !== undefined){
-
-                let command = msg.payload;
-
+            // we fall back to relay mode if no valid roller command is received.
+            if(route === undefined)
+            {
                 let relay = 0;
                 if(command.relay !== undefined){
                     relay = command.relay;
@@ -257,39 +269,158 @@ module.exports = function (RED) {
                     route = "/relay/" + relay + "?turn=" + turn;
                 }
             }
+        }
+        return route;
+    }
 
-            if (route !== ''){
-                shellyGet(route, node, credentials, function(body) {
-                    shellyGet('/status', node, credentials, function(body) {
+    // Returns the input parser for the device type.
+    function getInputParser(deviceType){
+        
+        let result;
+        switch(deviceType) {
 
+            case 'Relay':
+                result = inputParserRelay;
+                break;
+            case 'Roller':
+                result = inputParserRoller;
+                break;
+            default:
+                break;
+        }
+
+        return result;
+    }
+
+    function statusParserRelay(status){
+        let result = {
+            relays : status.relays,
+            meters : status.meters
+        }
+        return result;
+    }
+
+    function statusParserRoller(status){
+        let result = {
+            rollers : status.rollers,
+            relays : status.relays,
+            meters : status.meters
+        }
+        return result;
+    }
+
+    // Returns the status parser for the device type.
+    function getStatusParser(deviceType){
+        let result;
+        switch(deviceType) {
+
+            case 'Relay':
+                result = statusParserRelay;
+                break;
+            case 'Roller':
+                result = statusParserRoller;
+                break;
+            default:
+                break;
+        }
+
+        return result;
+    }
+
+    function getDeviceTypes(deviceType){
+        let deviceTypes;
+        switch(deviceType) {
+
+            case 'Relay':
+                deviceTypes = ["SHSW", "SHPLG", "SHUNI"];
+                break;
+            case 'Roller':
+                deviceTypes = ["SHSW-L", "SHSW-25"];
+                break;
+            default:
+                break;
+        }
+
+        return deviceTypes;
+    }
+
+
+
+    // --------------------------------------------------------------------------------------------
+    // The shelly node controls a shelly generation 1 device.
+    function ShellyGen1Node(config) {
+        RED.nodes.createNode(this, config);
+        let node = this;
+        node.hostname = config.hostname.trim();
+        node.pollInterval = parseInt(config.pollinginterval);
+        node.pollStatus = config.pollstatus || false;
+        let deviceType = config.devicetype;
+
+        if(deviceType !== undefined && deviceType !== "") {
+            node.inputParser = getInputParser(deviceType);
+            node.statusParser = getStatusParser(deviceType);  
+            node.types = getDeviceTypes(deviceType);
+
+            start(node, node.types);
+            
+            this.on('input', function (msg) {
+
+                let credentials = getCredentials(node, msg);
+                
+                let route = node.inputParser(msg);
+
+                if (route !== undefined && route !== ''){
+
+                    shellyTryGet(route, node, node.pollInterval, credentials, function(body) {
+                
+                        shellyTryGet('/status', node, node.pollInterval, credentials, function(body) {
+                            
+                            node.status({ fill: "green", shape: "ring", text: "Connected." });
+
+                            let status = body;
+                            msg.status = status;
+                            msg.payload = node.statusParser(status);
+                            node.send([msg]);
+                        },
+                        function(error){
+                            if (msg.payload){
+                                node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." });
+                            }
+                        });
+        
+                    },
+                    function(error){
+                        node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." })
+                    });
+                }
+                else {
+                    shellyTryGet('/status', node, node.pollInterval, credentials, function(body) {
+                            
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
                         let status = body;
                         msg.status = status;
-                        msg.payload = status.relays;
+                        msg.payload = node.statusParser(status);
                         node.send([msg]);
+                    },
+                    function(error){
+                        if (msg.payload){
+                            node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." });
+                        }
                     });
-                });
-            }
-            else {
-                shellyGet('/status', node, credentials, function(body) {
+                }
+            });
 
-                    node.status({ fill: "green", shape: "ring", text: "Connected." });
-                        
-                    let status = body;
-                    msg.status = status;
-                    msg.payload = status.relays;
-                    node.send([msg]);
-                });
-            }
-        });
-
-        this.on('close', function(done) {
-            clearInterval(node.timer);
-            done();
-        });
+            this.on('close', function(done) {
+                clearInterval(node.timer);
+                done();
+            });
+        }
+        else{
+            node.status({ fill: "red", shape: "ring", text: "DeviceType not configured." });
+        }
     }
-    RED.nodes.registerType("shelly-switch", ShellySwitchNode, {
+    RED.nodes.registerType("shelly-gen1", ShellyGen1Node, {
         credentials: {
             username: { type: "text" },
             password: { type: "password" },
@@ -347,7 +478,7 @@ module.exports = function (RED) {
 
         this.on('input', function (msg) {
 
-            letcredentials = getCredentials(node, msg);
+            let credentials = getCredentials(node, msg);
             
             if(msg.payload !== undefined){
                 node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
@@ -387,151 +518,6 @@ module.exports = function (RED) {
     }
 
     RED.nodes.registerType("shelly-door", ShellyDoorNode, {
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        }
-    });
-
-
-    // --------------------------------------------------------------------------------------------
-    // The roller shutter node controls a shelly roller shutter (2.5).
-    function ShellyRollerShutterNode(config) {
-        RED.nodes.createNode(this, config);
-        let node = this;
-        node.hostname = config.hostname.trim();
-        node.pollInterval = parseInt(config.pollinginterval);
-        node.pollStatus = config.pollstatus || false;
-
-        /* node.shellyInfo
-        GET /shelly
-        {
-            "type": "SHSW-21",
-            "mac": "5ECF7F1632E8",
-            "auth": true,
-            "fw": "20161223-111304/master@2bc16496",
-            "num_outputs": 1
-        }
-        */
-
-        let types = ["SHPLG-", "SHSW-"];
-        start(node, types);   
-
-        /* when a payload is received in the format
-            {
-                roller : 0,
-                on : true
-            }
-        then the command is send to the shelly.
-
-        The output gets the status of all rollers.
-        */
-        /* when a payload is received in the format
-            {
-                relay : 0,
-                on : true
-            }
-            or in alternative format 
-            {
-                relay : 0,
-                turn : on/off/toggle
-            }
-        then the command is send to the shelly.
-        */
-
-        this.on('input', function (msg) {
-
-            let credentials = getCredentials(node, msg);
-            
-            let route = '';
-            if(msg.payload !== undefined){
-                let command = msg.payload;
-
-                let roller = 0;
-                if(command.roller !== undefined){
-                    roller = command.roller;
-                }
-
-                let go;
-                if(command.go !== undefined){
-                    go = command.go;
-
-                    if (command.go == "to_pos" && command.roller_pos !== undefined) {
-                        go += "&roller_pos=" + command.roller_pos;
-                    }
-                }
-
-                if(go !== undefined){
-                    route = "/roller/" + roller + "?go=" + go;
-                }
-
-                // we fall back to relay mode if no valid roller command is received.
-                if(route === undefined)
-                {
-                    let relay = 0;
-                    if(command.relay !== undefined){
-                        relay = command.relay;
-                    }
-    
-                    let turn;
-                    if(command.on !== undefined){
-                        if(command.on == true){
-                            turn = "on";
-                        }
-                        else{
-                            turn = "off"
-                        }
-                    }
-                    else if(command.turn !== undefined){
-                        turn = command.turn;
-                    }
-    
-                    if(turn !== undefined){
-                        route = "/relay/" + relay + "?turn=" + turn;
-                    }
-                }
-            }
-
-            if (route !== ''){
-                shellyGet(route, node, credentials, function(body) {
-                    shellyGet('/status', node, credentials, function(body) {
-
-                        node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                        let status = body;
-                        msg.status = status;
-                        msg.payload = {
-                            rollers : status.rollers,
-                            relays : status.relays,
-                            meters : status.meters
-                        };
-                        node.send([msg]);
-                    });
-                });
-            }
-            else{
-                shellyGet('/status', node, credentials, function(body) {
-
-                    node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                    let status = body;
-                    msg.status = status;
-                    msg.payload = {
-                        rollers : status.rollers,
-                        relays : status.relays,
-                        meters : status.meters
-                    };
-                    node.send([msg]);
-                });
-            }
-        });
-
-        this.on('close', function(done) {
-            clearInterval(node.timer);
-            done();
-        });
-    }
-    RED.nodes.registerType("shelly-roller-shutter", ShellyRollerShutterNode, {
         credentials: {
             username: { type: "text" },
             password: { type: "password" },

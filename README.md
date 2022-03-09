@@ -84,7 +84,11 @@ the msg.payload.hostname. This can be useful, if you want to use one node for se
 ```
 
 
-# Shelly Switch Node (1, 2, 1PM, 1L, Plug, PlugS)
+# Shelly Node (Generation 1) 
+The node can communicate with several shelly types. You must select the correct device from the combobox when configuring the node.
+Devices are grouped into the following groups:
+
+## Relays (Shelly 1, 2, 1PM, 1L, Plug, PlugS, ...)
 The node is able to turn on and turn off a shelly switch. It outputs the status of all relays after every interaction with the shelly device.
 Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
 
@@ -132,76 +136,7 @@ Examples:
 [**shelly switch flow**](examples/switch.json) 
 
 
-# Shelly Switch Node Generation 2 (1 Plus, 1 PM Plus)
-The node is able to turn on and turn off a shelly switch. It outputs the status after every interaction with the shelly device.
-Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
-
-
-```
-{
-    id : 0,
-	on : true
-}
-```
-
-or you can make use of the alternative notation:
-
-
-```
-{
-    id : 0,
-	method : 'Switch.Toggle'
-}
-```
-
-Right after having sent the request to the shelly device a status request is done.
-
-If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
-This is useful, when you want to poll for the status cyclically.
-
-The output of the node is the full status object of the device.
-See https://shelly-api-docs.shelly.cloud/gen2/Overview/CommonServices/Shelly
-
-Examples:  
-[**shelly switch gen 2 flow**](examples/switchplus.json) 
-
-
-
-# Shelly Window/Door Node 1/2
-The node is able to poll a shelly window/door sensor. It outputs the sensor status together with battery and lux sensor values on every change of the door status.
-Note that the sensor sleeps when nothing is detected and is thus not accessible via REST.
-
-The output of the node is as follows:
-
-
-```
-{
-    sensor
-	{
-		state: 'close',
-		is_valid: true
-	},
-
-	lux
-	{
-		value: 150,
-		illumination: 'twilight',
-		is_valid: true
-	},
-
-	bat
-	{
-		value: 100,
-		voltage: 6.01
-	}
-}
-```
-
-Examples:  
-[**shelly door flow**](examples/door.json)  
-
-
-# Shelly Roller Shutter Node (Shelly 2.5)
+## Roller Shutter (Shelly 2, Shelly 2.5)
 
 A node that controls a shelly roller shutter device (Shelly 2.5).
 The relay number is optional and defaults to 0. The following object for open or close the roller shutter:
@@ -277,6 +212,78 @@ Examples:
 [**shelly roller flow**](examples/roller.json)  
 [**shelly roller2 flow**](examples/roller2.json)  
 [**shelly roller3 flow**](examples/roller3.json)  
+
+
+
+
+
+# Shelly Switch Node Generation 2 (1 Plus, 1 PM Plus)
+The node is able to turn on and turn off a shelly switch. It outputs the status after every interaction with the shelly device.
+Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
+
+
+```
+{
+    id : 0,
+	on : true
+}
+```
+
+or you can make use of the alternative notation:
+
+
+```
+{
+    id : 0,
+	method : 'Switch.Toggle'
+}
+```
+
+Right after having sent the request to the shelly device a status request is done.
+
+If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
+This is useful, when you want to poll for the status cyclically.
+
+The output of the node is the full status object of the device.
+See https://shelly-api-docs.shelly.cloud/gen2/Overview/CommonServices/Shelly
+
+Examples:  
+[**shelly switch gen 2 flow**](examples/switchplus.json) 
+
+
+
+# Shelly Window/Door Node 1/2
+The node is able to poll a shelly window/door sensor. It outputs the sensor status together with battery and lux sensor values on every change of the door status.
+Note that the sensor sleeps when nothing is detected and is thus not accessible via REST.
+
+The output of the node is as follows:
+
+
+```
+{
+    sensor
+	{
+		state: 'close',
+		is_valid: true
+	},
+
+	lux
+	{
+		value: 150,
+		illumination: 'twilight',
+		is_valid: true
+	},
+
+	bat
+	{
+		value: 100,
+		voltage: 6.01
+	}
+}
+```
+
+Examples:  
+[**shelly door flow**](examples/door.json)  
 
 
 # Shelly Dimmer (SL) Node / Shelly Bulb Duo / Vintage

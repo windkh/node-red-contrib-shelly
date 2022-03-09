@@ -6,7 +6,7 @@
 
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
-    RED.nodes.registerType('shelly-switch', {
+    RED.nodes.registerType('shelly-gen1', {
         category: 'Shelly Gen 1',
         color: '#319DD7',
         defaults: {
@@ -14,6 +14,7 @@
             description: { value:"" },
             pollinginterval: { value: 5000 },
             pollstatus: { value: false, required: false },
+            devicetype: { value: "", required: true},
         },
         credentials: {
             username: { type: "text" },
@@ -22,9 +23,9 @@
         inputs: 1,
         outputs: 1,
         icon: "shelly.png",
-        paletteLabel: "switch",
+        paletteLabel: "shelly",
         label: function () {
-            return this.description || this.hostname || "Shelly switch";
+            return this.description || this.hostname || "Shelly";
         },
         labelStyle: function() {
             return this.description?"node_label_italic":"";
@@ -33,7 +34,7 @@
 
 </script>
 
-<script type="text/x-red" data-template-name="shelly-switch">
+<script type="text/x-red" data-template-name="shelly-gen1">
     <div class="form-row">
         <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
         <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the device">
@@ -58,10 +59,25 @@
         <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
         <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
     </div>
+
+    <hr align="middle"/>
+
+    <div class="form-row">
+        <label for="node-input-devicetype"><i class="fa fa-pencil"></i> Device Type</label>
+        <div style="display: inline-block; position: relative; width: 70%; height: 19.1333px;">
+        <div style="position: absolute; left: 0; right: 0;">
+          <select id="node-input-devicetype" style="width:100%">
+            <option value="Relay">Relay - Shelly1, 1PM, 1L, 2, 2.5, Plug(E, E, US), Uni</option>
+            <option value="Roller">Roller - Shelly 2, 2.5</option>  
+          </select>
+        </div>
+        </div>
+    </div>
+
 </script>
 
-<script type="text/x-red" data-help-name="shelly-switch">
-    <p>A node that controls a shelly switch device (Shelly 1, 1PM, 1L, 2, Plug, PlugS).</p>
+<script type="text/x-red" data-help-name="shelly-gen1">
+    <p>A node that controls a shelly generation 1 device.</p>
 
     <h3>Configuration</h3>
     <p>Hostname is the IP address or the hostname of the device.</p>
@@ -72,41 +88,12 @@
     <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
 
     <h3>Inputs</h3>
-    <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
+    <p>Empty payload for getting the status. See documentation for device specific input.</p>
     <p><code>msg.payload</code></p>
-    <ul>
-        <code>{</code>
-        <br/>
-        <code>    relay : 0, </code>
-        <br/>
-        <code>    on : true </code>
-        <br/>
-        <code>}</code>
-    </ul>
-    <p>As an alternative you can also make use of the following notation:</p>
-    <p><code>msg.payload</code></p>
-    <ul>
-        <code>{</code>
-        <br/>
-        <code>    relay : 0, </code>
-        <br/>
-        <code>    turn : on/off/toggle </code>
-        <br/>
-        <code>}</code>
-    </ul>
-
+    
     <h3>Outputs</h3>
-    <p>1. Standard Ouput: An array of relay status object.</p>
+    <p>1. Standard Ouput: status object.</p>
     <p><code>msg.payload</code></p>
-    <ul>
-        <code>[</code>
-        <br/>
-        <code>    { ison : false } </code>
-        <br/>
-        <code>    { ison : true } </code>
-        <br/>
-        <code>]</code>
-    </ul>
     <p>Full status object is available at.</p>
     <p><code>msg.status</code></p>
 </script>
@@ -237,154 +224,6 @@
         <br/>
         <code>}</code>
     </ul>
-</script>
-
-
-<!-- ------------------------------------------------------------------------------------------ -->
-<script type="text/javascript">
-    RED.nodes.registerType('shelly-roller-shutter', {
-        category: 'Shelly Gen 1',
-        color: '#319DD7',
-        defaults: {
-            hostname: { value:"" },
-            description: { value:"" },
-            pollinginterval: { value: 5000 },
-            pollstatus: { value: false, required: false },
-        },
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        },
-        inputs: 1,
-        outputs: 1,
-        icon: "shelly.png",
-        paletteLabel: "roller shutter",
-        label: function () {
-            return this.description || this.hostname || "Shelly roller shutter";
-        },
-        labelStyle: function() {
-            return this.description?"node_label_italic":"";
-        }
-    });
-
-</script>
-
-<script type="text/x-red" data-template-name="shelly-roller-shutter">
-    <div class="form-row">
-        <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
-        <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the device">
-    </div>
-    <div class="form-row">
-        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
-        <input type="text" id="node-input-description" placeholder="The description of the device (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
-        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
-        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
-    </div>
-    <div class="form-row">
-        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
-        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
-        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
-    </div>
-</script>
-
-<script type="text/x-red" data-help-name="shelly-roller-shutter">
-    <p>A node that controls a shelly roller shutter device (Shelly 2.5).</p>
-
-    <h3>Configuration</h3>
-    <p>Hostname is the IP address or the hostname of the device.</p>
-    <p>Description of the device.</p>
-    <p>User is optional and must only be set if security is enabled.</p>
-    <p>Password is optional and must only be set if security is enabled.</p>
-    <p>Ping interval is the time between the status pollings.</p>
-    <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
-
-    <h3>Inputs</h3>
-    <p>Empty payload for getting the status. Or the following object for open or close the roller shutter:</p>
-    <p><code>msg.payload</code></p>
-    <ul>
-        <code>{</code>
-        <br/>
-        <code>    roller : 0, </code>
-        <br/>
-        <code>    go : "open" </code>
-        <br/>
-        <code>}</code>
-        <br/>
-        or
-        <br/>
-        <code>{</code>
-        <br/>
-        <code>    roller : 0, </code>
-        <br/>
-        <code>    go : "close" </code>
-        <br/>
-        <code>}</code>
-        <br/>
-        or
-        <br/>
-        <code>{</code>
-        <br/>
-        <code>    roller : 0, </code>
-        <br/>
-        <code>    go : "to_pos", </code>
-        <br/>
-        <code>    roller_pos : 50 </code>
-        <br/>
-        <code>}</code>
-    </ul>
-
-    <h3>Outputs</h3>
-    <p>1. Standard Ouput: An array of relay status object.</p>
-    <p><code>msg.payload</code></p>
-    <ul>
-        <code>[</code>
-        <br/>
-        <code>    { state : "close" } </code>
-        <br/>
-        or
-        <br/>
-        <code>    { state : "open" } </code>
-        <br/>
-        or
-        <br/>
-        <code>    { state : "open", current_pos: 50 } </code>
-        <br/>
-        <code>]</code>
-    </ul>
-    <p></p>
-    <p>If the device type is set to relay use the following object for turning the switch on or off:</p>
-    <p><code>msg.payload</code></p>
-    <ul>
-        <code>{</code>
-        <br/>
-        <code>    relay : 0, </code>
-        <br/>
-        <code>    on : true </code>
-        <br/>
-        <code>}</code>
-    </ul>
-    <p>As an alternative you can also make use of the following notation:</p>
-    <p><code>msg.payload</code></p>
-    <ul>
-        <code>{</code>
-        <br/>
-        <code>    relay : 0, </code>
-        <br/>
-        <code>    turn : on/off/toggle </code>
-        <br/>
-        <code>}</code>
-    </ul>
-    <p>Full status object is available at.</p>
-    <p><code>msg.status</code></p>
 </script>
 
 
