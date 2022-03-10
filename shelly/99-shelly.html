@@ -14,6 +14,7 @@
             description: { value:"" },
             pollinginterval: { value: 5000 },
             pollstatus: { value: false, required: false },
+            getstatusoncommand: { value: true },
             devicetype: { value: "", required: true},
         },
         credentials: {
@@ -59,7 +60,10 @@
         <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
         <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
     </div>
-
+    <div class="form-row">
+        <label for="node-input-getstatusoncommand"><i class="fa fa-share"></i> Status</label>
+        <input type="checkbox" id="node-input-getstatusoncommand" style="display: inline-block; width: auto; vertical-align: top"> Enable status output after each command
+    </div>
     <hr align="middle"/>
 
     <div class="form-row">
@@ -69,6 +73,7 @@
           <select id="node-input-devicetype" style="width:100%">
             <option value="Relay">Relay - Shelly1, 1PM, 1L, 2, 2.5, Plug(E, E, US), Uni</option>
             <option value="Roller">Roller - Shelly 2, 2.5</option>  
+            <option value="Dimmer">Dimmer - Shelly Dimmer 1/2, Duo</option>  
           </select>
         </div>
         </div>
@@ -224,134 +229,6 @@
         <br/>
         <code>}</code>
     </ul>
-</script>
-
-
-<!-- ------------------------------------------------------------------------------------------ -->
-<script type="text/javascript">
-    RED.nodes.registerType('shelly-dimmer', {
-        category: 'Shelly Gen 1',
-        color: '#319DD7',
-        defaults: {
-            hostname: { value:"" },
-            description: { value:"" },
-	        dimmerStat: { value: true },
-            pollinginterval: { value: 5000 },
-            pollstatus: { value: false, required: false },
-        },
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        },
-        inputs: 1,
-        outputs: 1,
-        icon: "shelly.png",
-        paletteLabel: "dimmer/bulb duo",
-        label: function () {
-            return this.description || this.hostname || "Shelly dimmer";
-        },
-        labelStyle: function() {
-            return this.description?"node_label_italic":"";
-        }
-    });
-
-</script>
-
-<script type="text/x-red" data-template-name="shelly-dimmer">
-    <div class="form-row">
-        <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
-        <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the device">
-    </div>
-    <div class="form-row">
-        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
-        <input type="text" id="node-input-description" placeholder="The description of the device (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
-        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
-        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
-    </div>
-    <div class="form-row">
-        <label for="node-input-dimmerStat"><i class="fa fa-share"></i> Status</label>
-        <input type="checkbox" id="node-input-dimmerStat" style="display: inline-block; width: auto; vertical-align: top"> Enable status output after each command
-    </div>
-    <div class="form-row">
-        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
-        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
-        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
-    </div>
-</script>
-
-<script type="text/x-red" data-help-name="shelly-dimmer">
-    <p>A node that controls a shelly dimmer (Shelly Dimmer 1/2, Shelly Bulb Duo, Vintage)).</p>
-
-    <h3>Configuration</h3>
-    <p>Hostname is the IP address or the hostname of the device.</p>
-    <p>Description of the device.</p>
-    <p>User is optional and must only be set if security is enabled.</p>
-    <p>Password is optional and must only be set if security is enabled.</p>
-    <p>Status enables a node status payload following every command.</p>
-    <p>Ping interval is the time between the status pollings.</p>
-    <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
-
-    <h3>Inputs</h3>
-    <p>Empty payload for getting the status. Or the following object for turning the dimmer on or off:</p>
-    <p><code>msg.payload</code></p>
-    <ul>
-        <code>{</code>
-        <br/>
-        <code>    light : 0, </code>
-        <br/>
-        code>    on : true, </code>
-        <br/>
-        <code>   brightness: 75, </code>
-        <br/>
-        <code>   white: 100, </code>
-        <br/>
-        <code>   temp: 2700, </code>
-        <br/>
-        <code>   transition: 0, </code>
-        <br/>
-        <code>}</code>
-    </ul>
-    <p>white = 0..100 is optional for shelly bulb duo.</p>
-    <p>temp = 2700..6500 means temperature of white which is supported by the shelly bulb duo. Use temp or white as both are the same.</p>
-    <p>transition = 0..5000ms the transition is optional for shelly bulb duo.</p>
-    <p>brightness = 0..100% the brightness is optional for shelly bulb duo.</p>
-    <p></p>
-    <p>As an alternative you can also make use of the following notation:</p>
-    <ul>
-        <code>{</code>
-        <br/>
-        <code>    light : 0, </code>
-        <br/>
-        <code>    turn : on/off/toggle, </code>
-        <br/>
-        <code>   brightness: 75, </code>
-        <br/>
-        <code>}</code>
-    </ul>
-
-    <h3>Outputs</h3>
-    <p>1. Standard Ouput: An array of light status object.</p>
-    <p><code>msg.payload</code></p>
-    <ul>
-        <code>[</code>
-        <br/>
-        <code>    { ison : false } </code>
-        <br/>
-        <code>    { ison : true } </code>
-        <br/>
-        <code>]</code>
-    </ul>
-    <p>Full status object is available at.</p>
-    <p><code>msg.status</code></p>
 </script>
 
 

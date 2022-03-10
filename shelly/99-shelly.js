@@ -11,6 +11,17 @@ module.exports = function (RED) {
         return Object.keys(obj).length === 0;
     }
 
+    function combineUrl(path, parameters) {
+        let route = path + '?';
+
+        if(parameters.charAt(0) === '&'){
+            parameters = parameters.substring(1);
+        }
+
+        route += parameters;
+        return route;
+    }
+
     // extracts the credentials from the message and the node.
     function getCredentials(node, msg){
 
@@ -273,6 +284,97 @@ module.exports = function (RED) {
         return route;
     }
 
+    // Creates a route from the input.
+    function inputParserDimmer(msg){
+        let route;
+        if(msg !== undefined && msg.payload !== undefined){
+            let command = msg.payload;
+
+            let light = 0;
+            if(command.light !== undefined){
+                light = command.light;
+            }
+
+            let turn;
+            if(command.on !== undefined){
+                if(command.on == true){
+                    turn = "on";
+                }
+                else{
+                    turn = "off"
+                }
+            }
+            else if(command.turn !== undefined){
+                turn = command.turn;
+            }
+            else{
+                // turn is undefined
+            }
+
+            let brightness;
+            if(command.brightness !== undefined){
+                if(command.brightness >=1 && command.brightness <= 100){
+                    brightness = command.brightness;
+                } else { 
+                    brightness = 100;  // Default to full brightness
+                }
+            }
+
+            let white;
+            if(command.white !== undefined){
+                if(command.white >=1 && command.white <= 100){
+                    white = command.white;
+                } else { 
+                    // Default is undefined
+                }
+            }
+
+            let temperature;
+            if(command.temp !== undefined){
+                if(command.temp >=2700 && command.temp <= 6500){
+                    temperature = command.temp;
+                } else { 
+                    // Default is undefined
+                }
+            }
+
+            let transition;
+            if(command.transition !== undefined){
+                if(command.transition >=0 && command.transition <= 5000){
+                    transition = command.transition;
+                } else { 
+                    // Default is undefined
+                }
+            }
+
+            let parameters = '';
+            if (turn !== undefined){
+                parameters += "&turn=" + turn;
+            }
+
+            if (brightness !== undefined){
+                parameters += "&brightness=" + brightness;
+            }
+
+            if(white !== undefined) {
+                parameters += "&white=" + white;
+            }
+
+            if(temperature !== undefined) {
+                parameters += "&temp=" + temperature;
+            }
+
+            if(transition !== undefined) {
+                parameters += "&transition=" + transition;
+            }
+
+            if (parameters !== '') {
+                route = combineUrl("/light/" + light, parameters);
+            }
+        }
+        return route;
+    }
+
     // Returns the input parser for the device type.
     function getInputParser(deviceType){
         
@@ -285,6 +387,9 @@ module.exports = function (RED) {
             case 'Roller':
                 result = inputParserRoller;
                 break;
+            case 'Dimmer':
+                result = inputParserDimmer;
+                break;
             default:
                 break;
         }
@@ -292,7 +397,7 @@ module.exports = function (RED) {
         return result;
     }
 
-    function statusParserRelay(status){
+    function convertToRelay(status){
         let result = {
             relays : status.relays,
             meters : status.meters
@@ -300,7 +405,7 @@ module.exports = function (RED) {
         return result;
     }
 
-    function statusParserRoller(status){
+    function convertToRoller(status){
         let result = {
             rollers : status.rollers,
             relays : status.relays,
@@ -309,16 +414,27 @@ module.exports = function (RED) {
         return result;
     }
 
+    function convertToDimmer(status){
+        let result = {
+            lights : status.lights,
+            meters : status.meters
+        }
+        return result;
+    }
+
     // Returns the status parser for the device type.
-    function getStatusParser(deviceType){
+    function getStatusConverter(deviceType){
         let result;
         switch(deviceType) {
 
             case 'Relay':
-                result = statusParserRelay;
+                result = convertToRelay;
                 break;
             case 'Roller':
-                result = statusParserRoller;
+                result = convertToRoller;
+                break;
+            case 'Dimmer':
+                result = convertToDimmer;
                 break;
             default:
                 break;
@@ -337,6 +453,9 @@ module.exports = function (RED) {
             case 'Roller':
                 deviceTypes = ["SHSW-L", "SHSW-25"];
                 break;
+            case 'Dimmer':
+                deviceTypes = ["SHDM-", "SHBDUO-"];
+                break;
             default:
                 break;
         }
@@ -354,11 +473,13 @@ module.exports = function (RED) {
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus || false;
+        node.getStatusOnCommand = config.getstatusoncommand || true;
+
         let deviceType = config.devicetype;
 
         if(deviceType !== undefined && deviceType !== "") {
             node.inputParser = getInputParser(deviceType);
-            node.statusParser = getStatusParser(deviceType);  
+            node.statusConverter = getStatusConverter(deviceType);  
             node.types = getDeviceTypes(deviceType);
 
             start(node, node.types);
@@ -372,22 +493,22 @@ module.exports = function (RED) {
                 if (route !== undefined && route !== ''){
 
                     shellyTryGet(route, node, node.pollInterval, credentials, function(body) {
-                
-                        shellyTryGet('/status', node, node.pollInterval, credentials, function(body) {
-                            
-                            node.status({ fill: "green", shape: "ring", text: "Connected." });
+                        if (node.getStatusOnCommand) {
+                            shellyTryGet('/status', node, node.pollInterval, credentials, function(body) {
+                                
+                                node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                            let status = body;
-                            msg.status = status;
-                            msg.payload = node.statusParser(status);
-                            node.send([msg]);
-                        },
-                        function(error){
-                            if (msg.payload){
-                                node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." });
-                            }
-                        });
-        
+                                let status = body;
+                                msg.status = status;
+                                msg.payload = node.statusConverter(status);
+                                node.send([msg]);
+                            },
+                            function(error){
+                                if (msg.payload){
+                                    node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." });
+                                }
+                            });
+                        }
                     },
                     function(error){
                         node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." })
@@ -400,7 +521,7 @@ module.exports = function (RED) {
 
                         let status = body;
                         msg.status = status;
-                        msg.payload = node.statusParser(status);
+                        msg.payload = node.statusConverter(status);
                         node.send([msg]);
                     },
                     function(error){

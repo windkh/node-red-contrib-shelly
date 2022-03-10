@@ -85,8 +85,9 @@ the msg.payload.hostname. This can be useful, if you want to use one node for se
 
 
 # Shelly Node (Generation 1) 
-The node can communicate with several shelly types. You must select the correct device from the combobox when configuring the node.
-Devices are grouped into the following groups:
+The node can communicate with several shelly types. You must select the correct device type from the combobox when configuring the node.
+Devices are grouped as follows:
+
 
 ## Relays (Shelly 1, 2, 1PM, 1L, Plug, PlugS, ...)
 The node is able to turn on and turn off a shelly switch. It outputs the status of all relays after every interaction with the shelly device.
@@ -214,6 +215,67 @@ Examples:
 [**shelly roller3 flow**](examples/roller3.json)  
 
 
+## Dimmer (Shelly Dimmer 1/2, Shelly Bulb Duo, Vintage)
+The node is able to turn on and turn off a shelly dimmer or shelly bulb duo and set its brightness. It outputs the status of all lights after every interaction with the shelly device.
+Turning on is done by sending the following payload into the input. The light number is optional and defaults to 0. The brightness can be set between 0 and 100.
+
+
+```
+{
+    light : 0, // default = 0 (not needed for bulb duo)
+    on : true,
+    brightness: 100,
+	white: 100, // for bulb duo
+	temp : 2700, // for bulb duo (same as white but in K 2700 - 6500)
+	transition : 0 // for bulb duo (0..5000ms)
+}
+```
+
+Like in the switch node you can replace on with turn and choose a value from the following: 'toggle', 'on', 'off'
+
+You can also control the shelly state and brightness independently.
+
+```
+{
+on: true
+}
+```
+
+and
+
+```
+{
+brightness: 100
+}
+```
+
+Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.  
+This feature can optionally be disabled by unticking the `status` checkbox in the node configuration options.
+
+If you only want to get the current status of the dimmer without turning on or off you should leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
+
+The output of the node is an array of status objects for every light of the dimmer:
+
+
+```
+lights : [
+    {
+        ison : true,
+		brightness: 100
+	    ...
+    },
+    {
+        ison : true,
+		brightness: 100
+	    ...
+    },
+]
+```
+
+Examples:  
+[**shelly dimmer flow**](examples/bulbduo.json)  
+[**shelly bulb duo flow**](examples/dimmer.json)  
+
 
 
 
@@ -286,66 +348,7 @@ Examples:
 [**shelly door flow**](examples/door.json)  
 
 
-# Shelly Dimmer (SL) Node / Shelly Bulb Duo / Vintage
-The node is able to turn on and turn off a shelly dimmer or shelly bulb duo and set its brightness. It outputs the status of all lights after every interaction with the shelly device.
-Turning on is done by sending the following payload into the input. The light number is optional and defaults to 0. The brightness can be set between 0 and 100.
 
-
-```
-{
-    light : 0, // default = 0 (not needed for bulb duo)
-    on : true,
-    brightness: 100,
-	white: 100, // for bulb duo
-	temp : 2700, // for bulb duo (same as white but in K 2700 - 6500)
-	transition : 0 // for bulb duo (0..5000ms)
-}
-```
-
-Like in the switch node you can replace on with turn and choose a value from the following: 'toggle', 'on', 'off'
-
-You can also control the shelly state and brightness independently.
-
-```
-{
-on: true
-}
-```
-
-and
-
-```
-{
-brightness: 100
-}
-```
-
-Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.  
-This feature can optionally be disabled by unticking the `status` checkbox in the node configuration options.
-
-If you only want to get the current status of the dimmer without turning on or off you should leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
-
-The output of the node is an array of status objects for every light of the dimmer:
-
-
-```
-[
-    {
-        ison : true,
-		brightness: 100
-	    ...
-    },
-    {
-        ison : true,
-		brightness: 100
-	    ...
-    },
-]
-```
-
-Examples:  
-[**shelly dimmer flow**](examples/bulbduo.json)  
-[**shelly bulb duo flow**](examples/dimmer.json)  
 
 
 # Shelly RGBW2 Node / Shelly Bulb RGWB
