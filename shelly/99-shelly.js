@@ -146,7 +146,7 @@ module.exports = function (RED) {
 
     function shellyPing(node, credentials, types){
 
-        shellyGet('/shelly', node, credentials, function(body) {
+        shellyTryGet('/shelly', node, node.pollInterval, credentials, function(body) {
             node.shellyInfo = body;
 
             let found = false;
@@ -175,6 +175,9 @@ module.exports = function (RED) {
             else{
                 node.status({ fill: "red", shape: "ring", text: "Shelly type not supported: " + node.shellyInfo.type });
             }
+        },
+        function(error){
+            node.status({ fill: "yellow", shape: "ring", text: error })
         });
     }
 
@@ -193,6 +196,9 @@ module.exports = function (RED) {
                         node.emit("input", {});
                     }    
                 }, node.pollInterval);
+            }
+            else{
+                node.status({ fill: "yellow", shape: "ring", text: "Polling is turned off" });
             }
         }
         else {
@@ -362,6 +368,7 @@ module.exports = function (RED) {
                 }
             }
 
+
             let parameters = '';
             if (turn !== undefined){
                 parameters += "&turn=" + turn;
@@ -467,6 +474,53 @@ module.exports = function (RED) {
         return route;
     }
 
+    // Creates a route from the input.
+    function inputParserSensor(msg){
+        let route;
+        if(msg !== undefined && msg.payload !== undefined){
+            // right now sensors do not accept input commands.
+        }
+        return route;
+    }
+
+    // Creates a route from the input.
+    function inputParserButton(msg){
+        let route;
+        if(msg !== undefined && msg.payload !== undefined){
+            let command = msg.payload;
+
+            let input = 0;
+            if(command.input !== undefined){
+                input = command.input;
+            }
+
+            let event = 'S';
+            if(command.event !== undefined){
+                event = command.event;
+            }
+
+            let eventCount;
+            if(command.eventCount !== undefined){
+                eventCount = command.eventCount;
+            }
+
+
+            let parameters = '';
+            if (event !== undefined){
+                parameters = "&event=" + event;
+            }
+
+            if (eventCount !== undefined){
+                parameters += "&event_cnt=" + eventCount;
+            }
+
+            if (parameters !== '') {
+                route = combineUrl("/input/" + input, parameters);
+            }
+        }
+        return route;
+    }
+
     // Returns the input parser for the device type.
     function getInputParser(deviceType){
         
@@ -474,6 +528,9 @@ module.exports = function (RED) {
         switch(deviceType) {
 
             case 'Relay':
+                result = inputParserRelay;
+                break;
+            case 'Measure':
                 result = inputParserRelay;
                 break;
             case 'Roller':
@@ -484,6 +541,12 @@ module.exports = function (RED) {
                 break;
             case 'Thermostat':
                 result = inputParserThermostat;
+                break;
+            case 'Sensor':
+                result = inputParserSensor;
+                break;
+            case 'Button':
+                result = inputParserButton;
                 break;
             default:
                 break;
@@ -525,6 +588,42 @@ module.exports = function (RED) {
             result.adcs = status.adcs;
         }
 
+        if(status.sensor !== undefined){
+            result.sensor = status.sensor;
+        }
+
+        if(status.lux !== undefined){
+            result.lux = status.lux;
+        }
+
+        if(status.bat !== undefined){
+            result.bat = status.bat;
+        }
+
+        if(status.tmp !== undefined){
+            result.tmp = status.tmp;
+        }
+
+        if(status.hum !== undefined){
+            result.hum = status.hum;
+        }
+
+        if(status.smoke !== undefined){
+            result.smoke = status.smoke;
+        }
+
+        if(status.flood !== undefined){
+            result.flood = status.flood;
+        }
+
+        if(status.accel !== undefined){
+            result.accel = status.accel;
+        }
+
+        if(status.concentration !== undefined){
+            result.concentration = status.concentration;
+        }
+
         return result;
     }
 
@@ -533,16 +632,25 @@ module.exports = function (RED) {
         switch(deviceType) {
 
             case 'Relay':
-                deviceTypes = ["SHSW", "SHPLG", "SHUNI", "SHEM"];
+                deviceTypes = ["SHSW", "SHPLG", "SHUNI", "SHEM"]; // not that SHEM is also a relay!
+                break;
+            case 'Measure':
+                deviceTypes = ["SHEM"];
                 break;
             case 'Roller':
                 deviceTypes = ["SHSW-L", "SHSW-25"];
                 break;
             case 'Dimmer':
-                deviceTypes = ["SHDM-", "SHBDUO-"];
+                deviceTypes = ["SHDM-", "SHBDUO-", "SHVIN-"];
                 break;
             case 'Thermostat':
                 deviceTypes = ["SHTRV-" ];
+                break;
+            case 'Sensor':
+                deviceTypes = ["SHTSHDW-", "SHGS-", "SHWT-", "SHSM-", " SHHT-", "SHMOS-" ];
+                break;
+            case 'Button':
+                deviceTypes = ["SHBTN", "SHIX3"];
                 break;
             default:
                 break;
@@ -564,6 +672,7 @@ module.exports = function (RED) {
         node.getStatusOnCommand = config.getstatusoncommand || true;
 
         let deviceType = config.devicetype;
+        node.deviceType = deviceType;
 
         if(deviceType !== undefined && deviceType !== "") {
             node.inputParser = getInputParser(deviceType);
@@ -581,9 +690,12 @@ module.exports = function (RED) {
                     
                     route = node.inputParser(msg);
 
-                    let command = msg.payload;       
-                    if(command.download !== undefined){
-                        emetersToDownload = command.download;
+                    // This is exclusively for EM devices!
+                    if(node.deviceType === 'Measure'){
+                        let command = msg.payload;       
+                        if(command.download !== undefined){
+                            emetersToDownload = command.download;
+                        }
                     }
                 }
 
@@ -668,103 +780,6 @@ module.exports = function (RED) {
         }
     }
     RED.nodes.registerType("shelly-gen1", ShellyGen1Node, {
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        }
-    });
-
-
-    // --------------------------------------------------------------------------------------------
-    // The door node controls a shelly door device.
-    /* The device can disconnect but wakes up when the switch changes the state or after every 4-5 minutes
-    GET /status
-    {
-        "wifi_sta":{"connected":true,"ssid":"...","ip":"192.168.178.146","rssi":-62},
-        "cloud":{"enabled":true,"connected":true},
-        "mqtt":{"connected":false},
-        "time":"15:22",
-        "serial":19,
-        "has_update":false,
-        "mac":"98F4ABB88DB4",
-        "is_valid":true,
-
-        "lux":{"value":66, "illumination": "dark", "is_valid":true},
-        "sensor":{"state":"close", "is_valid":true},
-        "bat":{"value":99,"voltage":5.92},
-
-        "act_reasons":["poweron","sensor"],
-        "update":{"status":"idle","has_update":false,"new_version":"20191216-090511/v1.5.7@c30657ba","old_version":"20191216-090511/v1.5.7@c30657ba"},
-        "ram_total":50592,
-        "ram_free":40308,
-        "fs_size":233681,
-        "fs_free":162648,
-        "uptime":66
-    }
-    */
-    function ShellyDoorNode(config) {
-        RED.nodes.createNode(this, config);
-        let node = this;
-        node.hostname = config.hostname.trim();
-        node.usePolling = config.usepolling;
-        node.pollInterval = parseInt(config.pollinginterval);
-
-        // Not used right now.
-        // let types = ["SHDW"];
-
-        if(node.usePolling){
-            node.timer = setInterval(function() {
-                node.emit("input", {});
-            }, node.pollInterval);
-
-            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
-        }
-        else{
-            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: waiting for trigger ..." });
-        }
-
-        this.on('input', function (msg) {
-
-            let credentials = getCredentials(node, msg);
-            
-            if(msg.payload !== undefined){
-                node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
-            }
-
-            shellyTryGet('/status', node, node.pollInterval, credentials, function(body) {
-                let status = body;
-                let timestamp=new Date().toLocaleTimeString();
-
-                if(status.sensor !== undefined && status.sensor.is_valid){
-                    node.status({ fill: "green", shape: "ring", text: "Status: " + status.sensor.state + " " + timestamp});
-                }
-                else {
-                    node.status({ fill: "red", shape: "ring", text: "Status: invalid" });
-                }
-
-                msg.status = status;
-                msg.payload = {
-                    sensor : status.sensor,
-                    lux : status.lux,
-                    bat :  status.bat,
-                };
-                
-                node.send([msg]);
-            },
-            function(error){
-                if(msg.payload){
-                    node.status({ fill: "yellow", shape: "ring", text: "Status unknown: device not reachable." });
-                }
-            });
-        });
-
-        this.on('close', function(done) {
-            clearInterval(node.timer);
-            done();
-        });
-    }
-
-    RED.nodes.registerType("shelly-door", ShellyDoorNode, {
         credentials: {
             username: { type: "text" },
             password: { type: "password" },
@@ -1143,217 +1158,8 @@ module.exports = function (RED) {
         }
     });
 
-
-    // --------------------------------------------------------------------------------------------
-    // The motion node controls a shelly motion device.
-    /* The device can disconnect but wakes up when the switch changes the state or after every 4-5 minutes
-    GET /status
-    {
-        lux: 
-            value: 88
-            illumination: "dark"
-            is_valid: true
-        sensor: 
-            motion: true
-            vibration: false
-            timestamp: 1626034808
-            active: true
-            is_valid: true
-        bat:
-            value: 100
-            voltage: 4.207
-            charger: true
-    }
-    */
-    function ShellyMotionNode(config) {
-        RED.nodes.createNode(this, config);
-        let node = this;
-        node.hostname = config.hostname.trim();
-        node.pollInterval = parseInt(config.pollinginterval);
-
-        let hasextraoutputs = config.hasextraoutputs;
-        if (hasextraoutputs === undefined) {
-            hasextraoutputs = false;
-        }
-
-        // Not used right now.
-        // let types = ["SHMOS"];
-
-        if(node.usePolling){
-            node.timer = setInterval(function() {
-                node.emit("input", {});
-            }, node.pollInterval);
-
-            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: polling ..." });
-        }
-        else{
-            node.status({ fill: "yellow", shape: "ring", text: "Status unknown: waiting for trigger ..." });
-        }
-
-        this.on('input', function (msg) {
-
-            let credentials = getCredentials(node, msg);
-            
-            if(msg.payload !== undefined){
-                node.status({ fill: "green", shape: "dot", text: "Status unknown: updating ..." });
-            }
-
-            shellyTryGet('/status', node, node.pollInterval, credentials, function(body) {
-                let status = body;
-                let timestamp=new Date().toLocaleTimeString();
-                
-                if(status.sensor !== undefined && status.sensor.is_valid){
-                    node.status({ fill: "green", shape: "ring", text: "Motion: " + status.sensor.motion + " Vibration: " + status.sensor.vibration + " " + timestamp});
-                }
-                else {
-                    node.status({ fill: "red", shape: "ring", text: "Status: invalid" });
-                }
-
-                msg.status = status;
-                msg.payload = {
-                    sensor : status.sensor,
-                    lux : status.lux,
-                    bat :  status.bat,
-                };
-                
-                if (!hasextraoutputs) {
-                    node.send([msg]);   
-                } 
-                else {
-                    let motionMsg;
-                    let motionDetected = status.sensor.motion;
-                    if(motionDetected)
-                    {
-                        motionMsg = msg;
-                    }
-
-                    let vibrationMsg;
-                    let vibrationDetected = status.sensor.vibration;
-                    if(vibrationDetected)
-                    {
-                        vibrationMsg = msg;
-                    }
-
-                    node.send([msg, motionMsg, vibrationMsg]);
-                }
-            },
-            function(error){
-                if(msg.payload){
-                    node.status({ fill: "yellow", shape: "ring", text: "Status unknown: device not reachable." });
-                }
-            });
-        });
-
-        this.on('close', function(done) {
-            clearInterval(node.timer);
-            done();
-        });
-    }
-
-    RED.nodes.registerType("shelly-motion", ShellyMotionNode, {
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        }
-    });
-
     
-    // --------------------------------------------------------------------------------------------
-    // The button node controls a shelly button or I3 device.
-    /* 
-    GET /status
-    {
-       
-    }
-    */
-    function ShellyButtonNode(config) {
-        RED.nodes.createNode(this, config);
-        let node = this;
-        node.hostname = config.hostname.trim();
-        node.pollInterval = parseInt(config.pollinginterval);
-        node.pollStatus = config.pollstatus || false;
-
-        let types = ["SHBTN", "SHIX3"];
-        start(node, types);
-        
-        this.on('input', function (msg) {
-
-            let credentials = getCredentials(node, msg);
-            
-            let route = '';
-            if(msg.payload !== undefined){
-                let command = msg.payload;
-
-                let input = 0;
-                if(command.input !== undefined){
-                    input = command.input;
-                }
-
-                let event = 'S';
-                if(command.event !== undefined){
-                    event = command.event;
-                }
-
-                let eventCount;
-                if(command.eventCount !== undefined){
-                    eventCount = command.eventCount;
-                }
-                
-                route = "/input/" + input + "?event=" + event;
-                if(eventCount !== undefined){
-                    route += "?event_cnt=" + eventCount;       
-                }
-            }
-
-            if (route !== ''){
-                shellyGet(route, node, credentials, function(body) {
-                    shellyGet('/status', node, credentials, function(body) {
-
-                        node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                        let status = body;
-                        msg.status = status;
-                        msg.payload = {
-                            relays : status.relays,
-                            inputs : status.inputs,
-                            adcs : status.adcs
-                        };
-
-                        node.send([msg]);
-                    });
-                });
-            }
-            else{
-                shellyGet('/status', node, credentials, function(body) {
-
-                    node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                    let status = body;
-                    msg.status = status;
-                    msg.payload = {
-                        inputs : status.inputs
-                    };
-                    
-                    node.send([msg]);
-                });
-            }
-        });
-
-        this.on('close', function(done) {
-            clearInterval(node.timer);
-            done();
-        });
-    }
-
-    RED.nodes.registerType("shelly-button", ShellyButtonNode, {
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        }
-    });
-
-
-
+    
     // GEN 2 --------------------------------------------------------------------------------------
     
     // --------------------------------------------------------------------------------------------

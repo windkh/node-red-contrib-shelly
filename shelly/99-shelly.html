@@ -16,7 +16,7 @@
             pollstatus: { value: false, required: false },
             getstatusoncommand: { value: true },
             devicetype: { value: "", required: true},
-            outputs: {value: 2}
+            outputs: {value: 1}
         },
         credentials: {
             username: { type: "text" },
@@ -31,12 +31,49 @@
         },
         labelStyle: function() {
             return this.description?"node_label_italic":"";
+        },
+        oneditprepare: function() {
+
+            // the inputs edit field is always hidden.
+            $("#hiddeninputs").hide();
+
+            // enable 2nd output when measure device is selected
+            var updateDeviceType = function() {
+                var devicetype = $("#node-input-devicetype").val();
+                if (devicetype == 'Measure') {
+                    $("#node-input-outputs").val(2);
+                } else {
+                    $("#node-input-outputs").val(1);
+                }
+            };
+            updateDeviceType();
+            $("#node-input-devicetype").change(updateDeviceType);
         }
     });
 
 </script>
 
 <script type="text/x-red" data-template-name="shelly-gen1">
+
+    <div class="form-row">
+        <label for="node-input-devicetype"><i class="fa fa-pencil"></i> Device Type</label>
+        <div style="display: inline-block; position: relative; width: 70%; height: 19.1333px;">
+        <div style="position: absolute; left: 0; right: 0;">
+          <select id="node-input-devicetype" style="width:100%">
+            <option value="Relay">Relay - Shelly1, 1PM, 1L, 2, 2.5, Plug(S/E/US), Uni</option>
+            <option value="Measure">Measure - Shelly EM, EM3</option>
+            <option value="Roller">Roller - Shelly 2, 2.5</option>  
+            <option value="Dimmer">Dimmer - Shelly Dimmer 1/2, Duo, Vintage</option>  
+            <option value="Thermostat">Thermostat - Shelly TRV</option>  
+            <option value="Sensor">Sensor - Shelly Motion, Door, Window, H&T, Smoke, Flood, Gas</option>  
+            <option value="Button">Button - Shelly Button, I3</option>  
+          </select>
+        </div>
+        </div>
+    </div>
+
+    <hr align="middle"/>
+
     <div class="form-row">
         <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
         <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the device">
@@ -53,34 +90,27 @@
         <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
         <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
     </div>
+
+    <hr align="middle"/>
+
     <div class="form-row">
         <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
         <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
     </div>    
     <div class="form-row">
-        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
-        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-pollstatus"><i class="fa fa-repeat"></i> Status</label>
+        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;"> Enable status output after each poll cycle
     </div>
     <div class="form-row">
         <label for="node-input-getstatusoncommand"><i class="fa fa-share"></i> Status</label>
         <input type="checkbox" id="node-input-getstatusoncommand" style="display: inline-block; width: auto; vertical-align: top"> Enable status output after each command
     </div>
-    <hr align="middle"/>
+  
 
-    <div class="form-row">
-        <label for="node-input-devicetype"><i class="fa fa-pencil"></i> Device Type</label>
-        <div style="display: inline-block; position: relative; width: 70%; height: 19.1333px;">
-        <div style="position: absolute; left: 0; right: 0;">
-          <select id="node-input-devicetype" style="width:100%">
-            <option value="Relay">Relay - Shelly1, 1PM, 1L, 2, 2.5, Plug(S/E/US), Uni, EM(3)</option>
-            <option value="Roller">Roller - Shelly 2, 2.5</option>  
-            <option value="Dimmer">Dimmer - Shelly Dimmer 1/2, Bulb Duo</option>  
-            <option value="Thermostat">Thermostat - Shelly TRV</option>  
-          </select>
-        </div>
-        </div>
+    <div class="form-row" id="hiddeninputs">
+        <label for="node-input-outputs"><i class="fa fa-envelope"></i> Output Count</label>
+        <input type="text" id="node-input-outputs">
     </div>
-
 </script>
 
 <script type="text/x-red" data-help-name="shelly-gen1">
@@ -107,135 +137,6 @@
     <p>2. CSV Ouput: The downloaded csv history for EM devices.</p>
     <p><code>msg.payload</code></p>
 </script>
-
-
-<!-- ------------------------------------------------------------------------------------------ -->
-<script type="text/javascript">
-    RED.nodes.registerType('shelly-door', {
-        category: 'Shelly Gen 1',
-        color: '#319DD7',
-        defaults: {
-            hostname: { value:"" },
-            description: { value:"" },
-            usepolling: { value: true },
-            pollinginterval: { value: 2000 },
-            inputs: {value:0},
-        },
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        },
-        inputs: 0,
-        outputs: 1,
-        icon: "shelly.png",
-        paletteLabel: "door",
-        label: function () {
-            return this.description || this.hostname || "Shelly door";
-        },
-        labelStyle: function() {
-            return this.description?"node_label_italic":"";
-        },
-        oneditprepare: function() {
-
-            // the inputs edit field is always hidden.
-            $("#hiddeninputs").hide();
-
-             // polling on / off
-             var usePolling = function() {
-                var mode = $("#node-input-usepolling").prop('checked');
-                if (mode === false) {
-                    $("#polling").hide();
-                    $("#hint").show();
-                    $("#node-input-inputs").val(1);
-                    $("#node-input-pollinginterval").val(3000);
-                } else {
-                    $("#polling").show();
-                    $("#hint").hide();
-                    $("#node-input-inputs").val(0);
-                }
-            };
-            usePolling();
-            $("#node-input-usepolling").change(usePolling);
-        }
-    });
-</script>
-
-<script type="text/x-red" data-template-name="shelly-door">
-    <div class="form-row">
-        <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
-        <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the device">
-    </div>
-    <div class="form-row">
-        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
-        <input type="text" id="node-input-description" placeholder="The description of the device (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
-        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
-        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
-    </div>
-
-    <div class="form-row">
-        <label for="node-input-usepolling"><i class="fa fa-clock"></i> Polling Mode</label>
-        <input type="checkbox" id="node-input-usepolling" style="display: inline-block; width: auto; vertical-align: top;">
-    </div>
-
-    <div class="form-row" id="polling" style="background: #fbfbfb">
-        <label style="width: auto"><i class="fa fa-cogs"></i> Polling Options:</label>
-
-        <div class="form-row" style="background: #fff; margin-left: 20px">
-            <div class="form-row">
-                <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Polling Interval (ms)</label>
-                <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds.)">
-            </div>
-        </div>
-    </div>
-
-    <div class="form-row" id="hint">
-        <div class="form-tips" style="width: auto"><b>Note:</b> Polling support is standard. If you turn it off you must trigger the input manually.</div>
-    </div>
-
-    <div class="form-row" id="hiddeninputs">
-        <label for="node-input-inputs"><i class="fa fa-poo"></i> Input Count</label>
-        <input type="text" id="node-input-inputs">
-    </div>
-
-</script>
-
-<script type="text/x-red" data-help-name="shelly-door">
-    <p>A node that controls a shelly door device (Shelly Door, Window 1/2).</p>
-
-    <h3>Configuration</h3>
-    <p>Hostname is the IP address or the hostname of the device.</p>
-    <p>Description of the device.</p>
-    <p>User is optional and must only be set if security is enabled.</p>
-    <p>Password is optional and must only be set if security is enabled.</p>
-    <p>Send full status object is for debugging purposes. If this box is checked then you get the verbose response of the shelly sensor instead of a lightweight object.</p>
-    <p>Polling mode can be turned off. But note that you will have to trigger the node via an external source e.g. an inject node.</p>
-    <p>If polling is enabled you can control the polling time in milliseconds.</p>
-
-    <h3>Inputs</h3>
-    <p>The node has an input which triggers a status update request. It should only be trigger when polling mode is turned off.</p>
-
-    <h3>Outputs</h3>
-    <p>1. Standard Ouput: shelly status object.</p>
-    <p><code>msg.payload</code></p>
-    <ul>
-        <code>{</code>
-        <br/>
-        <code>    sensor { state: "close", is_valid: true } </code>
-        <br/>
-        <code>    lux { value: 150, illumination: "twilight", is_valid: true } </code>
-        <br/>
-        <code>    bat { value: 100, voltage: 6.01 } </code>
-        <br/>
-        <code>}</code>
-    </ul>
-</script>
-
 
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
@@ -389,254 +290,6 @@
     </ul>
     <p>light = 0..3 the light (0 for shelly bulb duo).</p>
 
-    <h3>Outputs</h3>
-    <p>1. Standard Ouput: A status object.</p>
-    <p><code>msg.payload</code></p>
-    <p>Full status object is available at.</p>
-    <p><code>msg.status</code></p>
-</script>
-
-
-<!-- ------------------------------------------------------------------------------------------ -->
-<script type="text/javascript">
-    RED.nodes.registerType('shelly-motion', {
-        category: 'Shelly Gen 1',
-        color: '#319DD7',
-        defaults: {
-            hostname: { value:"" },
-            description: { value:"" },
-            usepolling: { value: true },
-            pollinginterval: { value: 1000 },
-            hasextraoutputs: { value: false, required: false },
-            inputs: {value:0},
-            outputs: {value: 1}
-        },
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        },
-        inputs: 0,
-        outputs: 1,
-        icon: "shelly.png",
-        paletteLabel: "motion",
-        label: function () {
-            return this.description || this.hostname || "Shelly motion";
-        },
-        labelStyle: function() {
-            return this.description?"node_label_italic":"";
-        },
-        oneditprepare: function() {
-            var that = this;
-
-            // 1. hasextraoutputs on / off
-            var hasextraoutputs = function() {
-                var mode = $("#node-input-hasextraoutputs").prop('checked');
-                if (mode === true) {
-                    that.outputs = 3;
-                } else {
-                    that.outputs = 1;
-                }
-            };
-            hasextraoutputs();
-            $("#node-input-hasextraoutputs").change(hasextraoutputs);
-
-            // 2. the inputs edit field is always hidden.
-            $("#hiddeninputs").hide();
-
-            // polling on / off
-            var usePolling = function() {
-            var mode = $("#node-input-usepolling").prop('checked');
-            if (mode === false) {
-                $("#polling").hide();
-                $("#hint").show();
-                $("#node-input-inputs").val(1);
-                $("#node-input-pollinginterval").val(3000);
-            } else {
-                $("#polling").show();
-                $("#hint").hide();
-                $("#node-input-inputs").val(0);
-            }
-            };
-            usePolling();
-            $("#node-input-usepolling").change(usePolling);
-        }
-    });
-</script>
-
-<script type="text/x-red" data-template-name="shelly-motion">
-    <div class="form-row">
-        <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
-        <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the device">
-    </div>
-    <div class="form-row">
-        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
-        <input type="text" id="node-input-description" placeholder="The description of the device (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
-        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
-        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
-    </div>
-
-    <div class="form-row">
-        <label for="node-input-usepolling"><i class="fa fa-clock"></i> Polling Mode</label>
-        <input type="checkbox" id="node-input-usepolling" style="display: inline-block; width: auto; vertical-align: top;">
-    </div>
-
-    <div class="form-row" id="polling" style="background: #fbfbfb">
-        <label style="width: auto"><i class="fa fa-cogs"></i> Polling Options:</label>
-
-        <div class="form-row" style="background: #fff; margin-left: 20px">
-            <div class="form-row">
-                <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Polling Interval (ms)</label>
-                <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds.)">
-            </div>
-        </div>
-    </div>
-
-    <div class="form-row" id="hint">
-        <div class="form-tips" style="width: auto"><b>Note:</b> Polling support is standard. If you turn it off you must trigger the input manually.</div>
-    </div>
-
-    <div class="form-row" id="hiddeninputs">
-        <label for="node-input-inputs"><i class="fa fa-poo"></i> Input Count</label>
-        <input type="text" id="node-input-inputs">
-    </div>
-
-    <hr align="middle"/>
-
-    <div class="form-row">
-        <label for="node-input-hasextraoutputs"><i class="fa fa-flash"></i> Enable extra outputs for motion and vibration.</label>
-        <input type="checkbox" id="node-input-hasextraoutputs" style="display: inline-block; width: auto; vertical-align: top;">
-    </div>
-</script>
-
-<script type="text/x-red" data-help-name="shelly-motion">
-    <p>A node that controls a shelly motion device (Shelly Motion).</p>
-
-    <h3>Configuration</h3>
-    <p>Hostname is the IP address or the hostname of the device.</p>
-    <p>Description of the device.</p>
-    <p>User is optional and must only be set if security is enabled.</p>
-    <p>Password is optional and must only be set if security is enabled.</p>
-    <p>Ping interval is the time between the status pollings.</p>
-    <p>Enable extra outputs for motion and vibration is optional when you want an extra output that is triggered for motion and vibration.</p>
-    <p>Send full status object is optional when you want to see the raw response at the output.</p>
-
-    <h3>Inputs</h3>
-    <p>The node has an input which triggers a status update request. It should only be trigger when polling mode is turned off.</p>
-  
-    <h3>Outputs</h3>
-    <p>1. Standard Ouput: A status object.</p>
-    <p><code>msg.payload</code></p>
-    <ul>
-        <code>{</code>
-        <br/>
-        <code>    sensor { vibration: false, motion: true, is_valid: true } </code>
-        <br/>
-        <code>    lux { value: 150, illumination: "twilight", is_valid: true } </code>
-        <br/>
-        <code>    bat { value: 100, voltage: 6.01 } </code>
-        <br/>
-        <code>}</code>
-    </ul>
-    <p>2. Motion Ouput: Is triggered when motion is detected. The output needs to be enabled before usage.</p>
-    <p>3. Vibration Ouput: Is triggered when vibration is detected. The output needs to be enabled before usage.</p>
-</script>
-
-
-<!-- ------------------------------------------------------------------------------------------ -->
-<script type="text/javascript">
-    RED.nodes.registerType('shelly-button', {
-        category: 'Shelly Gen 1',
-        color: '#319DD7',
-        defaults: {
-            hostname: { value:"" },
-            description: { value:"" },
-            pollinginterval: { value: 1000 },
-            pollstatus: { value: false, required: false },
-            outputs: {value: 1}
-        },
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        },
-        inputs: 1,
-        outputs: 1,
-        icon: "shelly.png",
-        paletteLabel: "button/I3",
-        label: function () {
-            return this.description || this.hostname || "Shelly button";
-        },
-        labelStyle: function() {
-            return this.description?"node_label_italic":"";
-        },
-        oneditprepare: function() {
-            var that = this;
-        }
-    });
-
-</script>
-
-<script type="text/x-red" data-template-name="shelly-button">
-    <div class="form-row">
-        <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
-        <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the device">
-    </div>
-    <div class="form-row">
-        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
-        <input type="text" id="node-input-description" placeholder="The description of the device (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
-        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
-        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
-    </div>
-    <div class="form-row">
-        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
-        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
-        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
-    </div>
-</script>
-
-<script type="text/x-red" data-help-name="shelly-button">
-    <p>A node that controls a shelly button device (Shelly button or I3).</p>
-
-    <h3>Configuration</h3>
-    <p>Hostname is the IP address or the hostname of the device.</p>
-    <p>Description of the device.</p>
-    <p>User is optional and must only be set if security is enabled.</p>
-    <p>Password is optional and must only be set if security is enabled.</p>
-    <p>Ping interval is the time between the status pollings.</p>
-    <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
-
-    <h3>Inputs</h3>
-    <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
-    <p><code>msg.payload</code></p>
-    <ul>
-        <code>{</code>
-        <br/>
-        <code>    input : 0..n, </code>
-        <br/>
-        <code>    event : 'S' </code>
-        <br/>
-        <code>    eventCount : 1 </code>
-        <br/>
-        <code>}</code>
-    </ul>
-    <p>id is the input 0..n.</p>
-    <p>event can be one of the following S=short push, SS=double short push SSS=triple short push L=long push (and LS or SL for the I3).</p>
-    <p>eventCount is optional and sets the input event counter.</p>
-    
     <h3>Outputs</h3>
     <p>1. Standard Ouput: A status object.</p>
     <p><code>msg.payload</code></p>

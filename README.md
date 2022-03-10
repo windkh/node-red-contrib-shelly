@@ -24,20 +24,20 @@ This package depends on the following libraries
 This package is under construction. Right now the following devices are supported
 
 Generation 1 devices:
-- shelly switch 1 (PM), 2, L,  
-- shelly plug plugS
-- shelly 2.5 (roller shutter) 
-- shelly dimmer / shelly bulb duo, Vintage
-- shelly door / shelly door 2
-- shelly RGBW2 / shelly bulb RGBW
-- shelly motion
-- shelly emeasure (EM, EM3)
-- shelly UNI
-- shelly TRV
-- shelly button / I3
+- Shelly Switch 1 (PM), 2, L,  
+- Shelly Plug PlugS
+- Shelly 2.5 (roller shutter) 
+- Shelly Dimmer / Shelly Bulb Duo, Vintage
+- Shelly Door / Shelly Door 2
+- Shelly RGBW2 / Shelly Bulb RGBW
+- Shelly Motion
+- Shelly Emeasure (EM, EM3)
+- Shelly UNI
+- Shelly TRV
+- Shelly Button / I3
 
 Generation 2 devices:
-- shelly 1 (PM) plus
+- Shelly 1 (PM) plus
 
 Others may work but are not really tested so far.
 
@@ -143,6 +143,61 @@ adcs : [
 ]
 ```
 
+### Examples  
+[**shelly switch flow**](examples/switch.json) 
+[**shelly uni flow**](examples/uni.json) 
+
+
+
+## Measure (Shelly EM, EM3)
+The node is able to turn on and turn off a shelly switch. It outputs the status of all relays after every interaction with the shelly device.
+Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
+
+
+```
+{
+    relay : 0,
+	timer : 1,
+	on : true
+}
+```
+
+or you can make use of the alternative notation:
+
+
+```
+{
+    relay : 0,
+	timer : 1,
+	turn : 'toggle'
+}
+```
+turn can be one of the following: 'toggle', 'on', 'off'
+timer is optional flip back timer in seconds 
+
+Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
+
+If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
+This is useful, when you want to poll for the status cyclically.
+
+The output of the node is an array of status objects for every relay of the switch:
+
+
+```
+relays : [
+    {
+        ison : true,
+	    ...
+    },
+    {
+        ison : true,
+	    ...
+    },
+],
+meters : [
+],
+```
+
 ### Download of historical data
 Devices like the EM and EM3 store data. You can download the historical time series data as follows:
 
@@ -161,11 +216,8 @@ Data is sent to output 2.
 
 
 ### Examples  
-[**shelly switch flow**](examples/switch.json) 
-[**shelly uni flow**](examples/uni.json) 
 [**shelly EM flow**](examples/emeasure.json)  
 [**shelly EM download CSV flow**](examples/emeasure2.json)  
-
 
 
 
