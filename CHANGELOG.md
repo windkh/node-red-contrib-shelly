@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [5.0.0] - 2022-03-09
+## [5.0.0] - 2022-03-10
 ### major refactoring - shelly gen 1 node replaces all relays and woller shutter nodes
 
 ## [4.8.0] - 2022-02-22
