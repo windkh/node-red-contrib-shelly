@@ -143,9 +143,31 @@ adcs : [
 ]
 ```
 
-Examples:  
+### Download of historical data
+Devices like the EM and EM3 store data. You can download the historical time series data as follows:
+
+```
+[
+    {
+        download : [0, 1, 2],
+	    ...
+    },
+]
+```
+
+The download variable contains a list of channels that should be downloaded. This can be either one or more numbers. Note that downloading
+from the device can take some seconds as it depends on the size of the gathered data.
+Data is sent to output 2.
+
+
+### Examples  
 [**shelly switch flow**](examples/switch.json) 
 [**shelly uni flow**](examples/uni.json) 
+[**shelly EM flow**](examples/emeasure.json)  
+[**shelly EM download CSV flow**](examples/emeasure2.json)  
+
+
+
 
 ## Roller Shutter (Shelly 2, Shelly 2.5)
 
@@ -221,10 +243,11 @@ meters : [
 ]
 ```
 
-Examples:  
+### Examples:  
 [**shelly roller flow**](examples/roller.json)  
 [**shelly roller2 flow**](examples/roller2.json)  
 [**shelly roller3 flow**](examples/roller3.json)  
+
 
 
 ## Dimmer (Shelly Dimmer 1/2, Shelly Bulb Duo, Vintage)
@@ -286,7 +309,7 @@ meters : [
 ]
 ```
 
-Examples:  
+### Examples:  
 [**shelly dimmer flow**](examples/bulbduo.json)  
 [**shelly bulb duo flow**](examples/dimmer.json)  
 
@@ -323,7 +346,7 @@ This is useful, when you want to poll for the status cyclically.
 The output of the node is the full status object of the device.
 See https://shelly-api-docs.shelly.cloud/gen2/Overview/CommonServices/Shelly
 
-Examples:  
+### Examples:  
 [**shelly switch gen 2 flow**](examples/switchplus.json) 
 
 
@@ -358,7 +381,7 @@ The output of the node is as follows:
 }
 ```
 
-Examples:  
+### Examples:  
 [**shelly door flow**](examples/door.json)  
 
 
@@ -412,7 +435,7 @@ light 0 .. 3 is the number of the strip.
 brightness can be a value between 0 and 100. 
 timer can be a value in seconds to flip back on/off
 
-Examples:  
+### Examples:  
 [**shelly RGBW2 color flow**](examples/rgbw2color.json)  
 [**shelly RGBW2 color effect flow**](examples/rgbw2colorloop.json)  
 [**shelly RGBW2 white flow**](examples/rgbw2white.json)  
@@ -452,110 +475,9 @@ The output of the node is as follows:
 }
 ```
 
-Examples:  
+### Examples:  
 [**shelly motion flow**](examples/motion.json)  
 
-
-# Shelly EM(3) Node
-The node is able to turn on and turn off a relay in a shelly EM node. It outputs the status of all measuring devices and the status of the relay after every interaction with the shelly device.
-Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
-
-
-```
-{
-    relay : 0,
-	on : true
-}
-```
-
-or you can make use of the alternative notation:
-
-
-```
-{
-    relay : 0,
-	turn : 'toggle'
-}
-```
-turn can be one of the following: 'toggle', 'on', 'off'
-
-Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
-
-If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
-This is useful, when you want to poll for the status cyclically.
-
-The output of the node is an array of status objects for every relay of the switch:
-
-
-```
-[
-    {
-        ison : true,
-	    ...
-    },
-    {
-        ison : true,
-	    ...
-    },
-]
-```
-
-The output of the node is as follows:
-
-
-```
-{
-    'relays': [
-        {
-            'ison': false,
-            'has_timer': false,
-            'timer_started': 0,
-            'timer_duration': 0,
-            'timer_remaining': 0,
-            'overpower': false,
-            'is_valid': true,
-            'source': 'http'
-        }
-    ],
-    'emeters': [
-        {
-            'power': 0,
-            'reactive': 0,
-            'voltage': 0,
-            'is_valid': true,
-            'total': 0,
-            'total_returned': 0
-        },
-        {
-            'power': 0,
-            'reactive': 0,
-            'voltage': 0,
-            'is_valid': true,
-            'total': 0,
-            'total_returned': 0
-        }
-    ]
-}
-```
-
-
-Next to polling data you can also download the historical time series data which is stored inside the device as follows:
-
-```
-[
-    {
-        download : [0, 1, 2],
-	    ...
-    },
-]
-```
-
-The download variable contains a list of channels that should be downloaded. This can be either one or more numbers. Note that downloading
-from the device can take some seconds as it depends on the size of the gathered data.
-
-Examples:  
-[**shelly EM flow**](examples/emeasure.json)  
-[**shelly EM download CSV flow**](examples/emeasure2.json)  
 
 
 
@@ -579,8 +501,9 @@ This feature can optionally be disabled by unticking the `status` checkbox in th
 
 If you only want to get the current status of the TRV leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
 
-Examples:  
+### Examples:  
 [**shelly TRV flow**](examples/trv.json) 
+
 
 
 # Shelly Button Node (Button, I3)
@@ -611,7 +534,7 @@ The output of the node is an array of status objects for every relay of the swit
 
 Note that the button is not always reachable as it falls to sleep. This is not the case for the I3.
 
-Examples:  
+### Examples:  
 [**shelly button flow**](examples/button.json) 
 
 

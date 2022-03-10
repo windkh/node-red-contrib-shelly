@@ -16,13 +16,14 @@
             pollstatus: { value: false, required: false },
             getstatusoncommand: { value: true },
             devicetype: { value: "", required: true},
+            outputs: {value: 2}
         },
         credentials: {
             username: { type: "text" },
             password: { type: "password" },
         },
         inputs: 1,
-        outputs: 1,
+        outputs: 2,
         icon: "shelly.png",
         paletteLabel: "shelly",
         label: function () {
@@ -71,9 +72,9 @@
         <div style="display: inline-block; position: relative; width: 70%; height: 19.1333px;">
         <div style="position: absolute; left: 0; right: 0;">
           <select id="node-input-devicetype" style="width:100%">
-            <option value="Relay">Relay - Shelly1, 1PM, 1L, 2, 2.5, Plug(E, E, US), Uni</option>
+            <option value="Relay">Relay - Shelly1, 1PM, 1L, 2, 2.5, Plug(S/E/US), Uni, EM(3)</option>
             <option value="Roller">Roller - Shelly 2, 2.5</option>  
-            <option value="Dimmer">Dimmer - Shelly Dimmer 1/2, Duo</option>  
+            <option value="Dimmer">Dimmer - Shelly Dimmer 1/2, Bulb Duo</option>  
           </select>
         </div>
         </div>
@@ -101,6 +102,9 @@
     <p><code>msg.payload</code></p>
     <p>Full status object is available at.</p>
     <p><code>msg.status</code></p>
+    <p></p>
+    <p>2. CSV Ouput: The downloaded csv history for EM devices.</p>
+    <p><code>msg.payload</code></p>
 </script>
 
 
@@ -540,92 +544,6 @@
     </ul>
     <p>2. Motion Ouput: Is triggered when motion is detected. The output needs to be enabled before usage.</p>
     <p>3. Vibration Ouput: Is triggered when vibration is detected. The output needs to be enabled before usage.</p>
-</script>
-
-
-<!-- ------------------------------------------------------------------------------------------ -->
-<script type="text/javascript">
-    RED.nodes.registerType('shelly-emeasure', {
-        category: 'Shelly Gen 1',
-        color: '#319DD7',
-        defaults: {
-            hostname: { value:"" },
-            description: { value:"" },
-            pollinginterval: { value: 1000 },
-            pollstatus: { value: false, required: false },
-            outputs: {value: 2}
-        },
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        },
-        inputs: 1,
-        outputs: 2,
-        icon: "shelly.png",
-        paletteLabel: "emeasure",
-        label: function () {
-            return this.description || this.hostname || "Shelly EM";
-        },
-        labelStyle: function() {
-            return this.description?"node_label_italic":"";
-        },
-        oneditprepare: function() {
-            var that = this;
-        }
-    });
-
-</script>
-
-<script type="text/x-red" data-template-name="shelly-emeasure">
-    <div class="form-row">
-        <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
-        <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the device">
-    </div>
-    <div class="form-row">
-        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
-        <input type="text" id="node-input-description" placeholder="The description of the device (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
-        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
-        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
-    </div>
-    <div class="form-row">
-        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
-        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
-        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
-    </div>
-</script>
-
-<script type="text/x-red" data-help-name="shelly-emeasure">
-    <p>A node that controls a shelly EM device (Shelly EM, 3EM).</p>
-
-    <h3>Configuration</h3>
-    <p>Hostname is the IP address or the hostname of the device.</p>
-    <p>Description of the device.</p>
-    <p>User is optional and must only be set if security is enabled.</p>
-    <p>Password is optional and must only be set if security is enabled.</p>
-    <p>Ping interval is the time between the status pollings.</p>
-    <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
-
-    <h3>Inputs</h3>
-    <p>Empty payload for getting the status.</p>
-    
-    <h3>Outputs</h3>
-    <p>1. Standard Ouput: A status object.</p>
-    <p><code>msg.payload</code></p>
-    <p>Full status object is available at.</p>
-    <p><code>msg.status</code></p>
-    <p></p>
-    <p>2. CSV Ouput: The downloaded csv history.</p>
-    <p><code>msg.payload</code></p>
-    
 </script>
 
 

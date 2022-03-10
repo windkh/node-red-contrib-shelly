@@ -173,7 +173,7 @@ module.exports = function (RED) {
                 node.status({ fill: "green", shape: "ring", text: "Connected." });
             }
             else{
-                node.status({ fill: "red", shape: "ring", text: "Shelly type " + node.shellyInfo.type + " is not known." });
+                node.status({ fill: "red", shape: "ring", text: "Shelly type not supported: " + node.shellyInfo.type });
             }
         });
     }
@@ -224,13 +224,19 @@ module.exports = function (RED) {
                 turn = command.turn;
             }
 
+            let timerSeconds;
+            if(command.timer !== undefined){
+                timerSeconds = command.timer;
+            }
+
+
             let parameters = '';
             if (turn !== undefined){
                 parameters += "&turn=" + turn;
             }
 
             if(timerSeconds !== undefined){
-                parameters += "?timer=" + timerSeconds;
+                parameters += "&timer=" + timerSeconds;
             }
 
             if (parameters !== '') {
@@ -406,49 +412,33 @@ module.exports = function (RED) {
         return result;
     }
 
-    function convertToRelay(status){
+    // Returns a status object with filtered properties.
+    function convertStatus(status){
         let result = {
-            relays : status.relays,
-            meters : status.meters,
-            inputs : status.inputs,
-            adcs : status.adcs
         }
-        return result;
-    }
 
-    function convertToRoller(status){
-        let result = {
-            rollers : status.rollers,
-            relays : status.relays,
-            meters : status.meters
+        if(status.relays !== undefined){
+            result.relays = status.relays;
         }
-        return result;
-    }
 
-    function convertToDimmer(status){
-        let result = {
-            lights : status.lights,
-            meters : status.meters
+        if(status.rollers !== undefined){
+            result.rollers = status.rollers;
         }
-        return result;
-    }
 
-    // Returns the status parser for the device type.
-    function getStatusConverter(deviceType){
-        let result;
-        switch(deviceType) {
+        if(status.lights !== undefined){
+            result.lights = status.lights;
+        }
 
-            case 'Relay':
-                result = convertToRelay;
-                break;
-            case 'Roller':
-                result = convertToRoller;
-                break;
-            case 'Dimmer':
-                result = convertToDimmer;
-                break;
-            default:
-                break;
+        if(status.meters !== undefined){
+            result.meters = status.meters;
+        }
+
+        if(status.inputs !== undefined){
+            result.inputs = status.inputs;
+        }
+
+        if(status.adcs !== undefined){
+            result.adcs = status.adcs;
         }
 
         return result;
@@ -459,7 +449,7 @@ module.exports = function (RED) {
         switch(deviceType) {
 
             case 'Relay':
-                deviceTypes = ["SHSW", "SHPLG", "SHUNI"];
+                deviceTypes = ["SHSW", "SHPLG", "SHUNI", "SHEM"];
                 break;
             case 'Roller':
                 deviceTypes = ["SHSW-L", "SHSW-25"];
@@ -490,16 +480,25 @@ module.exports = function (RED) {
 
         if(deviceType !== undefined && deviceType !== "") {
             node.inputParser = getInputParser(deviceType);
-            node.statusConverter = getStatusConverter(deviceType);  
             node.types = getDeviceTypes(deviceType);
 
             start(node, node.types);
             
-            this.on('input', function (msg) {
+            this.on('input', async function (msg) {
 
                 let credentials = getCredentials(node, msg);
                 
-                let route = node.inputParser(msg);
+                let route;
+                let emetersToDownload;
+                if(msg !== undefined && msg.payload !== undefined){
+                    
+                    route = node.inputParser(msg);
+
+                    let command = msg.payload;       
+                    if(command.download !== undefined){
+                        emetersToDownload = command.download;
+                    }
+                }
 
                 if (route !== undefined && route !== ''){
 
@@ -511,7 +510,7 @@ module.exports = function (RED) {
 
                                 let status = body;
                                 msg.status = status;
-                                msg.payload = node.statusConverter(status);
+                                msg.payload = convertStatus(status);
                                 node.send([msg]);
                             },
                             function(error){
@@ -526,20 +525,49 @@ module.exports = function (RED) {
                     });
                 }
                 else {
-                    shellyTryGet('/status', node, node.pollInterval, credentials, function(body) {
-                            
-                        node.status({ fill: "green", shape: "ring", text: "Connected." });
+                    if(emetersToDownload === undefined){
+                        shellyTryGet('/status', node, node.pollInterval, credentials, function(body) {
+                                
+                            node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        let status = body;
-                        msg.status = status;
-                        msg.payload = node.statusConverter(status);
-                        node.send([msg]);
-                    },
-                    function(error){
-                        if (msg.payload){
-                            node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." });
+                            let status = body;
+                            msg.status = status;
+                            msg.payload = convertStatus(status);
+                            node.send([msg]);
+                        },
+                        function(error){
+                            if (msg.payload){
+                                node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." });
+                            }
+                        });
+                    }
+                }
+
+                // special download code for EM devices that can store historical data.
+                if(emetersToDownload !== undefined){
+
+                    let data = [];
+                    for (let i = 0; i < emetersToDownload.length; i++) {
+                        let emeter = emetersToDownload[i];
+    
+                        route = "/emeter/" + emeter + "/em_data.csv";
+                        
+                        node.status({ fill: "green", shape: "ring", text: "Downloading CSV " + emeter});
+    
+                        try {
+                            let body = await shellyGetAsync(route, credentials);
+                            data.push(body);
                         }
-                    });
+                        catch (error) {
+                            node.error("Downloading CSV failed " + emeter, error);
+                            node.status({ fill: "red", shape: "ring", text: "Downloading CSV failed " + emeter});
+                        }
+                    }
+    
+                    node.status({ fill: "green", shape: "ring", text: "Connected."});
+    
+                    msg.payload = data;
+                    node.send([null, msg]);
                 }
             });
 
@@ -1143,139 +1171,7 @@ module.exports = function (RED) {
     });
 
     
-    // --------------------------------------------------------------------------------------------
-    // The EM node controls a shelly EM or EM3 device.
-    /* 
-    GET /status
-    {
-        relays: 
-            []
-        emeters: 
-            []
-    }
-    */
-    function ShellyEMNode(config) {
-        RED.nodes.createNode(this, config);
-        let node = this;
-        node.hostname = config.hostname.trim();
-        node.pollInterval = parseInt(config.pollinginterval);
-        node.pollStatus = config.pollstatus || false;
-
-        let types = ["SHEM"];
-        start(node, types);
-
-        this.on('input', async function (msg) {
-
-            let credentials = getCredentials(node, msg);
-            
-            let route = '';
-            let emetersToDownload;    
-            if(msg.payload !== undefined){
-                let command = msg.payload;
-
-                let relay = 0;
-                if(command.relay !== undefined){
-                    relay = command.relay;
-                }
-
-                let turn;
-                if(command.on !== undefined){
-                    if(command.on == true){
-                        turn = "on";
-                    }
-                    else{
-                        turn = "off"
-                    }
-                }
-                else if(command.turn !== undefined){
-                    turn = command.turn;
-                }
-
-                if(turn !== undefined){
-                    route = "/relay/" + relay + "?turn=" + turn;
-                }
-
-                if(command.download !== undefined){
-                    emetersToDownload = command.download;
-                }
-            }
-
-            if (route !== ''){
-                shellyGet(route, node, credentials, function(body) {
-                    shellyGet('/status', node, credentials, function(body) {
-
-                        node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                        let status = body;
-                        msg.status = status;
-                        msg.payload = {
-                            relays : status.relays,
-                            emeters : status.emeters
-                        };
-
-                        node.send([msg]);
-                    });
-                });
-            }
-            else{
-                if(emetersToDownload === undefined){
-                    shellyGet('/status', node, credentials, function(body) {
-
-                        node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                        let status = body;
-                        msg.status = status;
-                        msg.payload = {
-                            relays : status.relays,
-                            emeters : status.emeters
-                        };
-
-                        node.send([msg]);
-                    });
-                }
-            }
-
-            if(emetersToDownload !== undefined){
-
-                let data = [];
-                for (let i = 0; i < emetersToDownload.length; i++) {
-                    let emeter = emetersToDownload[i];
-
-                    route = "/emeter/" + emeter + "/em_data.csv";
-                    
-                    node.status({ fill: "green", shape: "ring", text: "Downloading CSV " + emeter});
-
-                    try {
-                        let body = await shellyGetAsync(route, credentials);
-                        data.push(body);
-                    }
-                    catch (error) {
-                        node.error("Downloading CSV failed " + emeter, error);
-                        node.status({ fill: "red", shape: "ring", text: "Downloading CSV failed " + emeter});
-                    }
-                }
-
-                node.status({ fill: "green", shape: "ring", text: "Connected."});
-
-                msg.payload = data;
-                node.send([null, msg]);
-            }
-        });
-
-        this.on('close', function(done) {
-            clearInterval(node.timer);
-            done();
-        });
-    }
-
-    RED.nodes.registerType("shelly-emeasure", ShellyEMNode, {
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        }
-    });
     
-
     // --------------------------------------------------------------------------------------------
     // The dimmer node controls a shelly TRV.
     function ShellyTrvNode(config) {
