@@ -6,7 +6,10 @@
 module.exports = function (RED) {
     "use strict";
     let axios = require('axios').default;
-      
+          
+    //  no operation function
+    function noop(){}
+
     function isEmpty(obj) {
         return Object.keys(obj).length === 0;
     }
@@ -173,11 +176,11 @@ module.exports = function (RED) {
                 node.status({ fill: "green", shape: "ring", text: "Connected." });
             }
             else{
-                node.status({ fill: "red", shape: "ring", text: "Shelly type not supported: " + node.shellyInfo.type });
+                node.status({ fill: "red", shape: "ring", text: "Shelly type mismatch: " + node.shellyInfo.type });
             }
         },
         function(error){
-            node.status({ fill: "yellow", shape: "ring", text: error })
+            node.status({ fill: "red", shape: "ring", text: error })
         });
     }
 
@@ -207,7 +210,7 @@ module.exports = function (RED) {
     }
 
     // Creates a route from the input.
-    function inputParserRelay(msg){
+    async function inputParserRelay(msg){
         let route;
         if(msg !== undefined && msg.payload !== undefined){
             let command = msg.payload;
@@ -253,7 +256,88 @@ module.exports = function (RED) {
     }
 
     // Creates a route from the input.
-    function inputParserRoller(msg){
+    async function inputParserMeasure(msg, node, credentials){
+        let route;
+        if(msg !== undefined && msg.payload !== undefined){
+            let command = msg.payload;
+
+            let relay = 0;
+            if(command.relay !== undefined){
+                relay = command.relay;
+            }
+
+            let turn;
+            if(command.on !== undefined){
+                if(command.on == true){
+                    turn = "on";
+                }
+                else{
+                    turn = "off"
+                }
+            }
+            else if(command.turn !== undefined){
+                turn = command.turn;
+            }
+
+            let timerSeconds;
+            if(command.timer !== undefined){
+                timerSeconds = command.timer;
+            }
+
+
+            let parameters = '';
+            if (turn !== undefined){
+                parameters += "&turn=" + turn;
+            }
+
+            if(timerSeconds !== undefined){
+                parameters += "&timer=" + timerSeconds;
+            }
+
+            if (parameters !== '') {
+                route = combineUrl("/relay/" + relay, parameters);
+            }
+
+
+            // Download EM data if required.
+            let emetersToDownload;
+            if(command.download !== undefined){
+                emetersToDownload = command.download;
+            }
+
+            // special download code for EM devices that can store historical data.
+            if(emetersToDownload !== undefined){
+
+                let data = [];
+                for (let i = 0; i < emetersToDownload.length; i++) {
+                    let emeter = emetersToDownload[i];
+                    let downloadRoute = "/emeter/" + emeter + "/em_data.csv";
+                    
+                    node.status({ fill: "green", shape: "ring", text: "Downloading CSV " + emeter});
+
+                    try {
+                        let body = await shellyGetAsync(downloadRoute, credentials);
+                        data.push(body);
+                    }
+                    catch (error) {
+                        node.error("Downloading CSV failed " + emeter, error);
+                        node.status({ fill: "red", shape: "ring", text: "Downloading CSV failed " + emeter});
+                    }
+                }
+
+                node.status({ fill: "green", shape: "ring", text: "Connected."});
+
+                msg.payload = data;
+                node.send([null, msg]);
+            }
+        }
+
+        return route;
+    }
+
+
+    // Creates a route from the input.
+    async function inputParserRoller(msg){
         let route;
         if(msg !== undefined && msg.payload !== undefined){
             let command = msg.payload;
@@ -306,7 +390,7 @@ module.exports = function (RED) {
     }
 
     // Creates a route from the input.
-    function inputParserDimmer(msg){
+    async function inputParserDimmer(msg){
         let route;
         if(msg !== undefined && msg.payload !== undefined){
             let command = msg.payload;
@@ -399,7 +483,7 @@ module.exports = function (RED) {
 
 
     // Creates a route from the input.
-    function inputParserThermostat(msg){
+    async function inputParserThermostat(msg){
         let route;
         if(msg !== undefined && msg.payload !== undefined){
             let command = msg.payload;
@@ -475,7 +559,7 @@ module.exports = function (RED) {
     }
 
     // Creates a route from the input.
-    function inputParserSensor(msg){
+    async function inputParserSensor(msg){
         let route;
         if(msg !== undefined && msg.payload !== undefined){
             // right now sensors do not accept input commands.
@@ -484,7 +568,7 @@ module.exports = function (RED) {
     }
 
     // Creates a route from the input.
-    function inputParserButton(msg){
+    async function inputParserButton(msg){
         let route;
         if(msg !== undefined && msg.payload !== undefined){
             let command = msg.payload;
@@ -521,17 +605,288 @@ module.exports = function (RED) {
         return route;
     }
 
+    // Creates a route from the input.
+    async function inputParserRGBW(msg, node, credentials){
+        let route;
+        if(msg !== undefined && msg.payload !== undefined){
+            let command = msg.payload;
+
+            let nodeMode;
+            if(command.mode !== undefined) {
+                nodeMode = command.mode;
+
+                if (node.rgbwMode === 'auto') {
+                    try {
+                        let modeRoute = '/settings?mode=' + nodeMode;
+                        let body = await shellyGetAsync(modeRoute, credentials);
+                    }
+                    catch (error) {
+                        node.error("Failed to set mode to: " + nodeMode, error);
+                        node.status({ fill: "red", shape: "ring", text: "Failed to set mode to: " + nodeMode});
+                    }
+                }
+            }
+            else {
+                nodeMode = node.rgbwMode;
+            }
+
+            if(nodeMode === "color") {
+
+                let red;
+                if(command.red !== undefined) {
+                    if(command.red >= 0 && command.red <= 255) {
+                        red = command.red;
+                    } else {
+                        red = 255;  // Default to full brightness
+                    }
+                }
+
+                let green;
+                if (command.green !== undefined) {
+                    if (command.green >= 0 && command.green <= 255) {
+                        green = command.green;
+                    } else {
+                        green = 255;  // Default to full brightness
+                    }
+                }
+
+                let blue ;
+                if(command.blue !== undefined){
+                    if (command.blue >= 0 && command.blue <= 255){
+                        blue = command.blue;
+                    } else {
+                        blue = 255;  // Default to full brightness
+                    }
+                }
+
+                let white;
+                if(command.white !== undefined) {
+                    if (command.white >= 0 && command.white <= 255) {
+                        white = command.white;
+                    } else {
+                        white = 255;  // Default to full brightness
+                    }
+                }
+
+                let temperature;
+                if(command.temp !== undefined) {
+                    if (command.temp >= 3000 && command.temp <= 6500) {
+                        temperature = command.temp;
+                    } else {
+                        // Default is undefined
+                    }
+                }
+
+                let gain;
+                if (command.gain !== undefined) {
+                    if (command.gain >= 0 && command.gain <= 100) {
+                        gain = command.gain;
+                    } else {
+                        gain = 100;  // Default to full gain
+                    }
+                }
+
+                let brightness;
+                if (command.brightness !== undefined) {
+                    if (command.brightness >= 0 && command.brightness <= 100) {
+                        brightness = command.brightness;
+                    } else {
+                        // Default to undefined
+                    }
+                }
+
+                let effect;
+                if (command.effect !== undefined) {
+                    if (command.effect >=0) {
+                        effect = command.effect;
+                    } else {
+                        effect = 0  // Default to no effect
+                    }
+                }
+
+                let transition;
+                if (command.transition !== undefined) {
+                    if (command.transition >= 0 && command.transition <= 5000) {
+                        transition = command.transition;
+                    } else {
+                        // Default is undefined
+                    }
+                }
+
+                let timer;
+                if (command.timer !== undefined) {
+                    if (command.timer >=0) {
+                        timer = command.timer;
+                    } else {
+                        timer = 0  // Default to no timer
+                    }
+                }
+
+                let turn;
+                if (command.on !== undefined) {
+                    if (command.on == true) {
+                        turn = "on";
+                    }
+                    else {
+                        turn = "off"
+                    }
+                }
+                else if (command.turn !== undefined) {
+                    turn = command.turn;
+                }
+                else
+                {
+                    turn = "on";
+                }
+
+                
+                // create route
+                route = "/color/0?turn=" + turn;
+
+                if(gain !== undefined) {
+                    route += "&gain=" + gain;
+                }
+                
+                if(red !== undefined) {
+                    route += "&red=" + red;
+                }
+
+                if(green !== undefined) {
+                    route += "&green=" + green;
+                }
+
+                if(blue !== undefined) {
+                    route += "&blue=" + blue;
+                }
+
+                if(white !== undefined) {
+                    route += "&white=" + white;
+                }
+
+                if(temperature !== undefined) {
+                    route += "&temp=" + temperature;
+                }
+
+                if(brightness !== undefined) {
+                    route += "&brightness=" + brightness;
+                }
+
+                if(effect !== undefined) {
+                    route += "&effect=" + effect;
+                }
+
+                if(transition !== undefined) {
+                    route += "&transition=" + transition;
+                }
+
+                if(timer !== undefined && timer > 0) {
+                    route += "&timer=" + timer;
+                }
+            }
+            else if(nodeMode === "white") {
+
+                let light = 0;
+                if (command.light !== undefined) {
+                    if (command.light >=0) {
+                        light = command.light;
+                    } else {
+                        light = 0  // Default to no 0
+                    }
+                }
+
+                let brightness;
+                if (command.brightness !== undefined) {
+                    if (command.brightness >= 0 && command.brightness <= 100) {
+                        brightness = command.brightness;
+                    } else {
+                        brightness = 100;  // Default to full brightness
+                    }
+                }
+
+                let temperature;
+                if(command.temp !== undefined) {
+                    if (command.temp >= 3000 && command.temp <= 6500) {
+                        temperature = command.temp;
+                    } else {
+                        // Default is undefined
+                    }
+                }
+
+                let transition;
+                if (command.transition !== undefined) {
+                    if (command.transition >= 0 && command.transition <= 5000) {
+                        transition = command.transition;
+                    } else {
+                        // Default is undefined
+                    }
+                }
+
+                let timer;
+                if (command.timer !== undefined) {
+                    if (command.timer >=0) {
+                        timer = command.timer;
+                    } else {
+                        timer = 0  // Default to no timer
+                    }
+                }
+
+                let turn;
+                if (command.on !== undefined) {
+                    if (command.on == true) {
+                        turn = "on";
+                    }
+                    else {
+                        turn = "off"
+                    }
+                }
+                else if (command.turn !== undefined) {
+                    turn = command.turn;
+                }
+                else
+                {
+                    turn = "on";
+                }
+
+
+                // create route
+                route = "/white/" + light + "?turn=" + turn;
+
+                if(brightness !== undefined) {
+                    route += "&brightness=" + brightness;
+                }
+
+                if(temperature !== undefined) {
+                    route += "&temp=" + temperature;
+                }
+
+                if(transition !== undefined) {
+                    route += "&transition=" + transition;
+                }
+
+                if(timer !== undefined && timer > 0) {
+                    route += "&timer=" + timer;
+                }
+            }
+            else {
+                // node mode Auto or None
+            }
+
+        }
+        return route;
+    }
+
     // Returns the input parser for the device type.
     function getInputParser(deviceType){
         
         let result;
+
         switch(deviceType) {
 
             case 'Relay':
                 result = inputParserRelay;
                 break;
             case 'Measure':
-                result = inputParserRelay;
+                result = inputParserMeasure;
                 break;
             case 'Roller':
                 result = inputParserRoller;
@@ -548,13 +903,52 @@ module.exports = function (RED) {
             case 'Button':
                 result = inputParserButton;
                 break;
+            case 'RGBW':
+                result = inputParserRGBW;
+                break;
             default:
+                result = noop;
                 break;
         }
-
         return result;
     }
 
+    // initializes a RGBW node.
+    async function initializerRGBW(node){
+        if(node.hostname !== ''){
+            let mode = node.rgbwMode;
+            if(mode === "color" || mode === "white"){
+                try {
+                    let credentials = getCredentials(node);
+            
+                    let modeRoute = '/settings?mode=' + mode;
+                    let body = await shellyGetAsync(modeRoute, credentials);
+                    // here we can not check if the mode is already changed so we can not display a proper status.
+                }
+                catch (error) {
+                    node.error("Failed to set mode to: " + mode, error);
+                    node.status({ fill: "red", shape: "ring", text: "Failed to set mode to: " + mode});
+                }
+            }
+        }
+    }
+
+    // Gets a function that initialize sthe device.
+    function getInitializer(deviceType){
+        let result;
+
+        switch(deviceType) {
+            case 'RGBW':
+                result = initializerRGBW;
+                break;
+            default:
+                result = noop;
+                break;
+        }
+        return result;
+    }
+
+    
     // Returns a status object with filtered properties.
     function convertStatus(status){
         let result = {
@@ -652,13 +1046,16 @@ module.exports = function (RED) {
             case 'Button':
                 deviceTypes = ["SHBTN", "SHIX3"];
                 break;
+            case 'RGBW':
+                deviceTypes = ["SHRGBW2", "SHCB-1"];
+                break;
             default:
+                deviceTypes = [];
                 break;
         }
 
         return deviceTypes;
     }
-
 
 
     // --------------------------------------------------------------------------------------------
@@ -668,37 +1065,29 @@ module.exports = function (RED) {
         let node = this;
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
-        node.pollStatus = config.pollstatus || false;
-        node.getStatusOnCommand = config.getstatusoncommand || true;
+        node.pollStatus = config.pollstatus;
+        node.getStatusOnCommand = config.getstatusoncommand;
+
+        node.rgbwMode = config.rgbwmode;
 
         let deviceType = config.devicetype;
         node.deviceType = deviceType;
 
         if(deviceType !== undefined && deviceType !== "") {
+            node.initializer = getInitializer(deviceType);
             node.inputParser = getInputParser(deviceType);
             node.types = getDeviceTypes(deviceType);
-
+            
             start(node, node.types);
+    
+            node.initializer(node);
             
             this.on('input', async function (msg) {
 
                 let credentials = getCredentials(node, msg);
                 
-                let route;
-                let emetersToDownload;
-                if(msg !== undefined && msg.payload !== undefined){
-                    
-                    route = node.inputParser(msg);
-
-                    // This is exclusively for EM devices!
-                    if(node.deviceType === 'Measure'){
-                        let command = msg.payload;       
-                        if(command.download !== undefined){
-                            emetersToDownload = command.download;
-                        }
-                    }
-                }
-
+                let route = await node.inputParser(msg, node, credentials);
+                
                 if (route !== undefined && route !== ''){
 
                     shellyTryGet(route, node, node.pollInterval, credentials, function(body) {
@@ -724,49 +1113,20 @@ module.exports = function (RED) {
                     });
                 }
                 else {
-                    if(emetersToDownload === undefined){
-                        shellyTryGet('/status', node, node.pollInterval, credentials, function(body) {
-                                
-                            node.status({ fill: "green", shape: "ring", text: "Connected." });
+                    shellyTryGet('/status', node, node.pollInterval, credentials, function(body) {
+                            
+                        node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                            let status = body;
-                            msg.status = status;
-                            msg.payload = convertStatus(status);
-                            node.send([msg]);
-                        },
-                        function(error){
-                            if (msg.payload){
-                                node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." });
-                            }
-                        });
-                    }
-                }
-
-                // special download code for EM devices that can store historical data.
-                if(emetersToDownload !== undefined){
-
-                    let data = [];
-                    for (let i = 0; i < emetersToDownload.length; i++) {
-                        let emeter = emetersToDownload[i];
-    
-                        route = "/emeter/" + emeter + "/em_data.csv";
-                        
-                        node.status({ fill: "green", shape: "ring", text: "Downloading CSV " + emeter});
-    
-                        try {
-                            let body = await shellyGetAsync(route, credentials);
-                            data.push(body);
+                        let status = body;
+                        msg.status = status;
+                        msg.payload = convertStatus(status);
+                        node.send([msg]);
+                    },
+                    function(error){
+                        if (msg.payload){
+                            node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." });
                         }
-                        catch (error) {
-                            node.error("Downloading CSV failed " + emeter, error);
-                            node.status({ fill: "red", shape: "ring", text: "Downloading CSV failed " + emeter});
-                        }
-                    }
-    
-                    node.status({ fill: "green", shape: "ring", text: "Connected."});
-    
-                    msg.payload = data;
-                    node.send([null, msg]);
+                    });
                 }
             });
 
@@ -787,379 +1147,7 @@ module.exports = function (RED) {
     });
 
 
-    // --------------------------------------------------------------------------------------------
-    // The RGBW2 node controls a shelly LED stripe or a shelly builb RGBW.
-    function ShellyRGBW2Node(config) {
-        RED.nodes.createNode(this, config);
-        let node = this;
-        node.hostname = config.hostname.trim();
-        node.ledStat = config.ledStat || false;
-        node.pollInterval = parseInt(config.pollinginterval);
-        node.pollStatus = config.pollstatus || false;
-        node.mode = config.mode;
-        
-        /* node.shellyInfo
-        GET /shelly
-        {
-            "type":"SHRGBW2",
-            "mac":"E868E7811D20",
-            "auth":true,
-            "fw":"20201124-092159/v1.9.0@57ac4ad8",
-            "num_outputs":1
-        }
-        */
 
-        let types = ["SHRGBW2", "SHCB-1"];
-        start(node, types);
-
-        /* when a payload is received in the format
-            {
-                mode : 'color'
-                red : 0,
-                green : 0,
-                blue : 0,
-                on : true,
-                timer : 0,
-                white : 75,
-                gain: 100,
-                effect: 1,
-                brightness: 100 // optional fpr bulb
-                temp: 3000 // optional for bulb
-            }
-
-            or
-
-            {
-                mode : 'white'
-                light : 0,
-                brightness : 100,
-                on: true,
-                timer : 0
-            }
-        then the command is send to the shelly.
-        */
-
-        if(node.hostname !== ''){
-            let mode = node.mode;
-            if(mode === "color" || mode === "white"){
-                shellyGet('/settings?mode=' + mode, node, node.hostname, function(body) {
-                    let result = body;
-                    // here we can not check if the mode is already changed so we can not display a proper status.
-                });
-            }
-        }
-        
-        this.on('input', async function (msg) {
-
-            let credentials = getCredentials(node, msg);
-            
-            let route = '';
-            if(msg.payload !== undefined && !isEmpty(msg.payload)) {
-                let command = msg.payload;
-
-                let nodeMode;
-                if(command.mode !== undefined) {
-                    nodeMode = command.mode;
-
-                    if (node.mode === 'auto') {
-                        try {
-                            let body = await shellyGetAsync('/settings?mode=' + nodeMode, credentials);
-                        }
-                        catch (error) {
-                            node.error("Failed to set mode to: " + nodeMode, error);
-                            node.status({ fill: "red", shape: "ring", text: "Failed to set mode to: " + nodeMode});
-                        }
-                    }
-                }
-                else {
-                    nodeMode = node.mode;
-                }
-
-                if(nodeMode === "color") {
-
-                    let red;
-                    if(command.red !== undefined) {
-                        if(command.red >= 0 && command.red <= 255) {
-                            red = command.red;
-                        } else {
-                            red = 255;  // Default to full brightness
-                        }
-                    }
-
-                    let green;
-                    if (command.green !== undefined) {
-                        if (command.green >= 0 && command.green <= 255) {
-                            green = command.green;
-                        } else {
-                            green = 255;  // Default to full brightness
-                        }
-                    }
-
-                    let blue ;
-                    if(command.blue !== undefined){
-                        if (command.blue >= 0 && command.blue <= 255){
-                            blue = command.blue;
-                        } else {
-                            blue = 255;  // Default to full brightness
-                        }
-                    }
-
-                    let white;
-                    if(command.white !== undefined) {
-                        if (command.white >= 0 && command.white <= 255) {
-                            white = command.white;
-                        } else {
-                            white = 255;  // Default to full brightness
-                        }
-                    }
-
-                    let temperature;
-                    if(command.temp !== undefined) {
-                        if (command.temp >= 3000 && command.temp <= 6500) {
-                            temperature = command.temp;
-                        } else {
-                            // Default is undefined
-                        }
-                    }
-
-                    let gain;
-                    if (command.gain !== undefined) {
-                        if (command.gain >= 0 && command.gain <= 100) {
-                            gain = command.gain;
-                        } else {
-                            gain = 100;  // Default to full gain
-                        }
-                    }
-
-                    let brightness;
-                    if (command.brightness !== undefined) {
-                        if (command.brightness >= 0 && command.brightness <= 100) {
-                            brightness = command.brightness;
-                        } else {
-                            // Default to undefined
-                        }
-                    }
-
-                    let effect;
-                    if (command.effect !== undefined) {
-                        if (command.effect >=0) {
-                            effect = command.effect;
-                        } else {
-                            effect = 0  // Default to no effect
-                        }
-                    }
-
-                    let transition;
-                    if (command.transition !== undefined) {
-                        if (command.transition >= 0 && command.transition <= 5000) {
-                            transition = command.transition;
-                        } else {
-                            // Default is undefined
-                        }
-                    }
-
-                    let timer;
-                    if (command.timer !== undefined) {
-                        if (command.timer >=0) {
-                            timer = command.timer;
-                        } else {
-                            timer = 0  // Default to no timer
-                        }
-                    }
-
-                    let turn;
-                    if (command.on !== undefined) {
-                        if (command.on == true) {
-                            turn = "on";
-                        }
-                        else {
-                            turn = "off"
-                        }
-                    }
-                    else if (command.turn !== undefined) {
-                        turn = command.turn;
-                    }
-                    else
-                    {
-                        turn = "on";
-                    }
-
-                    
-                    // create route
-                    route = "/color/0?turn=" + turn;
-
-                    if(gain !== undefined) {
-                        route += "&gain=" + gain;
-                    }
-                    
-                    if(red !== undefined) {
-                        route += "&red=" + red;
-                    }
-
-                    if(green !== undefined) {
-                        route += "&green=" + green;
-                    }
-
-                    if(blue !== undefined) {
-                        route += "&blue=" + blue;
-                    }
-
-                    if(white !== undefined) {
-                        route += "&white=" + white;
-                    }
-
-                    if(temperature !== undefined) {
-                        route += "&temp=" + temperature;
-                    }
-
-                    if(brightness !== undefined) {
-                        route += "&brightness=" + brightness;
-                    }
-
-                    if(effect !== undefined) {
-                        route += "&effect=" + effect;
-                    }
-
-                    if(transition !== undefined) {
-                        route += "&transition=" + transition;
-                    }
-
-                    if(timer !== undefined && timer > 0) {
-                        route += "&timer=" + timer;
-                    }
-                }
-                else if(nodeMode === "white") {
-
-                    let light = 0;
-                    if (command.light !== undefined) {
-                        if (command.light >=0) {
-                            light = command.light;
-                        } else {
-                            light = 0  // Default to no 0
-                        }
-                    }
-
-                    let brightness;
-                    if (command.brightness !== undefined) {
-                        if (command.brightness >= 0 && command.brightness <= 100) {
-                            brightness = command.brightness;
-                        } else {
-                            brightness = 100;  // Default to full brightness
-                        }
-                    }
-
-                    let temperature;
-                    if(command.temp !== undefined) {
-                        if (command.temp >= 3000 && command.temp <= 6500) {
-                            temperature = command.temp;
-                        } else {
-                            // Default is undefined
-                        }
-                    }
-
-                    let transition;
-                    if (command.transition !== undefined) {
-                        if (command.transition >= 0 && command.transition <= 5000) {
-                            transition = command.transition;
-                        } else {
-                            // Default is undefined
-                        }
-                    }
-
-                    let timer;
-                    if (command.timer !== undefined) {
-                        if (command.timer >=0) {
-                            timer = command.timer;
-                        } else {
-                            timer = 0  // Default to no timer
-                        }
-                    }
-
-                    let turn;
-                    if (command.on !== undefined) {
-                        if (command.on == true) {
-                            turn = "on";
-                        }
-                        else {
-                            turn = "off"
-                        }
-                    }
-                    else if (command.turn !== undefined) {
-                        turn = command.turn;
-                    }
-                    else
-                    {
-                        turn = "on";
-                    }
-
-
-                    // create route
-                    route = "/white/" + light + "?turn=" + turn;
-
-                    if(brightness !== undefined) {
-                        route += "&brightness=" + brightness;
-                    }
-
-                    if(temperature !== undefined) {
-                        route += "&temp=" + temperature;
-                    }
-
-                    if(transition !== undefined) {
-                        route += "&transition=" + transition;
-                    }
-
-                    if(timer !== undefined && timer > 0) {
-                        route += "&timer=" + timer;
-                    }
-                }
-                else {
-                    // node mode Auto or None
-                }
-            
-                if (route !== ''){
-                    shellyGet(route, node, credentials, function(body) {
-                        if (node.ledStat) {
-                            shellyGet('/status', node, credentials, function(body) {
-
-                                node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                                let status = body;
-                                msg.status = status;
-                                msg.payload = status.lights;
-                                node.send([msg]);
-                            });
-                        }
-                    });
-                }
-                else {
-                    shellyGet('/status', node, credentials, function(body) {
-
-                        node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                        let status = body;
-                        msg.status = status;
-                        msg.payload = status.lights;
-                        node.send([msg]);
-                    });
-                }
-            }
-        });
-
-        this.on('close', function(done) {
-            clearInterval(node.timer);
-            done();
-        });
-    }
-
-    RED.nodes.registerType("shelly-rgbw2", ShellyRGBW2Node, {
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        }
-    });
-
-    
-    
     // GEN 2 --------------------------------------------------------------------------------------
     
     // --------------------------------------------------------------------------------------------

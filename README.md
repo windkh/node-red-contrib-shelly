@@ -391,80 +391,7 @@ If you only want to get the current status of the TRV leave the msg.payload blan
 
 
 
-
-# Shelly Switch Node Generation 2 (1 Plus, 1 PM Plus)
-The node is able to turn on and turn off a shelly switch. It outputs the status after every interaction with the shelly device.
-Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
-
-
-```
-{
-    id : 0,
-	on : true
-}
-```
-
-or you can make use of the alternative notation:
-
-
-```
-{
-    id : 0,
-	method : 'Switch.Toggle'
-}
-```
-
-Right after having sent the request to the shelly device a status request is done.
-
-If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
-This is useful, when you want to poll for the status cyclically.
-
-The output of the node is the full status object of the device.
-See https://shelly-api-docs.shelly.cloud/gen2/Overview/CommonServices/Shelly
-
-### Examples:  
-[**shelly switch gen 2 flow**](examples/switchplus.json) 
-
-
-
-# Shelly Window/Door Node 1/2
-The node is able to poll a shelly window/door sensor. It outputs the sensor status together with battery and lux sensor values on every change of the door status.
-Note that the sensor sleeps when nothing is detected and is thus not accessible via REST.
-
-The output of the node is as follows:
-
-
-```
-{
-    sensor
-	{
-		state: 'close',
-		is_valid: true
-	},
-
-	lux
-	{
-		value: 150,
-		illumination: 'twilight',
-		is_valid: true
-	},
-
-	bat
-	{
-		value: 100,
-		voltage: 6.01
-	}
-}
-```
-
-### Examples:  
-[**shelly door flow**](examples/door.json)  
-
-
-
-
-
-# Shelly RGBW2 Node / Shelly Bulb RGWB
+## RGBW (Shelly RGBW2, Shelly Bulb RGWB)
 The node is able to control a RGBW LED light strip or a bulb RGBW. 
 
 If you only want to get the current status of the node without turning on or off you should leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
@@ -499,12 +426,14 @@ temp can be a value in K between 3000 and 6500 for white
 mode is optional an used for reconfiguring the device. Select auto in the configuration if mode should be dynamically changed.
 
 ```
-{
-	light : 0,
-    on : true,
-    brightness: 100,
-	timer : 0,
-}
+lights : [
+	{
+		light : 0,
+		on : true,
+		brightness: 100,
+		timer : 0,
+	}
+]
 ```
 
 light 0 .. 3 is the number of the strip. 
@@ -518,11 +447,38 @@ timer can be a value in seconds to flip back on/off
 [**shelly bulb RGBW flow**](examples/bulbrgbw.json)  
 
 
-# Shelly Motion Node
-The node is able to poll a shelly motion sensor. It outputs the sensor status together with battery and lux sensor values on every change of the motion status.
-You can enable two extra outputs which are triggered exclusively only when either motion or vibration is detected.
 
-The output of the node is as follows:
+## Sensor (Shelly Window/Door Node 1/2,
+The node is able to poll a shelly window/door, motion, gas, ... sensor. It outputs the sensor status together with battery and sensor values on every change sensor status.
+Note that some sensors sleep when nothing is detected and is thus not accessible via REST.
+
+The output of the window, door sensor is as follows:
+
+
+```
+{
+    sensor
+	{
+		state: 'close',
+		is_valid: true
+	},
+
+	lux
+	{
+		value: 150,
+		illumination: 'twilight',
+		is_valid: true
+	},
+
+	bat
+	{
+		value: 100,
+		voltage: 6.01
+	}
+}
+```
+
+The output of the motion sensor is as follows:
 
 
 ```
@@ -552,11 +508,12 @@ The output of the node is as follows:
 ```
 
 ### Examples:  
+[**shelly door flow**](examples/door.json)  
 [**shelly motion flow**](examples/motion.json)  
 
 
 
-# Shelly Button Node (Button, I3)
+## Button (Shelly Button, I3)
 The node is able to control a shelly button. It outputs the status of all inputs after every interaction with the shelly device.
 Turning on is done by sending the following payload into the input. The input number defaults to 0.
 
@@ -586,6 +543,42 @@ Note that the button is not always reachable as it falls to sleep. This is not t
 
 ### Examples:  
 [**shelly button flow**](examples/button.json) 
+
+
+
+# Shelly Switch Node Generation 2 (1 Plus, 1 PM Plus)
+The node is able to turn on and turn off a shelly switch. It outputs the status after every interaction with the shelly device.
+Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
+
+
+```
+{
+    id : 0,
+	on : true
+}
+```
+
+or you can make use of the alternative notation:
+
+
+```
+{
+    id : 0,
+	method : 'Switch.Toggle'
+}
+```
+
+Right after having sent the request to the shelly device a status request is done.
+
+If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
+This is useful, when you want to poll for the status cyclically.
+
+The output of the node is the full status object of the device.
+See https://shelly-api-docs.shelly.cloud/gen2/Overview/CommonServices/Shelly
+
+### Examples:  
+[**shelly switch gen 2 flow**](examples/switchplus.json) 
+
 
 
 

@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.0.0] - 2022-03-10
+### Merged RGBW node into new GEN 1 node - [#58](https://github.com/windkh/node-red-contrib-shelly/issues/58)
+
 ## [5.0.0] - 2022-03-10
 ### major refactoring - shelly gen 1 node replaces all relays and woller shutter nodes
 

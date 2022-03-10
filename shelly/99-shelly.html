@@ -16,7 +16,10 @@
             pollstatus: { value: false, required: false },
             getstatusoncommand: { value: true },
             devicetype: { value: "", required: true},
-            outputs: {value: 1}
+            outputs: {value: 1},
+
+            // type specific settings
+            rgbwmode: { value:"color", required: true  },
         },
         credentials: {
             username: { type: "text" },
@@ -27,7 +30,7 @@
         icon: "shelly.png",
         paletteLabel: "shelly",
         label: function () {
-            return this.description || this.hostname || "Shelly";
+            return this.description || this.hostname || this.devicetype || "Shelly";
         },
         labelStyle: function() {
             return this.description?"node_label_italic":"";
@@ -44,6 +47,12 @@
                     $("#node-input-outputs").val(2);
                 } else {
                     $("#node-input-outputs").val(1);
+                }
+
+                if (devicetype == 'RGBW') {
+                    $("#rgbw").show();
+                } else {
+                    $("#rgbw").hide();
                 }
             };
             updateDeviceType();
@@ -64,6 +73,7 @@
             <option value="Measure">Measure - Shelly EM, EM3</option>
             <option value="Roller">Roller - Shelly 2, 2.5</option>  
             <option value="Dimmer">Dimmer - Shelly Dimmer 1/2, Duo, Vintage</option>  
+            <option value="RGBW">RGBW - Shelly RGBW2, Bulb RGBW</option>  
             <option value="Thermostat">Thermostat - Shelly TRV</option>  
             <option value="Sensor">Sensor - Shelly Motion, Door, Window, H&T, Smoke, Flood, Gas</option>  
             <option value="Button">Button - Shelly Button, I3</option>  
@@ -105,7 +115,28 @@
         <label for="node-input-getstatusoncommand"><i class="fa fa-share"></i> Status</label>
         <input type="checkbox" id="node-input-getstatusoncommand" style="display: inline-block; width: auto; vertical-align: top"> Enable status output after each command
     </div>
-  
+
+    <hr align="middle"/>
+
+    <div class="form-row hidden" id="rgbw" style="background: #fbfbfb">
+        <label style="width: auto"><i class="fa fa-cogs"></i> RGBW Options:</label>
+            <div class="form-row">
+                <label for="node-input-rgbwmode"><i class="fa fa-pencil"></i> Device Type</label>
+                <div style="display: inline-block; position: relative; width: 70%; height: 19.1333px;">
+                <div style="position: absolute; left: 0; right: 0;">
+                <select id="node-input-rgbwmode" style="width:100%">
+                    <option value="none">None - Mode is passed in payload but device is not reconfigured.</option>
+                    <option value="auto">Auto - Mode configures the device automatically using the mode in msg.payload.</option>
+                    <option value="color">Color - Shelly controls Red, Blue, Green and White LED stripes</option>
+                    <option value="white">White - Shelly controls 4x White LED stripes</option>
+                </select>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr align="middle"/>
 
     <div class="form-row" id="hiddeninputs">
         <label for="node-input-outputs"><i class="fa fa-envelope"></i> Output Count</label>
@@ -136,165 +167,6 @@
     <p></p>
     <p>2. CSV Ouput: The downloaded csv history for EM devices.</p>
     <p><code>msg.payload</code></p>
-</script>
-
-<!-- ------------------------------------------------------------------------------------------ -->
-<script type="text/javascript">
-    RED.nodes.registerType('shelly-rgbw2', {
-        category: 'Shelly Gen 1',
-        color: '#319DD7',
-        defaults: {
-            hostname: { value:"" },
-            description: { value:"" },
-            ledStat: { value: true },
-            pollinginterval: { value: 5000 },
-            mode: { value:"color", required: true  },
-            pollstatus: { value: false, required: false },
-        },
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        },
-        inputs: 1,
-        outputs: 1,
-        icon: "shelly.png",
-        paletteLabel: "rgbw2/bulb rgbw",
-        label: function () {
-            return this.description || this.hostname || "Shelly RGBW";
-        },
-        labelStyle: function() {
-            return this.description?"node_label_italic":"";
-        }
-    });
-</script>
-
-<script type="text/x-red" data-template-name="shelly-rgbw2">
-    <div class="form-row">
-        <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
-        <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the device">
-    </div>
-    <div class="form-row">
-        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
-        <input type="text" id="node-input-description" placeholder="The description of the device (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
-        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
-        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
-    </div>
-    <div class="form-row">
-        <label for="node-input-ledStat"><i class="fa fa-share"></i> Status</label>
-        <input type="checkbox" id="node-input-ledStat" style="display: inline-block; width: auto; vertical-align: top"> Enable status output after each command
-    </div>
-    <div class="form-row">
-        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
-        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
-        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
-    </div>
-
-    <hr align="middle"/>
-
-    <div class="form-row">
-        <label for="node-input-mode"><i class="fa fa-pencil"></i> Device Type</label>
-        <div style="display: inline-block; position: relative; width: 70%; height: 19.1333px;">
-        <div style="position: absolute; left: 0; right: 0;">
-          <select id="node-input-mode" style="width:100%">
-            <option value="none">None - Mode is passed in payload but device is not reconfigured.</option>
-            <option value="auto">Auto - Mode configures the device automatically using the mode in msg.payload.</option>
-            <option value="color">Color - Shelly controls Red, Blue, Green and White LED stripes</option>
-            <option value="white">White - Shelly controls 4x White LED stripes</option>
-          </select>
-        </div>
-        </div>
-    </div>
-
-</script>
-
-<script type="text/x-red" data-help-name="shelly-rgbw2">
-    <p>A node that controls a shelly RGBW device (Shelly RGBW2, Shelly Bulb RGBW).</p>
-
-    <h3>Configuration</h3>
-    <p>Hostname is the IP address or the hostname of the device.</p>
-    <p>Description of the device.</p>
-    <p>User is optional and must only be set if security is enabled.</p>
-    <p>Password is optional and must only be set if security is enabled.</p>
-    <p>Status enables a node status payload following every command.</p>
-    <p>Ping interval is the time between the status pollings.</p>
-    <p>DeviceType should match the setting of the device. If None is selected you should pass mode in msg.payload.</p>
-    <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
-
-    <h3>Inputs</h3>
-    <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
-    <p><code>msg.payload</code></p>
-    <ul>
-        <code>{</code>
-        <br/>
-        <code>    red : 255, </code>
-        <br/>
-        <code>    green : 255, </code>
-        <br/>
-        <code>    blue : 255, </code>
-        <br/>
-        <code>    white : 255, </code>
-        <br/>
-        <code>    temp : 4750, </code>
-        <br/>
-        <code>    gain : 100, </code>
-        <br/>
-        <code>    effect : 0, </code>
-        <br/>
-        <code>    on : true, </code>
-        <br/>
-        <code>    timer : 0, </code>
-        <br/>
-        <code>    mode : 'color', </code>
-        <br/>
-        <code>    transition : 0, </code>
-        <br/>
-        <code>    brightness : 100, </code>
-        <br/>
-        <code>}</code>
-    </ul>
-    <p>Values or colors must be betweem 0..255.</p>
-    <p>Value of gain must be between 0..100.</p>
-    <p>temp = 3000..6500 means temperature of white which is supported by the shelly bulb RGBW. Either use temp or white as both are the same.</p>
-    <p>effect = 0 is default means that no effect is used.</p>
-    <p>timer = 0 time in seconds to flip back. 0 is default means that no flip back is used.</p>
-    <p>mode = 'color' the mode is optional and can either be passed in the payload or set in the node configuration itself.</p>
-    <p>transition = 0..5000ms the transition is optional.</p>
-    <p>brightness = 0..100% the brightness is optional.</p>
-    <p> or </p>
-    <p><code>msg.payload</code></p>
-    <ul>
-        <code>{</code>
-        <br/>
-        <code>    light : 0, </code>
-        <br/>
-        <code>    brightness : 100, </code>
-        <br/>
-        <code>    on : true, </code>
-        <br/>
-        <code>    timer : 0, </code>
-        <br/>
-        <code>    mode : 'white', </code>
-        <br/>
-        <code>    transition : 0< /code>
-        <br/>
-        <code>}</code>
-    </ul>
-    <p>light = 0..3 the light (0 for shelly bulb duo).</p>
-
-    <h3>Outputs</h3>
-    <p>1. Standard Ouput: A status object.</p>
-    <p><code>msg.payload</code></p>
-    <p>Full status object is available at.</p>
-    <p><code>msg.status</code></p>
 </script>
 
 
