@@ -224,8 +224,17 @@ module.exports = function (RED) {
                 turn = command.turn;
             }
 
-            if(turn !== undefined){
-                route = "/relay/" + relay + "?turn=" + turn;
+            let parameters = '';
+            if (turn !== undefined){
+                parameters += "&turn=" + turn;
+            }
+
+            if(timerSeconds !== undefined){
+                parameters += "?timer=" + timerSeconds;
+            }
+
+            if (parameters !== '') {
+                route = combineUrl("/relay/" + relay, parameters);
             }
         }
         return route;
@@ -400,7 +409,9 @@ module.exports = function (RED) {
     function convertToRelay(status){
         let result = {
             relays : status.relays,
-            meters : status.meters
+            meters : status.meters,
+            inputs : status.inputs,
+            adcs : status.adcs
         }
         return result;
     }
@@ -639,179 +650,6 @@ module.exports = function (RED) {
     }
 
     RED.nodes.registerType("shelly-door", ShellyDoorNode, {
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        }
-    });
-
-
-    // --------------------------------------------------------------------------------------------
-    // The dimmer node controls a shelly dimmer or Shelly Duo.
-    function ShellyDimmerNode(config) {
-        RED.nodes.createNode(this, config);
-        let node = this;
-        node.hostname = config.hostname.trim();
-	    node.dimmerStat = config.dimmerStat || false;
-        node.pollInterval = parseInt(config.pollinginterval);
-        node.pollStatus = config.pollstatus || false;
-
-        /* node.shellyInfo
-        GET /shelly
-        {
-           "type":"SHDM-1",
-           "mac":"CC50E3F36XXX",
-           "auth":false,
-           "fw":"20200309-104554/v1.6.0@43056d58",
-           "num_outputs":1,
-           "num_meters":1
-        }
-        */
-
-        let types = ["SHDM-", "SHBDUO-1"];
-        start(node, types);
-
-        /* when a payload is received in the format
-            {
-                light : 0,
-                on : true,
-                brightness : 75,
-                white : 100 // optional for Duo
-                transition : 0 // optional for Duo
-                temp : 2700 // optional for Duo
-            }
-            or in alternative format 
-            {
-                relay : 0,
-                turn : on/off/toggle,
-                brightness : 75
-            }
-        then the command is send to the shelly.
-
-        The output gets the status of all relays.
-        */
-        this.on('input', function (msg) {
-
-            let credentials = getCredentials(node, msg);
-            
-            let route = '';
-            if(msg.payload !== undefined){
-                let command = msg.payload;
-
-                let light = 0;
-                if(command.light !== undefined){
-                    light = command.light;
-                }
-
-                let turn;
-                if(command.on !== undefined){
-                    if(command.on == true){
-                        turn = "on";
-                    }
-                    else{
-                        turn = "off"
-                    }
-                }
-                else if(command.turn !== undefined){
-                    turn = command.turn;
-                }
-
-                let brightness;
-                if(command.brightness !== undefined){
-                    if(command.brightness >=1 && command.brightness <= 100){
-                        brightness = command.brightness;
-                  } else { 
-                      brightness = 100;  // Default to full brightness
-                  }
-                }
-
-                let white;
-                if(command.white !== undefined){
-                    if(command.white >=1 && command.white <= 100){
-                        white = command.white;
-                  } else { 
-                      // Default is undefined
-                  }
-                }
-
-                let temperature;
-                if(command.temp !== undefined){
-                    if(command.temp >=2700 && command.temp <= 6500){
-                        temperature = command.temp;
-                  } else { 
-                      // Default is undefined
-                  }
-                }
-
-                let transition;
-                if(command.transition !== undefined){
-                    if(command.transition >=0 && command.transition <= 5000){
-                        transition = command.transition;
-                  } else { 
-                      // Default is undefined
-                  }
-                }
-
-
-                if (turn !== undefined && brightness !== undefined){
-                  route = "/light/" + light + "?turn=" + turn + "&brightness=" + brightness;
-                }
-                else if (brightness !== undefined){
-                    route = "/light/" + light + "?brightness=" + brightness;
-                }
-                else if (turn !== undefined){
-                    route = "/light/" + light + "?turn=" + turn;
-                }
-
-                if (route !== '') {
-                    if(white !== undefined) {
-                        route += "&white=" + white;
-                    }
-
-                    if(temperature !== undefined) {
-                        route += "&temp=" + temperature;
-                    }
-
-                    if(transition !== undefined) {
-                        route += "&transition=" + transition;
-                    }
-                }
-            }
-
-            if (route !== '') {
-                shellyGet(route, node, credentials, function(body) {
-		            if (node.dimmerStat) {
-			            shellyGet('/status', node, credentials, function(body) {
-
-                            node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                            let status = body;
-                            msg.status = status;
-                            msg.payload = status.lights;
-                            node.send([msg]);
-			            });
-		            }
-                });
-            }
-            else {
-                shellyGet('/status', node, credentials, function(body) {
-
-                    node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                    let status = body;
-                    msg.status = status;
-                    msg.payload = status.lights;
-                    node.send([msg]);
-                });
-            }
-        });
-
-        this.on('close', function(done) {
-            clearInterval(node.timer);
-            done();
-        });
-    }
-    RED.nodes.registerType("shelly-dimmer", ShellyDimmerNode, {
         credentials: {
             username: { type: "text" },
             password: { type: "password" },
@@ -1436,115 +1274,6 @@ module.exports = function (RED) {
             password: { type: "password" },
         }
     });
-
-
-    // --------------------------------------------------------------------------------------------
-    // The UNI node controls a shelly UNI device.
-    /* 
-    GET /status
-    {
-       
-    }
-    */
-    function ShellyUniNode(config) {
-        RED.nodes.createNode(this, config);
-        let node = this;
-        node.hostname = config.hostname.trim();
-        node.pollInterval = parseInt(config.pollinginterval);
-        node.pollStatus = config.pollstatus || false;
-
-        let types = ["SHUNI"];
-        start(node, types);
-        
-        this.on('input', function (msg) {
-
-            let credentials = getCredentials(node, msg);
-            
-            let route = '';
-            if(msg.payload !== undefined){
-                let command = msg.payload;
-
-                let relay = 0;
-                if(command.relay !== undefined){
-                    relay = command.relay;
-                }
-
-                let turn;
-                if(command.on !== undefined){
-                    if(command.on == true){
-                        turn = "on";
-                    }
-                    else{
-                        turn = "off"
-                    }
-                }
-                else if(command.turn !== undefined){
-                    turn = command.turn;
-                }
-
-                let timerSeconds;
-                if(command.timer !== undefined){
-                    timerSeconds = command.timer;
-                }
-
-                if(turn !== undefined){
-                    route = "/relay/" + relay + "?turn=" + turn;
-                }
-
-                if(timerSeconds !== undefined){
-                    route += "?timer=" + timerSeconds;
-                }
-            }
-
-            if (route !== ''){
-                shellyGet(route, node, credentials, function(body) {
-                    shellyGet('/status', node, credentials, function(body) {
-
-                        node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                        let status = body;
-                        msg.status = status;
-                        msg.payload = {
-                            relays : status.relays,
-                            inputs : status.inputs,
-                            adcs : status.adcs
-                        };
-
-                        node.send([msg]);
-                    });
-                });
-            }
-            else{
-                shellyGet('/status', node, credentials, function(body) {
-
-                    node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                    let status = body;
-                    msg.status = status;
-                    msg.payload = {
-                        relays : status.relays,
-                        inputs : status.inputs,
-                        adcs : status.adcs
-                    };
-                    
-                    node.send([msg]);
-                });
-            }
-        });
-
-        this.on('close', function(done) {
-            clearInterval(node.timer);
-            done();
-        });
-    }
-
-    RED.nodes.registerType("shelly-uni", ShellyUniNode, {
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        }
-    });
-
     
 
     // --------------------------------------------------------------------------------------------

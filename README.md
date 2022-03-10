@@ -89,14 +89,16 @@ The node can communicate with several shelly types. You must select the correct 
 Devices are grouped as follows:
 
 
-## Relays (Shelly 1, 2, 1PM, 1L, Plug, PlugS, ...)
+## Relays (Shelly 1, 2, 1PM, 1L, Plug, PlugS, Uni)
 The node is able to turn on and turn off a shelly switch. It outputs the status of all relays after every interaction with the shelly device.
 Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
+Note that the UNI can also deliver the ADCS values in the status.
 
 
 ```
 {
     relay : 0,
+	timer : 1,
 	on : true
 }
 ```
@@ -107,10 +109,12 @@ or you can make use of the alternative notation:
 ```
 {
     relay : 0,
+	timer : 1,
 	turn : 'toggle'
 }
 ```
 turn can be one of the following: 'toggle', 'on', 'off'
+timer is optional flip back timer in seconds 
 
 Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
 
@@ -121,7 +125,7 @@ The output of the node is an array of status objects for every relay of the swit
 
 
 ```
-[
+relays : [
     {
         ison : true,
 	    ...
@@ -130,12 +134,18 @@ The output of the node is an array of status objects for every relay of the swit
         ison : true,
 	    ...
     },
+],
+meters : [
+],
+inputs : [
+],
+adcs : [
 ]
 ```
 
 Examples:  
 [**shelly switch flow**](examples/switch.json) 
-
+[**shelly uni flow**](examples/uni.json) 
 
 ## Roller Shutter (Shelly 2, Shelly 2.5)
 
@@ -206,7 +216,9 @@ relays : [
 		    ison : true,
 			...
 		},
-	]
+	],
+meters : [
+]
 ```
 
 Examples:  
@@ -269,6 +281,8 @@ lights : [
 		brightness: 100
 	    ...
     },
+],
+meters : [
 ]
 ```
 
@@ -542,57 +556,6 @@ from the device can take some seconds as it depends on the size of the gathered 
 Examples:  
 [**shelly EM flow**](examples/emeasure.json)  
 [**shelly EM download CSV flow**](examples/emeasure2.json)  
-
-
-# Shelly UNI Node
-The node is able to turn on and turn off a shelly UNI. It outputs the status of all relays, inputs and ADCs after every interaction with the shelly device.
-Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
-
-
-```
-{
-    relay : 0,
-	on : true,
-	timer : 1
-}
-```
-
-or you can make use of the alternative notation:
-
-
-```
-{
-    relay : 0,
-	turn : 'toggle'
-	timer : 1
-}
-```
-turn can be one of the following: 'toggle', 'on', 'off'
-timer is optional flip back timer in seconds 
- 
-Right after having sent the request to the shelly device a status request is done. The relays property of the response is output on output 1.
-
-If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.
-This is useful, when you want to poll for the status cyclically.
-
-The output of the node is an array of status objects for every relay of the switch:
-
-
-```
-[
-    {
-        ison : true,
-	    ...
-    },
-    {
-        ison : true,
-	    ...
-    },
-]
-```
-
-Examples:  
-[**shelly uni flow**](examples/uni.json) 
 
 
 
