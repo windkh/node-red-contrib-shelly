@@ -390,6 +390,83 @@ module.exports = function (RED) {
         return route;
     }
 
+
+    // Creates a route from the input.
+    function inputParserThermostat(msg){
+        let route;
+        if(msg !== undefined && msg.payload !== undefined){
+            let command = msg.payload;
+
+            let thermostat = 0;
+        
+            let position;
+            if(command.position !== undefined){
+                if(command.position >=0 && command.position <= 100){
+                    position = command.position;
+                } else { 
+                    // Default is undefined
+                }
+            }
+
+            let temperature;
+            if(command.temperature !== undefined){
+                if(command.temperature >=4 && command.temperature <= 31){
+                    temperature = command.temperature;
+                } else { 
+                    // Default is undefined
+                }
+            }
+
+            let schedule;
+            if(command.schedule !== undefined){
+                if(command.schedule == true || command.schedule == false){
+                    schedule = command.schedule;
+                }
+            }
+
+            let scheduleProfile;
+            if(command.scheduleProfile !== undefined){
+                if(command.scheduleProfile >= 1 || command.scheduleProfile <= 5){
+                    scheduleProfile = command.scheduleProfile;
+                }
+            }
+
+            let boostMinutes;
+            if(command.boostMinutes !== undefined){
+                if(command.boostMinutes >= 0){
+                    boostMinutes = command.boostMinutes;
+                }
+            }
+
+
+            let parameters = '';
+            if (position !== undefined){
+                parameters = "&pos=" + position;
+            }
+
+            if (temperature !== undefined){
+                parameters += "&target_t=" + temperature;
+            }
+
+            if (schedule !== undefined){
+                parameters += "&schedule=" + schedule;
+            }
+
+            if (scheduleProfile !== undefined){
+                parameters += "&schedule_profile=" + scheduleProfile;
+            }
+
+            if (boostMinutes !== undefined){
+                parameters += "&boost_minutes=" + boostMinutes;
+            }
+
+            if (parameters !== '') {
+                route = combineUrl("/thermostat/" + thermostat, parameters);
+            }
+        }
+        return route;
+    }
+
     // Returns the input parser for the device type.
     function getInputParser(deviceType){
         
@@ -404,6 +481,9 @@ module.exports = function (RED) {
                 break;
             case 'Dimmer':
                 result = inputParserDimmer;
+                break;
+            case 'Thermostat':
+                result = inputParserThermostat;
                 break;
             default:
                 break;
@@ -427,6 +507,10 @@ module.exports = function (RED) {
 
         if(status.lights !== undefined){
             result.lights = status.lights;
+        }
+
+        if(status.thermostats !== undefined){
+            result.thermostats = status.thermostats;
         }
 
         if(status.meters !== undefined){
@@ -456,6 +540,9 @@ module.exports = function (RED) {
                 break;
             case 'Dimmer':
                 deviceTypes = ["SHDM-", "SHBDUO-"];
+                break;
+            case 'Thermostat':
+                deviceTypes = ["SHTRV-" ];
                 break;
             default:
                 break;
@@ -1171,155 +1258,6 @@ module.exports = function (RED) {
     });
 
     
-    
-    // --------------------------------------------------------------------------------------------
-    // The dimmer node controls a shelly TRV.
-    function ShellyTrvNode(config) {
-        RED.nodes.createNode(this, config);
-        let node = this;
-        node.hostname = config.hostname.trim();
-	    node.pollInterval = parseInt(config.pollinginterval);
-        node.pollStatus = config.pollstatus || false;
-
-        /* node.shellyInfo
-        GET /shelly
-        {
-            "type":"SHTRV-01",
-            "mac":"60A423DCBA90",
-            "auth":false,
-            "fw":"20220202-080736/v2.1.3@d255ad74",
-            "longid":1}
-        */
-
-        let types = ["SHTRV-"];
-        start(node, types);
-
-        /* when a payload is received in the format
-            {
-                position : 0,
-                temperature : 25,
-                schedule : false,
-                scheduleProfile = 1,
-                boostMinutes = 0
-            }
-        then the command is send to the shelly.
-
-        The output gets the status of all relays.
-        */
-        this.on('input', function (msg) {
-
-            let credentials = getCredentials(node, msg);
-            
-            let route = '';
-            if(msg.payload !== undefined){
-                let command = msg.payload;
-
-                let thermostat = 0;
-            
-                let position;
-                if(command.position !== undefined){
-                    if(command.position >=0 && command.position <= 100){
-                        position = command.position;
-                    } else { 
-                        // Default is undefined
-                    }
-                }
-
-                let temperature;
-                if(command.temperature !== undefined){
-                    if(command.temperature >=4 && command.temperature <= 31){
-                        temperature = command.temperature;
-                  } else { 
-                      // Default is undefined
-                  }
-                }
-
-                let schedule;
-                if(command.schedule !== undefined){
-                    if(command.schedule == true || command.schedule == false){
-                        schedule = command.schedule;
-                    }
-                }
-
-                let scheduleProfile;
-                if(command.scheduleProfile !== undefined){
-                    if(command.scheduleProfile >= 1 || command.scheduleProfile <= 5){
-                        scheduleProfile = command.scheduleProfile;
-                    }
-                }
-
-                let boostMinutes;
-                if(command.boostMinutes !== undefined){
-                    if(command.boostMinutes >= 0){
-                        boostMinutes = command.boostMinutes;
-                    }
-                }
-
-
-                if (position !== undefined){
-                    route = "?pos=" + position;
-                }
-
-                if (temperature !== undefined){
-                    route += "?target_t=" + temperature;
-                }
-
-                if (schedule !== undefined){
-                    route += "?schedule=" + schedule;
-                }
-
-                if (scheduleProfile !== undefined){
-                    route += "?schedule_profile=" + scheduleProfile;
-                }
-
-                if (boostMinutes !== undefined){
-                    route += "?boost_minutes=" + boostMinutes;
-                }
-
-                if (route !== '') {
-                    route = "/thermostat/" + thermostat + route;
-                }
-            }
-
-            if (route !== '') {
-                shellyGet(route, node, credentials, function(body) {
-                    shellyGet('/status', node, credentials, function(body) {
-
-                        node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                        let status = body;
-                        msg.status = status;
-                        msg.payload = status.thermostats;
-                        node.send([msg]);
-                    });
-		        });
-            }
-            else {
-                shellyGet('/status', node, credentials, function(body) {
-
-                    node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                    let status = body;
-                    msg.status = status;
-                    msg.payload = status.thermostats;
-                    node.send([msg]);
-                });
-            }
-        });
-
-        this.on('close', function(done) {
-            clearInterval(node.timer);
-            done();
-        });
-    }
-    RED.nodes.registerType("shelly-trv", ShellyTrvNode, {
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        }
-    });
-
-
     // --------------------------------------------------------------------------------------------
     // The button node controls a shelly button or I3 device.
     /* 

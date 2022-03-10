@@ -314,6 +314,30 @@ meters : [
 [**shelly bulb duo flow**](examples/dimmer.json)  
 
 
+## Thermostat (Shelly TRV)
+The node is able to control a shelly TRV. It outputs the status of all thermostats after every interaction with the shelly device.
+Turning on is done by sending the following payload into the input.
+
+
+```
+{
+    position : 0..100, // 0 = closed
+	temperature : 4..31, // target temperature in C
+    schedule : true,
+	scheduleProfile : 1..5,
+	boostMinutes : 0..n
+}
+```
+
+Right after having sent the request to the shelly device a status request is done. The thermostats property of the response is output on output 1.  
+This feature can optionally be disabled by unticking the `status` checkbox in the node configuration options.
+
+If you only want to get the current status of the TRV leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
+
+### Examples:  
+[**shelly TRV flow**](examples/trv.json) 
+
+
 
 
 # Shelly Switch Node Generation 2 (1 Plus, 1 PM Plus)
@@ -477,32 +501,6 @@ The output of the node is as follows:
 
 ### Examples:  
 [**shelly motion flow**](examples/motion.json)  
-
-
-
-
-# Shelly TRV Node
-The node is able to control a shelly TRV. It outputs the status of all thermostats after every interaction with the shelly device.
-Turning on is done by sending the following payload into the input.
-
-
-```
-{
-    position : 0..100, // 0 = closed
-	temperature : 4..31, // target temperature in C
-    schedule : true,
-	scheduleProfile : 1..5,
-	boostMinutes : 0..n
-}
-```
-
-Right after having sent the request to the shelly device a status request is done. The thermostats property of the response is output on output 1.  
-This feature can optionally be disabled by unticking the `status` checkbox in the node configuration options.
-
-If you only want to get the current status of the TRV leave the msg.payload blank. This is useful, when you want to poll for the status cyclically.
-
-### Examples:  
-[**shelly TRV flow**](examples/trv.json) 
 
 
 
