@@ -58,33 +58,6 @@ module.exports = function (RED) {
         return credentials;
     }
 
-    // generic REST get wrapper
-    function shellyGet(route, node, credentials, callback){
-
-        let headers = {};
-        if(credentials.username !== undefined && credentials.password !== undefined) {
-            headers.Authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64");
-        };
-
-        let url = 'http://' + credentials.hostname + route;
-
-        const request = axios.get(url, {
-            headers : headers
-        });
-
-        request.then(response => {
-            if(response.status == 200){
-                callback(response.data);
-            }
-            else {
-                node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusText });
-            }
-        })
-        .catch(error => {
-            node.status({ fill: "red", shape: "ring", text: "Error: " + error });
-        });
-    }
-
     // Note that this function has a reduced timeout.
     function shellyTryGet(route, node, timeout, credentials, callback, errorCallback){
 
@@ -130,7 +103,7 @@ module.exports = function (RED) {
 
             let url = 'http://' + credentials.hostname + route;
             
-            const request = axios.get(url, {}, {
+            const request = axios.get(url, {
                 headers : headers
             });
 
@@ -915,7 +888,10 @@ module.exports = function (RED) {
     }
 
     // initializes a RGBW node.
-    async function initializerRGBW1(node){
+    async function initializerRGBW1(node, types){
+    
+        start(node, types);
+    
         if(node.hostname !== ''){
             let mode = node.rgbwMode;
             if(mode === "color" || mode === "white"){
@@ -934,6 +910,10 @@ module.exports = function (RED) {
         }
     }
 
+    function initializer1(node, types){
+        start(node, types);
+    }
+
     // Gets a function that initialize the device.
     function getInitializer1(deviceType){
         let result;
@@ -943,7 +923,7 @@ module.exports = function (RED) {
                 result = initializerRGBW1;
                 break;
             default:
-                result = noop;
+                result = initializer1;
                 break;
         }
         return result;
@@ -1081,9 +1061,7 @@ module.exports = function (RED) {
             node.inputParser = getInputParser1(deviceType);
             node.types = getDeviceTypes1(deviceType);
             
-            start(node, node.types);
-    
-            node.initializer(node);
+            node.initializer(node, node.types);
             
             this.on('input', async function (msg) {
 
@@ -1210,6 +1188,10 @@ module.exports = function (RED) {
         return result;
     }
 
+    function initializer2(node, types){
+        start(node, types);
+    }
+
     // Gets a function that initialize the device.
     function getInitializer2(deviceType){
         let result;
@@ -1217,7 +1199,7 @@ module.exports = function (RED) {
         switch(deviceType) {
             // TODO: for future usage
             default:
-                result = noop;
+                result = initializer2;
                 break;
         }
         return result;
@@ -1293,9 +1275,7 @@ module.exports = function (RED) {
             node.inputParser = getInputParser2(deviceType);
             node.types = getDeviceTypes2(deviceType);
             
-            start(node, node.types);
-    
-            node.initializer(node);
+            node.initializer(node, node.types);
             
             this.on('input', async function (msg) {
 

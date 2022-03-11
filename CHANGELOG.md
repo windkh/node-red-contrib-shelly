@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.1.1] - 2022-03-11
+### code cleanup.
+
 ## [7.1.0] - 2022-03-11
 ### fixed bug when username and password was set.
 
