@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.1.0] - 2022-03-11
+### fixed bug when username and password was set.
+
 ## [7.0.0] - 2022-03-11
 ### Merged Shelly Plus 1PM node into new GEN 2 node - [#59](https://github.com/windkh/node-red-contrib-shelly/issues/59)
 

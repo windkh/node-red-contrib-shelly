@@ -101,7 +101,7 @@ module.exports = function (RED) {
 
         let url = 'http://' + credentials.hostname + route;
 
-        const request = axios.get(url, {}, {
+        const request = axios.get(url, {
             headers : headers,
             timeout: requestTimeout
         });
