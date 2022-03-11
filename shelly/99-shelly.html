@@ -174,7 +174,7 @@
 
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
-    RED.nodes.registerType('shelly-switch2', {
+    RED.nodes.registerType('shelly-gen2', {
         category: 'Shelly Gen 2',
         color: '#6C95CE',
         defaults: {
@@ -182,6 +182,9 @@
             description: { value:"" },
             pollinginterval: { value: 5000 },
             pollstatus: { value: false, required: false },
+            getstatusoncommand: { value: true },
+            devicetype: { value: "", required: true},
+            outputs: {value: 1},
         },
         credentials: {
             username: { type: "text" },
@@ -190,18 +193,40 @@
         inputs: 1,
         outputs: 1,
         icon: "shelly2.png",
-        paletteLabel: "switch2",
+        paletteLabel: "shelly",
         label: function () {
-            return this.description || this.hostname || "Shelly switch 2";
+            return this.description || this.hostname || this.devicetype || "Shelly";
         },
         labelStyle: function() {
             return this.description?"node_label_italic":"";
+        },
+        oneditprepare: function() {
+            let updateDeviceType = function() {
+                let devicetype = $("#node-input-devicetype").val();
+                // TODO: for future usage
+            };
+            updateDeviceType();
+            $("#node-input-devicetype").change(updateDeviceType);
         }
     });
 
 </script>
 
-<script type="text/x-red" data-template-name="shelly-switch2">
+<script type="text/x-red" data-template-name="shelly-gen2">
+
+    <div class="form-row">
+        <label for="node-input-devicetype"><i class="fa fa-pencil"></i> Device Type</label>
+        <div style="display: inline-block; position: relative; width: 70%; height: 19.1333px;">
+        <div style="position: absolute; left: 0; right: 0;">
+          <select id="node-input-devicetype" style="width:100%">
+            <option value="Relay">Relay - Shelly1 Plus, 1 Plus PM</option> 
+          </select>
+        </div>
+        </div>
+    </div>
+
+    <hr align="middle"/>
+
     <div class="form-row">
         <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
         <input type="text" id="node-input-hostname" placeholder="The hostname or the IP address of the device">
@@ -218,18 +243,26 @@
         <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
         <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
     </div>
+
+    <hr align="middle"/>
+
     <div class="form-row">
         <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
         <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
+    </div>    
+    <div class="form-row">
+        <label for="node-input-pollstatus"><i class="fa fa-repeat"></i> Status</label>
+        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;"> Enable status output after each poll cycle
     </div>
     <div class="form-row">
-        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
-        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-getstatusoncommand"><i class="fa fa-share"></i> Status</label>
+        <input type="checkbox" id="node-input-getstatusoncommand" style="display: inline-block; width: auto; vertical-align: top"> Enable status output after each command
     </div>
+
 </script>
 
-<script type="text/x-red" data-help-name="shelly-switch2">
-    <p>A node that controls a shelly switch device (Shelly Plus 1, Shelly Plus 1 PM).</p>
+<script type="text/x-red" data-help-name="shelly-gen2">
+    <p>A node that controls a shelly generation 2 device.</p>
 
     <h3>Configuration</h3>
     <p>Hostname is the IP address or the hostname of the device.</p>
@@ -240,25 +273,13 @@
     <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
 
     <h3>Inputs</h3>
-    <p>Empty payload for getting the status. Or the following object for turning the switch on or off:</p>
+    <p>Empty payload for getting the status. See documentation for device specific input.</p>
     <p><code>msg.payload</code></p>
-    <ul>
-        <code>{</code>
-        <br/>
-        <code>    id : 0, </code>
-        <br/>
-        <code>    on : true </code>
-        <br/>
-        <code>    toggle_after : 1 </code>
-        <br/>
-        <code>}</code>
-    </ul>
-    <p>id is the relay 0..n.</p>
-    <p>on can be true or false.</p>
-    <p>toggle_after is optional time in seconds to flip back.</p>
-
+    
     <h3>Outputs</h3>
-    <p>1. Standard Ouput: The full status object.</p>
+    <p>1. Standard Ouput: status object.</p>
     <p><code>msg.payload</code></p>
+    <p>Full status object is available at.</p>
+    <p><code>msg.status</code></p>
 </script>
 

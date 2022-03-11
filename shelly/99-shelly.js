@@ -209,8 +209,11 @@ module.exports = function (RED) {
         }
     }
 
+
+     // GEN 2 --------------------------------------------------------------------------------------
+   
     // Creates a route from the input.
-    async function inputParserRelay(msg){
+    async function inputParserRelay1(msg){
         let route;
         if(msg !== undefined && msg.payload !== undefined){
             let command = msg.payload;
@@ -256,7 +259,7 @@ module.exports = function (RED) {
     }
 
     // Creates a route from the input.
-    async function inputParserMeasure(msg, node, credentials){
+    async function inputParserMeasure1(msg, node, credentials){
         let route;
         if(msg !== undefined && msg.payload !== undefined){
             let command = msg.payload;
@@ -335,9 +338,8 @@ module.exports = function (RED) {
         return route;
     }
 
-
     // Creates a route from the input.
-    async function inputParserRoller(msg){
+    async function inputParserRoller1(msg){
         let route;
         if(msg !== undefined && msg.payload !== undefined){
             let command = msg.payload;
@@ -390,7 +392,7 @@ module.exports = function (RED) {
     }
 
     // Creates a route from the input.
-    async function inputParserDimmer(msg){
+    async function inputParserDimmer1(msg){
         let route;
         if(msg !== undefined && msg.payload !== undefined){
             let command = msg.payload;
@@ -481,9 +483,8 @@ module.exports = function (RED) {
         return route;
     }
 
-
     // Creates a route from the input.
-    async function inputParserThermostat(msg){
+    async function inputParserThermostat1(msg){
         let route;
         if(msg !== undefined && msg.payload !== undefined){
             let command = msg.payload;
@@ -559,7 +560,7 @@ module.exports = function (RED) {
     }
 
     // Creates a route from the input.
-    async function inputParserSensor(msg){
+    async function inputParserSensor1(msg){
         let route;
         if(msg !== undefined && msg.payload !== undefined){
             // right now sensors do not accept input commands.
@@ -568,7 +569,7 @@ module.exports = function (RED) {
     }
 
     // Creates a route from the input.
-    async function inputParserButton(msg){
+    async function inputParserButton1(msg){
         let route;
         if(msg !== undefined && msg.payload !== undefined){
             let command = msg.payload;
@@ -606,7 +607,7 @@ module.exports = function (RED) {
     }
 
     // Creates a route from the input.
-    async function inputParserRGBW(msg, node, credentials){
+    async function inputParserRGBW1(msg, node, credentials){
         let route;
         if(msg !== undefined && msg.payload !== undefined){
             let command = msg.payload;
@@ -876,35 +877,35 @@ module.exports = function (RED) {
     }
 
     // Returns the input parser for the device type.
-    function getInputParser(deviceType){
+    function getInputParser1(deviceType){
         
         let result;
 
         switch(deviceType) {
 
             case 'Relay':
-                result = inputParserRelay;
+                result = inputParserRelay1;
                 break;
             case 'Measure':
-                result = inputParserMeasure;
+                result = inputParserMeasure1;
                 break;
             case 'Roller':
-                result = inputParserRoller;
+                result = inputParserRoller1;
                 break;
             case 'Dimmer':
-                result = inputParserDimmer;
+                result = inputParserDimmer1;
                 break;
             case 'Thermostat':
-                result = inputParserThermostat;
+                result = inputParserThermostat1;
                 break;
             case 'Sensor':
-                result = inputParserSensor;
+                result = inputParserSensor1;
                 break;
             case 'Button':
-                result = inputParserButton;
+                result = inputParserButton1;
                 break;
             case 'RGBW':
-                result = inputParserRGBW;
+                result = inputParserRGBW1;
                 break;
             default:
                 result = noop;
@@ -914,7 +915,7 @@ module.exports = function (RED) {
     }
 
     // initializes a RGBW node.
-    async function initializerRGBW(node){
+    async function initializerRGBW1(node){
         if(node.hostname !== ''){
             let mode = node.rgbwMode;
             if(mode === "color" || mode === "white"){
@@ -933,13 +934,13 @@ module.exports = function (RED) {
         }
     }
 
-    // Gets a function that initialize sthe device.
-    function getInitializer(deviceType){
+    // Gets a function that initialize the device.
+    function getInitializer1(deviceType){
         let result;
 
         switch(deviceType) {
             case 'RGBW':
-                result = initializerRGBW;
+                result = initializerRGBW1;
                 break;
             default:
                 result = noop;
@@ -950,7 +951,7 @@ module.exports = function (RED) {
 
     
     // Returns a status object with filtered properties.
-    function convertStatus(status){
+    function convertStatus1(status){
         let result = {
         }
 
@@ -1021,7 +1022,7 @@ module.exports = function (RED) {
         return result;
     }
 
-    function getDeviceTypes(deviceType){
+    function getDeviceTypes1(deviceType){
         let deviceTypes;
         switch(deviceType) {
 
@@ -1074,9 +1075,9 @@ module.exports = function (RED) {
         node.deviceType = deviceType;
 
         if(deviceType !== undefined && deviceType !== "") {
-            node.initializer = getInitializer(deviceType);
-            node.inputParser = getInputParser(deviceType);
-            node.types = getDeviceTypes(deviceType);
+            node.initializer = getInitializer1(deviceType);
+            node.inputParser = getInputParser1(deviceType);
+            node.types = getDeviceTypes1(deviceType);
             
             start(node, node.types);
     
@@ -1088,17 +1089,18 @@ module.exports = function (RED) {
                 
                 let route = await node.inputParser(msg, node, credentials);
                 
+                let getStatusRoute = '/status';
                 if (route !== undefined && route !== ''){
 
                     shellyTryGet(route, node, node.pollInterval, credentials, function(body) {
                         if (node.getStatusOnCommand) {
-                            shellyTryGet('/status', node, node.pollInterval, credentials, function(body) {
+                            shellyTryGet(getStatusRoute, node, node.pollInterval, credentials, function(body) {
                                 
                                 node.status({ fill: "green", shape: "ring", text: "Connected." });
 
                                 let status = body;
                                 msg.status = status;
-                                msg.payload = convertStatus(status);
+                                msg.payload = convertStatus1(status);
                                 node.send([msg]);
                             },
                             function(error){
@@ -1113,13 +1115,13 @@ module.exports = function (RED) {
                     });
                 }
                 else {
-                    shellyTryGet('/status', node, node.pollInterval, credentials, function(body) {
+                    shellyTryGet(getStatusRoute, node, node.pollInterval, credentials, function(body) {
                             
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
                         let status = body;
                         msg.status = status;
-                        msg.payload = convertStatus(status);
+                        msg.payload = convertStatus1(status);
                         node.send([msg]);
                     },
                     function(error){
@@ -1150,112 +1152,188 @@ module.exports = function (RED) {
 
     // GEN 2 --------------------------------------------------------------------------------------
     
+    
+    // Creates a route from the input.
+    async function inputParserRelay2(msg){
+        let route;
+        if(msg !== undefined && msg.payload !== undefined){
+            
+            let command = msg.payload;
+
+            let id;
+            if(command.id !== undefined){
+                id = command.id;
+            }
+
+            let method;
+            if(command.method !== undefined){
+                method = command.method;
+            }
+
+            // Switch.Set (default)
+            if(method === undefined){
+                if(id !== undefined && command.on !== undefined){
+                    route = "/rpc/Switch.Set?id=" + id + "&on=" + command.on;
+                
+                    if(command.toggle_after !== undefined){
+                        route += "&toggle_after=" + command.toggle_after;
+                    }
+                }
+            }
+            else if (method === "Switch.Toggle"){
+                if(id !== undefined){
+                    route = "/rpc/Switch.Toggle?id=" + id;
+                }
+            }
+            else{
+                // nothing to do.
+            }
+        }
+        return route;
+    }
+
+     // Returns the input parser for the device type.
+     function getInputParser2(deviceType){
+        
+        let result;
+
+        switch(deviceType) {
+            case 'Relay':
+                result = inputParserRelay2;
+                break;
+            default:
+                result = noop;
+                break;
+        }
+        return result;
+    }
+
+    // Gets a function that initialize the device.
+    function getInitializer2(deviceType){
+        let result;
+
+        switch(deviceType) {
+            // TODO: for future usage
+            default:
+                result = noop;
+                break;
+        }
+        return result;
+    }
+
+    function getDeviceTypes2(deviceType){
+        let deviceTypes;
+        switch(deviceType) {
+
+            case 'Relay':
+                deviceTypes = ["SNSW-"];
+                break;
+            default:
+                deviceTypes = [];
+                break;
+        }
+
+        return deviceTypes;
+    }
+
+    // Returns a status object with filtered properties.
+    function convertStatus2(status){
+        let result = {
+        }
+
+        if(status['switch:0'] !== undefined){
+            result.switch0 = status['switch:0'];
+        }
+
+        if(status['input:0'] !== undefined){
+            result.input0 = status['input:0'];
+        }
+
+        return result;
+    }
+
+
     // --------------------------------------------------------------------------------------------
-    // The switch node controls a shelly switch gen 2: Shelly 1 plus Shelly 1 PM plus
-    function ShellySwitch2Node(config) {
+    // The shelly node controls a shelly generation 1 device.
+    function ShellyGen2Node(config) {
         RED.nodes.createNode(this, config);
         let node = this;
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
-        node.pollStatus = config.pollstatus || false;
+        node.pollStatus = config.pollstatus;
+        node.getStatusOnCommand = config.getstatusoncommand;
 
-        /* node.shellyInfo
-        GET /shelly
-        { 
-            "id":"shellyplus1pm-44179394b8d0",
-            "mac":"44179394B8D0",
-            "model":"SNSW-001P16EU",
-            "gen":2, 
-            "fw_id":"20210921-202918/0.8.1-g52de872",
-            "ver":"0.8.1",
-            "app":"Plus1PM",
-            "auth_en":false,
-            "auth_domain":null }
-        */
+        let deviceType = config.devicetype;
+        node.deviceType = deviceType;
 
-        let types = ["SNSW-"];
-        start(node, types);
-
-
-        /* when a payload is received in the format
-            {
-                id : 0,
-                on : true,
-                toggle_after : 1
-            }
-        then the command is send to the shelly.
-
-        The output gets the status of the relay with id.
-        */
-        this.on('input', function (msg) {
-
-            let credentials = getCredentials(node, msg);
+        if(deviceType !== undefined && deviceType !== "") {
+            node.initializer = getInitializer2(deviceType);
+            node.inputParser = getInputParser2(deviceType);
+            node.types = getDeviceTypes2(deviceType);
             
-            let route = '';
-            if(msg.payload !== undefined){
-                let command = msg.payload;
+            start(node, node.types);
+    
+            node.initializer(node);
+            
+            this.on('input', async function (msg) {
 
-                let id;
-                if(command.id !== undefined){
-                    id = command.id;
-                }
+                let credentials = getCredentials(node, msg);
+                
+                let route = await node.inputParser(msg, node, credentials);
+                
+                let getStatusRoute = '/rpc/Shelly.GetStatus';
+                if (route !== undefined && route !== ''){
 
-                let method;
-                if(command.method !== undefined){
-                    method = command.method;
-                }
+                    shellyTryGet(route, node, node.pollInterval, credentials, function(body) {
+                        if (node.getStatusOnCommand) {
+                            shellyTryGet(getStatusRoute, node, node.pollInterval, credentials, function(body) {
+                                
+                                node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                // Switch.Set (default)
-                if(method === undefined){
-                    if(id !== undefined && command.on !== undefined){
-                        route = "/rpc/Switch.Set?id=" + id + "&on=" + command.on;
-                    
-                        if(command.toggle_after !== undefined){
-                            route += "&toggle_after=" + command.toggle_after;
+                                let status = body;
+                                msg.status = status;
+                                msg.payload = convertStatus2(status);
+                                node.send([msg]);
+                            },
+                            function(error){
+                                if (msg.payload){
+                                    node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." });
+                                }
+                            });
                         }
-                    }
+                    },
+                    function(error){
+                        node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." })
+                    });
                 }
-                else if (method === "Switch.Toggle"){
-                    if(id !== undefined){
-                        route = "/rpc/Switch.Toggle?id=" + id;
-                    }
-                }
-                else{
-                    // nothing to do.
-                }
-            }
-
-            let getStatusRoute = '/rpc/Shelly.GetStatus';
-            if (route !== ''){
-                shellyGet(route, node, credentials, function(body) {
-                    shellyGet(getStatusRoute, node, credentials, function(body) {
-
+                else {
+                    shellyTryGet(getStatusRoute, node, node.pollInterval, credentials, function(body) {
+                            
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
                         let status = body;
-                        msg.payload = status;
+                        msg.status = status;
+                        msg.payload = convertStatus2(status);
                         node.send([msg]);
+                    },
+                    function(error){
+                        if (msg.payload){
+                            node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." });
+                        }
                     });
-                });
-            }
-            else {
-                shellyGet(getStatusRoute, node, credentials, function(body) {
+                }
+            });
 
-                    node.status({ fill: "green", shape: "ring", text: "Connected." });
-                        
-                    let status = body;
-                    msg.payload = status;
-                    node.send([msg]);
-                });
-            }
-        });
-
-        this.on('close', function(done) {
-            clearInterval(node.timer);
-            done();
-        });
+            this.on('close', function(done) {
+                clearInterval(node.timer);
+                done();
+            });
+        }
+        else{
+            node.status({ fill: "red", shape: "ring", text: "DeviceType not configured." });
+        }
     }
-    RED.nodes.registerType("shelly-switch2", ShellySwitch2Node, {
+    RED.nodes.registerType("shelly-gen2", ShellyGen2Node, {
         credentials: {
             username: { type: "text" },
             password: { type: "password" },
