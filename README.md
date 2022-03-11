@@ -84,7 +84,8 @@ the msg.payload.hostname. This can be useful, if you want to use one node for se
 ```
 
 
-# Shelly Node (Generation 1) 
+# Shelly Node (Generation 1)
+See also https://shelly-api-docs.shelly.cloud/gen1/#shelly-family-overview
 The node can communicate with several shelly types. You must select the correct device type from the combobox when configuring the node.
 Devices are grouped as follows:
 
@@ -546,7 +547,12 @@ Note that the button is not always reachable as it falls to sleep. This is not t
 
 
 
-# Shelly Switch Node Generation 2 (1 Plus, 1 PM Plus)
+# Shelly Node (Generation 2) 
+See also https://shelly-api-docs.shelly.cloud/gen2/
+The node can communicate with several shelly types. You must select the correct device type from the combobox when configuring the node.
+Devices are grouped as follows:
+
+## Relay (1 Plus, 1 PM Plus)
 The node is able to turn on and turn off a shelly switch. It outputs the status after every interaction with the shelly device.
 Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
 
@@ -554,7 +560,8 @@ Turning on is done by sending the following payload into the input. The relay nu
 ```
 {
     id : 0,
-	on : true
+	on : true,
+	toggle_after : 2
 }
 ```
 
@@ -568,6 +575,17 @@ or you can make use of the alternative notation:
 }
 ```
 
+or
+
+```
+{
+    id : 0,
+	on : false,
+	method : 'Switch.Set'
+}
+```
+
+Note that toggle_after is optional. The unit is seconds.
 Right after having sent the request to the shelly device a status request is done.
 
 If you only want to get the current status of the switch without turning on or off you should leave the msg.payload blank.

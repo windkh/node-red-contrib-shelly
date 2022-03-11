@@ -7,7 +7,7 @@
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
     RED.nodes.registerType('shelly-gen1', {
-        category: 'Shelly Gen 1',
+        category: 'Shelly',
         color: '#319DD7',
         defaults: {
             hostname: { value:"" },
@@ -28,7 +28,7 @@
         inputs: 1,
         outputs: 2,
         icon: "shelly.png",
-        paletteLabel: "shelly",
+        paletteLabel: "shelly gen 1",
         label: function () {
             return this.description || this.hostname || this.devicetype || "Shelly";
         },
@@ -175,7 +175,7 @@
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
     RED.nodes.registerType('shelly-gen2', {
-        category: 'Shelly Gen 2',
+        category: 'Shelly',
         color: '#6C95CE',
         defaults: {
             hostname: { value:"" },
@@ -193,7 +193,7 @@
         inputs: 1,
         outputs: 1,
         icon: "shelly2.png",
-        paletteLabel: "shelly",
+        paletteLabel: "shelly gen 2",
         label: function () {
             return this.description || this.hostname || this.devicetype || "Shelly";
         },

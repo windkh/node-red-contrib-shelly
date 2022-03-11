@@ -1074,6 +1074,8 @@ module.exports = function (RED) {
         let deviceType = config.devicetype;
         node.deviceType = deviceType;
 
+        node.status({});
+
         if(deviceType !== undefined && deviceType !== "") {
             node.initializer = getInitializer1(deviceType);
             node.inputParser = getInputParser1(deviceType);
@@ -1244,9 +1246,27 @@ module.exports = function (RED) {
         if(status['switch:0'] !== undefined){
             result.switch0 = status['switch:0'];
         }
+        if(status['switch:1'] !== undefined){
+            result.switch1 = status['switch:1'];
+        }
+        if(status['switch:2'] !== undefined){
+            result.switch2 = status['switch:2'];
+        }
+        if(status['switch:3'] !== undefined){
+            result.switch3 = status['switch:3'];
+        }
 
         if(status['input:0'] !== undefined){
             result.input0 = status['input:0'];
+        }
+        if(status['input:1'] !== undefined){
+            result.input1 = status['input:1'];
+        }
+        if(status['input:2'] !== undefined){
+            result.input2 = status['input:2'];
+        }
+        if(status['input:3'] !== undefined){
+            result.input3 = status['input:3'];
         }
 
         return result;
@@ -1265,6 +1285,8 @@ module.exports = function (RED) {
 
         let deviceType = config.devicetype;
         node.deviceType = deviceType;
+
+        node.status({});
 
         if(deviceType !== undefined && deviceType !== "") {
             node.initializer = getInitializer2(deviceType);
