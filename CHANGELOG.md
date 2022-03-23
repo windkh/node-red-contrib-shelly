@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.2.0] - 2022-03-23
+### added support for setting attributes - [#62](https://github.com/windkh/node-red-contrib-shelly/issues/62)
+
 ## [7.1.1] - 2022-03-11
 ### code cleanup.
 

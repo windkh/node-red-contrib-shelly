@@ -90,6 +90,37 @@ The node can communicate with several shelly types. You must select the correct 
 Devices are grouped as follows:
 
 
+## Settings
+You can configure your shelly from within the web interface. But there is also the possibility to change the settings from with a flow.
+Simply pass one or more settings objects in msg.settings:
+
+
+```
+[
+{
+    device : 'ext_temperature',
+    index : 0, 
+    attribute : 'overtemp_threshold_tC',
+    value : 90
+},
+{
+    device : 'ext_temperature',
+    index : 0, 
+    attribute : 'overtemp_act',
+    value : 'relay_on'
+}
+...
+]
+```
+To understand the properties please have a look at: 
+https://shelly-api-docs.shelly.cloud/gen1/#shelly1-1pm-settings-ext_temperature-index
+It always follows the same scheme "/settings/<device>/<index>?<attribute>=<value>"
+
+### Examples  
+[**shelly settings flow**](examples/settings.json) 
+
+
+
 ## Relays (Shelly 1, 2, 1PM, 1L, Plug, PlugS, Uni)
 The node is able to turn on and turn off a shelly switch. It outputs the status of all relays after every interaction with the shelly device.
 Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
