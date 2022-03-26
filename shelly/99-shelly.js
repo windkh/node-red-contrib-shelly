@@ -183,7 +183,7 @@ module.exports = function (RED) {
     }
 
 
-     // GEN 2 --------------------------------------------------------------------------------------
+    // GEN 1 --------------------------------------------------------------------------------------
    
     // Creates a route from the input.
     async function inputParserRelay1Async(msg){
@@ -953,6 +953,10 @@ module.exports = function (RED) {
 
         if(status.meters !== undefined){
             result.meters = status.meters;
+        }
+
+        if(status.emeters !== undefined){
+            result.emeters = status.emeters;
         }
 
         if(status.inputs !== undefined){
