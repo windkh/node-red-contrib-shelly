@@ -580,6 +580,7 @@ Note that the button is not always reachable as it falls to sleep. This is not t
 
 # Shelly Node (Generation 2) 
 See also https://shelly-api-docs.shelly.cloud/gen2/
+See also https://shelly-api-docs.shelly.cloud/gen2/Devices/ShellyPlus1PM
 The node can communicate with several shelly types. You must select the correct device type from the combobox when configuring the node.
 Devices are grouped as follows:
 
@@ -590,29 +591,22 @@ Turning on is done by sending the following payload into the input. The relay nu
 
 ```
 {
-    id : 0,
-	on : true,
-	toggle_after : 2
+    method : 'Switch.Set'
+	parameters : {
+        id : 0,
+        on : true,
+        toggle_after : 2 // optional flip back time in seconds
+    }
 }
 ```
 
-or you can make use of the alternative notation:
+or you can make use of the alternative toggle command:
 
 
 ```
 {
-    id : 0,
-	method : 'Switch.Toggle'
-}
-```
-
-or
-
-```
-{
-    id : 0,
-	on : false,
-	method : 'Switch.Set'
+    method : 'Switch.Toggle'
+	...
 }
 ```
 
@@ -624,6 +618,8 @@ This is useful, when you want to poll for the status cyclically.
 
 The output of the node is the full status object of the device.
 See https://shelly-api-docs.shelly.cloud/gen2/Overview/CommonServices/Shelly
+
+For further rpc commands see the shelly documentation.
 
 ### Examples:  
 [**shelly switch gen 2 flow**](examples/switchplus.json) 

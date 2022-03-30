@@ -60,7 +60,13 @@ module.exports = function (RED) {
 
     // Note that this function has a reduced timeout.
     function shellyTryGet(route, node, timeout, credentials, callback, errorCallback){
+        let data;
+        return shellyTryRequest('get', route, data, node, timeout, credentials, callback, errorCallback);
+    }
 
+    // Note that this function has a reduced timeout.
+    function shellyTryRequest(method, route, data, node, timeout, credentials, callback, errorCallback){
+    
         // We avoid an invalid timeout by taking a default if 0.
         let requestTimeout = timeout;
         if(requestTimeout <= 0){
@@ -74,10 +80,14 @@ module.exports = function (RED) {
 
         let url = 'http://' + credentials.hostname + route;
 
-        const request = axios.get(url, {
+        let config = {
+            url : url,
+            method : method,
+            data : data,
             headers : headers,
             timeout: requestTimeout
-        });
+        };
+        const request = axios.request(config);
 
         request.then(response => {
             if(response.status == 200){
@@ -85,6 +95,7 @@ module.exports = function (RED) {
             }
             else {
                 node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusText });
+                node.warn("Error: " + response.statusText );
             }
         })
         .catch(error => {
@@ -150,10 +161,12 @@ module.exports = function (RED) {
             }
             else{
                 node.status({ fill: "red", shape: "ring", text: "Shelly type mismatch: " + node.shellyInfo.type });
+                node.warn("Shelly type mismatch: " + node.shellyInfo.type);
             }
         },
         function(error){
-            node.status({ fill: "red", shape: "ring", text: error })
+            node.status({ fill: "red", shape: "ring", text: error.message });
+            node.warn(error.message);
         });
     }
 
@@ -298,6 +311,7 @@ module.exports = function (RED) {
                     catch (error) {
                         node.error("Downloading CSV failed " + emeter, error);
                         node.status({ fill: "red", shape: "ring", text: "Downloading CSV failed " + emeter});
+                        node.warn("Downloading CSV failed " + emeter);
                     }
                 }
 
@@ -595,8 +609,8 @@ module.exports = function (RED) {
                         let body = await shellyGetAsync(modeRoute, credentials);
                     }
                     catch (error) {
-                        node.error("Failed to set mode to: " + nodeMode, error);
                         node.status({ fill: "red", shape: "ring", text: "Failed to set mode to: " + nodeMode});
+                        node.warn("Failed to set mode to: " + nodeMode, error);
                     }
                 }
             }
@@ -903,8 +917,8 @@ module.exports = function (RED) {
                     // here we can not check if the mode is already changed so we can not display a proper status.
                 }
                 catch (error) {
-                    node.error("Failed to set mode to: " + mode, error);
                     node.status({ fill: "red", shape: "ring", text: "Failed to set mode to: " + mode});
+                    node.warn("Failed to set mode to: " + mode, error);
                 }
             }
         }
@@ -1059,13 +1073,15 @@ module.exports = function (RED) {
                     },
                     function(error){
                         if (msg.payload){
-                            node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." });
+                            node.status({ fill: "yellow", shape: "ring", text: error.message });
+                            node.warn(error.message);
                         }
                     });
                 }
             },
             function(error){
-                node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." })
+                node.status({ fill: "yellow", shape: "ring", text: error.message });
+                node.warn(error.message);
             });
         }
         else {
@@ -1080,7 +1096,8 @@ module.exports = function (RED) {
             },
             function(error){
                 if (msg.payload){
-                    node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." });
+                    node.status({ fill: "yellow", shape: "ring", text: error.message });
+                    node.warn(error.message);
                 }
             });
         }
@@ -1103,8 +1120,8 @@ module.exports = function (RED) {
                         let body = await shellyGetAsync(settingRoute, credentials);
                     }
                     catch (error) {
-                        node.error("Failed to set settings to: " + settingRoute, error);
                         node.status({ fill: "red", shape: "ring", text: "Failed to set settings to: " + settingRoute});
+                        node.error("Failed to set settings to: " + settingRoute, error);
                     }
                 }
                 else {
@@ -1155,6 +1172,7 @@ module.exports = function (RED) {
         }
         else{
             node.status({ fill: "red", shape: "ring", text: "DeviceType not configured." });
+            node.warn("DeviceType not configured.");
         }
     }
     RED.nodes.registerType("shelly-gen1", ShellyGen1Node, {
@@ -1168,44 +1186,43 @@ module.exports = function (RED) {
 
     // GEN 2 --------------------------------------------------------------------------------------
     
-    
     // Creates a route from the input.
     async function inputParserRelay2Async(msg){
+        
+        let method = 'post';
+        let data;
         let route;
+
         if(msg !== undefined && msg.payload !== undefined){
             
             let command = msg.payload;
 
-            let id;
-            if(command.id !== undefined){
-                id = command.id;
-            }
-
-            let method;
+            let rpcMethod;
             if(command.method !== undefined){
-                method = command.method;
+                rpcMethod = command.method;
             }
 
-            // Switch.Set (default)
-            if(method === undefined){
-                if(id !== undefined && command.on !== undefined){
-                    route = "/rpc/Switch.Set?id=" + id + "&on=" + command.on;
-                
-                    if(command.toggle_after !== undefined){
-                        route += "&toggle_after=" + command.toggle_after;
-                    }
-                }
+            let parameters;
+            if(command.parameters !== undefined){
+                parameters = command.parameters;
             }
-            else if (method === "Switch.Toggle"){
-                if(id !== undefined){
-                    route = "/rpc/Switch.Toggle?id=" + id;
-                }
-            }
-            else{
-                // nothing to do.
+
+            if(rpcMethod !== undefined){
+                route = "/rpc/";
+                data = {
+                    id : 1,
+                    method : rpcMethod,
+                    params : parameters
+                };
             }
         }
-        return route;
+
+        let request = {
+            route : route,
+            method : method,
+            data : data
+        };
+        return request;
     }
 
      // Returns the input parser for the device type.
@@ -1290,11 +1307,17 @@ module.exports = function (RED) {
         return result;
     }
 
-    function executeCommand2(msg, route, node, credentials){
-        let getStatusRoute = '/rpc/Shelly.GetStatus';
-        if (route !== undefined && route !== ''){
+    function executeCommand2(msg, request, node, credentials){
 
-            shellyTryGet(route, node, node.pollInterval, credentials, function(body) {
+        let getStatusRoute = '/rpc/Shelly.GetStatus';
+        if (request !== undefined && request.route !== undefined && request.route !== ''){
+
+            let route = request.route;
+            let method = request.method;
+            let data = request.data;
+    
+            shellyTryRequest(method, route, data, node, node.pollInterval, credentials, function(body) {
+
                 if (node.getStatusOnCommand) {
                     shellyTryGet(getStatusRoute, node, node.pollInterval, credentials, function(body) {
                         
@@ -1307,13 +1330,21 @@ module.exports = function (RED) {
                     },
                     function(error){
                         if (msg.payload){
-                            node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." });
+                            node.status({ fill: "yellow", shape: "ring", text: error.message });
+                            node.warn(error);
                         }
                     });
                 }
+                else {
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+
+                    msg.payload = body.result;
+                    node.send([msg]);
+                }
             },
             function(error){
-                node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." })
+                node.status({ fill: "yellow", shape: "ring", text: error.message });
+                node.warn(error);
             });
         }
         else {
@@ -1328,7 +1359,8 @@ module.exports = function (RED) {
             },
             function(error){
                 if (msg.payload){
-                    node.status({ fill: "yellow", shape: "ring", text: "Device not reachable." });
+                    node.status({ fill: "yellow", shape: "ring", text: error.message });
+                    node.warn(error);
                 }
             });
         }
@@ -1360,8 +1392,8 @@ module.exports = function (RED) {
 
                 let credentials = getCredentials(node, msg);
                 
-                let route = await node.inputParser(msg, node, credentials);
-                executeCommand2(msg, route, node, credentials);
+                let request = await node.inputParser(msg, node, credentials);
+                executeCommand2(msg, request, node, credentials);
             });
 
             this.on('close', function(done) {
@@ -1371,6 +1403,7 @@ module.exports = function (RED) {
         }
         else{
             node.status({ fill: "red", shape: "ring", text: "DeviceType not configured." });
+            node.warn("DeviceType not configured");
         }
     }
     RED.nodes.registerType("shelly-gen2", ShellyGen2Node, {

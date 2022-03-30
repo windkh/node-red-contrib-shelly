@@ -1,8 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [8.0.0] - 2022-03-31
+### full shelly gen 2 rpc protocol support. See example in examples folder.
+
 ## [7.3.0] - 2022-03-26
-### fixe emeters output - [#63](https://github.com/windkh/node-red-contrib-shelly/issues/63)
+### fixed emeters output - [#63](https://github.com/windkh/node-red-contrib-shelly/issues/63)
 
 ## [7.2.0] - 2022-03-23
 ### added support for setting attributes - [#62](https://github.com/windkh/node-red-contrib-shelly/issues/62)
