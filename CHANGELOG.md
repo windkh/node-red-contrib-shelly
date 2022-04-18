@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [8.1.0] - 2022-04-18
+### added pro models to supported gen 2 devices - [#66](https://github.com/windkh/node-red-contrib-shelly/issues/66)
+
 ## [8.0.0] - 2022-03-31
 ### full shelly gen 2 rpc protocol support. See example in examples folder.
 

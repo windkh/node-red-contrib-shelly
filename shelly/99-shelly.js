@@ -133,23 +133,27 @@ module.exports = function (RED) {
 
     function shellyPing(node, credentials, types){
 
+        // gen 1 and gen 2 devices support this endpoint (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
         shellyTryGet('/shelly', node, node.pollInterval, credentials, function(body) {
             node.shellyInfo = body;
+
+            let deviceType;
+            // Generation 1 devices
+            if(node.shellyInfo.type !== undefined){
+                deviceType = node.shellyInfo.type;
+            } // Generation 2 devices 
+            else if(node.shellyInfo.model !== undefined && node.shellyInfo.gen === 2)
+            {
+                deviceType = node.shellyInfo.model;
+            }
 
             let found = false;
             for (let i = 0; i < types.length; i++) {
                 let type = types[i];
 
                 // Generation 1 devices
-                if(node.shellyInfo.type !== undefined){
-                    found  = node.shellyInfo.type.startsWith(type)
-                    if (found) {
-                        break;
-                    }    
-                } // Generation 2 devices 
-                else if(node.shellyInfo.model !== undefined && node.shellyInfo.gen === 2)
-                {
-                    found  = node.shellyInfo.model.startsWith(type)
+                if(deviceType !== undefined){
+                    found  = deviceType.startsWith(type);
                     if (found) {
                         break;
                     }    
@@ -160,8 +164,8 @@ module.exports = function (RED) {
                 node.status({ fill: "green", shape: "ring", text: "Connected." });
             }
             else{
-                node.status({ fill: "red", shape: "ring", text: "Shelly type mismatch: " + node.shellyInfo.type });
-                node.warn("Shelly type mismatch: " + node.shellyInfo.type);
+                node.status({ fill: "red", shape: "ring", text: "Shelly type mismatch: " + deviceType });
+                node.warn("Shelly type mismatch: " + deviceType);
             }
         },
         function(error){
@@ -1263,7 +1267,7 @@ module.exports = function (RED) {
         switch(deviceType) {
 
             case 'Relay':
-                deviceTypes = ["SNSW-"];
+                deviceTypes = ["SNSW-", "SPSW-"];
                 break;
             default:
                 deviceTypes = [];
