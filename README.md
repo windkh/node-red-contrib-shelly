@@ -37,7 +37,9 @@ Generation 1 devices:
 - Shelly Button / I3
 
 Generation 2 devices:
-- Shelly 1 (PM) plus
+- Shelly Plus l, Plus 1 PM, Plus 2 PM
+- Shelly Pro 1, Pro 1 PM, Pro 2 PM, Pro 4 PM
+
 
 Others may work but are not really tested so far.
 
