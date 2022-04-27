@@ -628,6 +628,22 @@ For further rpc commands see the shelly documentation.
 
 
 
+## Button (Shelly Plus I4)
+The node is able to control a shelly button. It outputs the status of all inputs after every interaction with the shelly device.
+See https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Input
+
+The output of the node is an array of status objects for every relay of the switch:
+
+
+```
+[
+]
+```
+
+### Examples:  
+[**shelly button plus flow**](examples/buttonplus.json) 
+
+
 
 # Shelly REST API
 For a complete documentation see also

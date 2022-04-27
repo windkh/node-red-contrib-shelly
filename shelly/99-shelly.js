@@ -1081,6 +1081,20 @@ module.exports = function (RED) {
                             node.warn(error.message);
                         }
                     });
+                } else {
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+
+                    let payload;
+                    if(body.result !== undefined){
+                        payload = body.result;
+                    } else if(body.error !== undefined){
+                        payload = body.error;
+                    } else {
+                        // can this happen?
+                    }
+
+                    msg.payload = payload;
+                    node.send([msg]);
                 }
             },
             function(error){
@@ -1191,7 +1205,7 @@ module.exports = function (RED) {
     // GEN 2 --------------------------------------------------------------------------------------
     
     // Creates a route from the input.
-    async function inputParserRelay2Async(msg){
+    async function inputParserGeneric2Async(msg){
         
         let method = 'post';
         let data;
@@ -1229,14 +1243,15 @@ module.exports = function (RED) {
         return request;
     }
 
-     // Returns the input parser for the device type.
-     function getInputParser2(deviceType){
+    // Returns the input parser for the device type.
+    function getInputParser2(deviceType){
         
         let result;
 
         switch(deviceType) {
             case 'Relay':
-                result = inputParserRelay2Async;
+            case 'Button':
+                result = inputParserGeneric2Async;
                 break;
             default:
                 result = noop;
@@ -1268,6 +1283,9 @@ module.exports = function (RED) {
 
             case 'Relay':
                 deviceTypes = ["SNSW-", "SPSW-"];
+                break;
+            case 'Button':
+                deviceTypes = ["SNSN-"];
                 break;
             default:
                 deviceTypes = [];
@@ -1342,7 +1360,16 @@ module.exports = function (RED) {
                 else {
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    msg.payload = body.result;
+                    let payload;
+                    if(body.result !== undefined){
+                        payload = body.result;
+                    } else if(body.error !== undefined){
+                        payload = body.error;
+                    } else {
+                        // can this happen?
+                    }
+
+                    msg.payload = payload;
                     node.send([msg]);
                 }
             },

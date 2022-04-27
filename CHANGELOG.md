@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [8.2.0] - 2022-04-27
+### added support for Plus I4 - [#56](https://github.com/windkh/node-red-contrib-shelly/issues/56)
+
 ## [8.1.0] - 2022-04-18
 ### added pro models to supported gen 2 devices - [#66](https://github.com/windkh/node-red-contrib-shelly/issues/66)
 
