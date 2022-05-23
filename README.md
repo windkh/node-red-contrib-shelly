@@ -18,6 +18,8 @@ https://shelly-api-docs.shelly.cloud/
 # Dependencies
 This package depends on the following libraries
 - Axios see https://github.com/axios/axios
+- Fastify see https://github.com/fastify/fastify
+- IP see https://github.com/indutny/node-ip
 
 
 # Supported Devices

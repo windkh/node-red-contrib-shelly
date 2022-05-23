@@ -6,6 +6,16 @@
 module.exports = function (RED) {
     "use strict";
     let axios = require('axios').default;      
+    
+    // TODO:
+    // package.json einchecken
+    // skript auf shelly hochladen
+    // port konfigurierbar machen
+
+    const fastify = require('fastify');
+
+    let ip = require('ip');
+    let localIpAddress = ip.address();
 
     //  no operation function
     function noop(){}
@@ -103,6 +113,47 @@ module.exports = function (RED) {
         });
     }
 
+    // generic REST request wrapper with promise
+    function shellyRequestAsync(method, route, data, node, timeout, credentials){
+        return new Promise(function (resolve, reject) {
+
+            // We avoid an invalid timeout by taking a default if 0.
+            let requestTimeout = timeout;
+            if(requestTimeout <= 0){
+                requestTimeout = 5000;
+            }
+
+            let headers = {};
+            if(credentials.username !== undefined && credentials.password !== undefined) {
+                headers.Authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64");
+            };
+
+            let url = 'http://' + credentials.hostname + route;
+            
+            let config = {
+                url : url,
+                method : method,
+                data : data,
+                headers : headers,
+                timeout: requestTimeout
+            };
+            const request = axios.request(config);
+    
+
+            request.then(response => {
+                if(response.status == 200){
+                    resolve(response.data)
+                } else {
+                    reject(response.statusText);
+                }
+            })
+            .catch(error => {
+                reject(error);
+            });
+        });
+    }
+
+
     // generic REST get wrapper with promise
     function shellyGetAsync(route, credentials){
         return new Promise(function (resolve, reject) {
@@ -199,6 +250,11 @@ module.exports = function (RED) {
         }
     }
 
+    function startAsync(node, types){
+        return new Promise(function (resolve, reject) {
+            start(node, types);
+        });
+    }
 
     // GEN 1 --------------------------------------------------------------------------------------
    
@@ -1204,6 +1260,39 @@ module.exports = function (RED) {
 
     // GEN 2 --------------------------------------------------------------------------------------
     
+     // Uploads a skript.
+    async function uploadScriptAsync(node, script){
+        if(node.hostname !== ''){    
+
+            node.status({ fill: "green", shape: "ring", text: "Configuring." });
+
+            let credentials = getCredentials(node);
+
+            try {
+                let scriptList = await shellyRequestAsync('get', '/rpc/Script.List', null, node, node.pollInterval, credentials);
+            
+                // TODO: 
+                // 1. get our skript id
+                // 1b. create new one if needed Script.Create
+
+                // 2. upload code Script.PutCode
+                // 2b. enable  Script.SetConfig
+                
+                // 3. Script.Start
+                // 4. check if running
+
+                node.status({ fill: "green", shape: "ring", text: "Connected." });
+            }
+            catch (error) {
+                node.error("Uploading script failed " + error);
+                node.status({ fill: "red", shape: "ring", text: "Uploading script failed "});
+            }     
+        }
+        else {
+            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
+        }
+    }
+
     // Creates a route from the input.
     async function inputParserGeneric2Async(msg){
         
@@ -1260,8 +1349,24 @@ module.exports = function (RED) {
         return result;
     }
 
-    function initializer2(node, types){
+    // starts the polling mode.
+    function initializer2(node, types, mode){
         start(node, types);
+    }
+
+    // starts polling or uploads a skript that calls a REST callback.
+    async function initializer2ButtonAsync(node, types, mode){
+
+        if(mode === 'polling'){
+            await startAsync(node, types);
+        }
+        else if(mode === 'callback'){
+            let skript;
+            await uploadScriptAsync(node, skript);
+        }
+        else{
+            // none 
+        }
     }
 
     // Gets a function that initialize the device.
@@ -1269,7 +1374,9 @@ module.exports = function (RED) {
         let result;
 
         switch(deviceType) {
-            // TODO: for future usage
+            case 'Button':
+                result = initializer2ButtonAsync;
+                break;
             default:
                 result = initializer2;
                 break;
@@ -1397,6 +1504,46 @@ module.exports = function (RED) {
         }
     }
 
+
+    // --------------------------------------------------------------------------------------------
+    // The shelly callback server node
+    function ShellyGen2ServerNode(config) {
+        RED.nodes.createNode(this, config);
+
+        let self = this;
+
+        this.port = config.port;
+        this.server = fastify();
+
+        if(self.port > 0){
+            self.server.listen({port : self.port}, (err, address) => {
+                if (!err){
+                    console.log("Shelly server is listening on " + self.port + " port");
+                }
+                else{
+                    // TODO:
+                }
+            })
+    
+            self.server.put("/callback", (request, reply) => {
+                let data = request.body;
+                reply.send('OK');
+            });
+        }
+            
+        this.on('close', function (removed, done) {
+            self.server.close().then(() => {
+                done();
+            });
+        });
+    }
+    RED.nodes.registerType('shelly-gen2-server', ShellyGen2ServerNode, {
+        credentials: {
+            token: { type: 'text' },
+        },
+    });
+
+
     // --------------------------------------------------------------------------------------------
     // The shelly node controls a shelly generation 1 device.
     function ShellyGen2Node(config) {
@@ -1410,6 +1557,11 @@ module.exports = function (RED) {
         let deviceType = config.devicetype;
         node.deviceType = deviceType;
 
+        this.mode = config.mode;
+        if (!this.mode) {
+            this.mode = 'polling';
+        }
+
         node.status({});
 
         if(deviceType !== undefined && deviceType !== "") {
@@ -1417,8 +1569,10 @@ module.exports = function (RED) {
             node.inputParser = getInputParser2(deviceType);
             node.types = getDeviceTypes2(deviceType);
             
-            node.initializer(node, node.types);
-            
+            (async () => {
+                await node.initializer(node, node.types, node.mode);
+            })();
+
             this.on('input', async function (msg) {
 
                 let credentials = getCredentials(node, msg);
