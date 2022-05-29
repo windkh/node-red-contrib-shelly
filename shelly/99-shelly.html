@@ -12,7 +12,7 @@
         defaults: {
             hostname: { value:"" },
             description: { value:"" },
-            pollinginterval: { value: 5000 },
+            pollinginterval: { value: 5000, validate:RED.validators.number() },
             pollstatus: { value: false, required: false },
             getstatusoncommand: { value: true },
             devicetype: { value: "", required: true},
@@ -188,7 +188,7 @@
         <div class="form-row">
             <label for="node-config-input-port"><i class="fa fa-phone"></i> Port</label>
             <input type="text" id="node-config-input-port" placeholder="(The network port to open)">
-        </div>    
+        </div>
     </div>
 </script>
 
@@ -208,7 +208,9 @@
             hostname: { value:"" },
             description: { value:"" },
             mode: { value: "polling", required: true },
+        
             
+            // callback
             server: { value:"", type: "shelly-gen2-server", validate:function(v) {
                 let mode = $("#node-config-input-mode").val();
                 let ok = true;
@@ -219,11 +221,14 @@
                 }
                 return ok;
             } },
-           
-            pollinginterval: { value: 5000 },
+            outputmode: { value: "event", required: false },
+            uploadretryinterval: { value: 5000,  validate:RED.validators.number() },
+            
+            // polling
+            pollinginterval: { value: 5000,  validate:RED.validators.number() },
             pollstatus: { value: false, required: false },
             getstatusoncommand: { value: true },
-            
+        
             devicetype: { value: "", required: true},
             outputs: {value: 1},
         },
@@ -308,14 +313,12 @@
 
     <div class="form-row">
         <label for="node-input-mode"><i class="fa fa-link"></i> Mode</label>
-        <select id="node-input-mode">
+        <select id="node-input-mode" style="width:70%">
             <option value="polling">Polling</option>
             <option value="callback">Callback</option>
             <option value="none">None</option>
         </select>
     </div>
-
-    <hr align="middle"/>
 
     <div class="form-row hidden" id="polling" style="background: #fbfbfb">
         <label style="width: auto"><i class="fa fa-cogs"></i> Polling Options:</label>
@@ -340,6 +343,17 @@
                 <label for="node-input-server"><i class="fa fa-phone"></i> Server</label>
                 <input type="text" id="node-input-server" placeholder="Server">
             </div>
+            <div class="form-row">
+                <label for="node-input-outputmode"><i class="fa fa-arrow-circle-right"></i> Output</label>
+                <select id="node-input-outputmode" style="width:70%">
+                    <option value="event">Event</option>
+                    <option value="status">Status</option>
+                </select>
+            </div> 
+            <div class="form-row">
+                <label for="node-input-uploadretryinterval"><i class="fa fa-clock-o"></i> Upload Retry Interval (ms)</label>
+                <input type="text" id="node-input-uploadretryinterval" placeholder="(Time in milliseconds. 0=off)">
+            </div> 
         </div>
     </div>
 

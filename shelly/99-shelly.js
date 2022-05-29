@@ -7,11 +7,8 @@ module.exports = function (RED) {
     "use strict";
     let axios = require('axios').default;      
     
-    // TODO:
-    // package.json einchecken
-    // skript auf shelly hochladen
-    // port konfigurierbar machen
-
+    const fs = require("fs");
+    const path = require("path");
     const fastify = require('fastify');
 
     let ip = require('ip');
@@ -233,7 +230,7 @@ module.exports = function (RED) {
             shellyPing(node, credentials, types);
 
             if(node.pollInterval > 0) {
-                node.timer = setInterval(function() {
+                node.pollingTimer = setInterval(function() {
                     shellyPing(node, credentials, types);
 
                     if(node.pollStatus){
@@ -1240,7 +1237,7 @@ module.exports = function (RED) {
             });
 
             this.on('close', function(done) {
-                clearInterval(node.timer);
+                clearInterval(node.pollingTimer);
                 done();
             });
         }
@@ -1261,27 +1258,81 @@ module.exports = function (RED) {
     // GEN 2 --------------------------------------------------------------------------------------
     
      // Uploads a skript.
-    async function uploadScriptAsync(node, script){
+    async function tryUploadScriptAsync(node, script, scriptName){
+        let success = false;
         if(node.hostname !== ''){    
 
-            node.status({ fill: "green", shape: "ring", text: "Configuring." });
+            let timeout = node.pollInterval;
+            node.status({ fill: "yellow", shape: "ring", text: "Uploading script..." });
 
             let credentials = getCredentials(node);
 
             try {
-                let scriptList = await shellyRequestAsync('get', '/rpc/Script.List', null, node, node.pollInterval, credentials);
+                let scriptListResponse = await shellyRequestAsync('get', '/rpc/Script.List', null, node, timeout, credentials);
             
-                // TODO: 
-                // 1. get our skript id
-                // 1b. create new one if needed Script.Create
+                let scriptId = -1;
+                for (let scriptItem of scriptListResponse.scripts) {
+                    if(scriptItem.name == scriptName){
+                        scriptId = scriptItem.id;
+                        break;
+                    }
+                };
 
-                // 2. upload code Script.PutCode
-                // 2b. enable  Script.SetConfig
-                
-                // 3. Script.Start
-                // 4. check if running
+                if(scriptId != -1) {
+                    let deleteParams = { 'id' : scriptId };
+                    await shellyRequestAsync('get', '/rpc/Script.Delete', deleteParams, node, timeout, credentials);
+                }
 
-                node.status({ fill: "green", shape: "ring", text: "Connected." });
+                let createParams = { 'name' : scriptName };
+                let createScriptResonse = await shellyRequestAsync('get', '/rpc/Script.Create', createParams, node, timeout, credentials);
+                scriptId = createScriptResonse.id;
+
+                let chunkSize = 1024;
+
+                let done = false;
+                do {
+                    let codeToSend;
+                    if (script.length > chunkSize) {
+                        codeToSend = script.substr(0, chunkSize);
+                        script = script.substr(chunkSize);
+                    } else {
+                        codeToSend = script;
+                        done = true;
+                    }
+                    
+                    let putParams = {  
+                        'id' : scriptId,
+                        'code' : codeToSend,
+                        'append' : true
+                    };
+                    await shellyRequestAsync('post', '/rpc/Script.PutCode', putParams, node, timeout, credentials);
+
+                } while (!done);
+
+                let configParams = {  
+                    'id' : scriptId,
+                    'config' : {'enable' : true}
+                };
+                await shellyRequestAsync('get', '/rpc/Script.SetConfig ', configParams, node, timeout, credentials);
+               
+                let startParams = {  
+                    'id' : scriptId,
+                };
+                await shellyRequestAsync('get', '/rpc/Script.Start ', startParams, node, timeout, credentials);
+               
+                let statusParams = {  
+                    'id' : scriptId,
+                };
+                let status = await shellyRequestAsync('get', '/rpc/Script.GetStatus ', statusParams, node, timeout, credentials);
+
+                if(status.running === true){
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+                    success = true;
+                }
+                else {
+                    node.error("Uploaded script not running.");
+                    node.status({ fill: "red", shape: "ring", text: "Script not running." });         
+                }
             }
             catch (error) {
                 node.error("Uploading script failed " + error);
@@ -1291,6 +1342,8 @@ module.exports = function (RED) {
         else {
             node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
         }
+
+        return success;
     }
 
     // Creates a route from the input.
@@ -1351,22 +1404,50 @@ module.exports = function (RED) {
 
     // starts the polling mode.
     function initializer2(node, types, mode){
-        start(node, types);
+        let success = false;
+        if(mode === 'polling'){
+            start(node, types);
+            success = true;
+        }
+        else if(mode === 'callback'){
+            node.error("Callback not supported for this type of device.");
+            node.status({ fill: "red", shape: "ring", text: "Callback not supported" });
+        }
+        else{
+            // nothing to do.
+            success = true;
+        }
+        return success;
     }
 
     // starts polling or uploads a skript that calls a REST callback.
-    async function initializer2ButtonAsync(node, types, mode){
+    async function initializer2ButtonAsync(node, types){
 
+        let success = false;
+        let mode = node.mode;
         if(mode === 'polling'){
             await startAsync(node, types);
+            success = true;
         }
         else if(mode === 'callback'){
-            let skript;
-            await uploadScriptAsync(node, skript);
+            let scriptPath = path.resolve(__dirname, './scripts/button.script');
+            const buffer = fs.readFileSync(scriptPath);
+            let script = buffer.toString();
+
+            let url = 'http://' + localIpAddress +  ':' + node.server.port + '/callback';
+            script = script.replace('%URL%', url);
+            let sender = node.hostname;
+            script = script.replace('%SENDER%', sender);
+
+            let scriptName = 'node-red-contrib-shelly';
+            success = await tryUploadScriptAsync(node, script, scriptName);
         }
         else{
-            // none 
+            // nothing to do.
+            success = true;
         }
+
+        return success;
     }
 
     // Gets a function that initialize the device.
@@ -1510,29 +1591,30 @@ module.exports = function (RED) {
     function ShellyGen2ServerNode(config) {
         RED.nodes.createNode(this, config);
 
-        let self = this;
-
+        let node = this;
         this.port = config.port;
         this.server = fastify();
 
-        if(self.port > 0){
-            self.server.listen({port : self.port}, (err, address) => {
+        if(node.port > 0){
+            node.server.listen({port : node.port}, (err, address) => {
                 if (!err){
-                    console.log("Shelly server is listening on " + self.port + " port");
+                    console.info("Shelly server is listening on port " + node.port);
                 }
                 else{
-                    // TODO:
+                    node.error("Shelly server failed to listen on port " + node.port);
                 }
             })
     
-            self.server.put("/callback", (request, reply) => {
+            node.server.put("/callback", (request, reply) => {
                 let data = request.body;
-                reply.send('OK');
+                node.emit('callback', data);
+                reply.code(200);
+                reply.send();
             });
         }
             
         this.on('close', function (removed, done) {
-            self.server.close().then(() => {
+            node.server.close().then(() => {
                 done();
             });
         });
@@ -1549,6 +1631,11 @@ module.exports = function (RED) {
     function ShellyGen2Node(config) {
         RED.nodes.createNode(this, config);
         let node = this;
+        
+        node.server = RED.nodes.getNode(config.server);
+        node.outputMode = config.outputmode;
+        node.initializeRetryInterval = parseInt(config.uploadretryinterval);
+        
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus;
@@ -1556,7 +1643,7 @@ module.exports = function (RED) {
 
         let deviceType = config.devicetype;
         node.deviceType = deviceType;
-
+        
         this.mode = config.mode;
         if (!this.mode) {
             this.mode = 'polling';
@@ -1570,19 +1657,57 @@ module.exports = function (RED) {
             node.types = getDeviceTypes2(deviceType);
             
             (async () => {
-                await node.initializer(node, node.types, node.mode);
+                let initialized = await node.initializer(node, node.types);
+
+                // if the device is not online, then we wait until it is available and try again.
+                if(!initialized){
+                    node.initializeTimer = setInterval(async function() {
+
+                        let initialized = await node.initializer(node, node.types);
+                        if(initialized){
+                            clearInterval(node.initializeTimer);
+                        }
+                    }, node.initializeRetryInterval);
+                }
             })();
 
             this.on('input', async function (msg) {
-
                 let credentials = getCredentials(node, msg);
-                
                 let request = await node.inputParser(msg, node, credentials);
                 executeCommand2(msg, request, node, credentials);
             });
 
+            // Callback mode:
+            if(node.server !== undefined) {
+                node.onCallback = function (data) {
+     
+                    if(node.outputMode === 'event'){
+                        let msg = {
+                            payload : data.event
+                        };
+                        node.send([msg]);
+                    }
+                    else if(node.outputMode === 'status'){
+                        node.emit("input", {});
+                    }
+                    else {
+                        // not implemented
+                    }
+                };
+                node.server.addListener('callback', node.onCallback);
+            }
+
             this.on('close', function(done) {
-                clearInterval(node.timer);
+
+                node.status({});
+
+                if (node.onCallback) {
+                    node.server.removeListener('callback', node.onCallback);
+                }
+    
+                // TODO: call node.uninitializer();
+                clearInterval(node.pollingTimer);
+                clearInterval(node.initializeTimer);
                 done();
             });
         }

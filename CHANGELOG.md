@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [9.0.0] - 2022-05-29
+### added callback support for Plus I4
+
 ## [8.2.0] - 2022-04-27
 ### added support for Plus I4 - [#56](https://github.com/windkh/node-red-contrib-shelly/issues/56)
 

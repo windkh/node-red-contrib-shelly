@@ -39,7 +39,7 @@ Generation 1 devices:
 - Shelly Button / I3
 
 Generation 2 devices:
-- Shelly Plus l, Plus 1 PM, Plus 2 PM
+- Shelly Plus l, Plus 1 PM, Plus 2 PM, I4
 - Shelly Pro 1, Pro 1 PM, Pro 2 PM, Pro 4 PM
 
 
@@ -586,7 +586,13 @@ Note that the button is not always reachable as it falls to sleep. This is not t
 See also https://shelly-api-docs.shelly.cloud/gen2/
 See also https://shelly-api-docs.shelly.cloud/gen2/Devices/ShellyPlus1PM
 The node can communicate with several shelly types. You must select the correct device type from the combobox when configuring the node.
-Devices are grouped as follows:
+
+## callback mode vs polling mode
+Unlike generation 1 device the new generation supports the usage of scripts. In polling mode the node just behaves like the generation 1 node.
+In callback mode a script is uploaded to the shelly which sends all notification events to the node. The node needs to open a network port to be able to receive these messages.
+You must configure this network port, make sure that it is not already in use.
+Right now only the Plus I4 is supported with callback mode. More will follow.
+
 
 ## Relay (Plus 1, Plus 1 PM, Plus 2 PM, Pro 1, Pro 1 PM, Pro 2, Pro 2 PM, Pro 4 PM)
 The node is able to turn on and turn off a shelly switch. It outputs the status after every interaction with the shelly device.
