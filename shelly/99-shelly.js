@@ -1678,7 +1678,7 @@ module.exports = function (RED) {
             });
 
             // Callback mode:
-            if(node.server !== undefined) {
+            if(node.server !== null && node.server !== undefined) {
                 node.onCallback = function (data) {
      
                     if(node.outputMode === 'event'){
