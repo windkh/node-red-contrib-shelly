@@ -1644,9 +1644,9 @@ module.exports = function (RED) {
         let deviceType = config.devicetype;
         node.deviceType = deviceType;
         
-        this.mode = config.mode;
-        if (!this.mode) {
-            this.mode = 'polling';
+        node.mode = config.mode;
+        if (!node.mode) {
+            node.mode = 'polling';
         }
 
         node.status({});
@@ -1657,7 +1657,7 @@ module.exports = function (RED) {
             node.types = getDeviceTypes2(deviceType);
             
             (async () => {
-                let initialized = await node.initializer(node, node.types);
+                let initialized = await node.initializer(node, node.types, node.mode);
 
                 // if the device is not online, then we wait until it is available and try again.
                 if(!initialized){

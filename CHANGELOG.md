@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [9.2.0] - 2022-04-30
+### fixed - [#74](https://github.com/windkh/node-red-contrib-shelly/issues/74)
+
 ## [9.1.0] - 2022-04-30
 ### fixed - [#74](https://github.com/windkh/node-red-contrib-shelly/issues/74)
 
