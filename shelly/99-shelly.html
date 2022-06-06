@@ -176,6 +176,7 @@
         category: 'config',
         defaults: {
             port: { value: 0, validate:RED.validators.number() },
+            hostname: { value:"" },
         },
         label: function () {
             return this.port;
@@ -189,6 +190,10 @@
             <label for="node-config-input-port"><i class="fa fa-phone"></i> Port</label>
             <input type="text" id="node-config-input-port" placeholder="(The network port to open)">
         </div>
+        <div class="form-row">
+            <label for="node-config-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
+            <input type="text" id="node-config-input-hostname" placeholder="Optional: hostname or IP-Address of this node-red server.">
+        </div>
     </div>
 </script>
 
@@ -197,6 +202,7 @@
 
     <h3>Details</h3>
     <p>It opens a server on the configured port to receive callbacks.</p>
+    <p>The hostname is only needed if node-red is running behind a bridge or NAT e.g. in a docker image.</p>
 </script>
 
 <!-- ------------------------------------------------------------------------------------------ -->

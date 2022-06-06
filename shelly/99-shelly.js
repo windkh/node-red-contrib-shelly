@@ -1434,7 +1434,11 @@ module.exports = function (RED) {
             const buffer = fs.readFileSync(scriptPath);
             let script = buffer.toString();
 
-            let url = 'http://' + localIpAddress +  ':' + node.server.port + '/callback';
+            let ipAddress = localIpAddress;
+            if(node.server.hostname !== ''){
+                ipAddress = node.server.hostname;
+            }
+            let url = 'http://' + ipAddress +  ':' + node.server.port + '/callback';
             script = script.replace('%URL%', url);
             let sender = node.hostname;
             script = script.replace('%SENDER%', sender);
@@ -1593,6 +1597,7 @@ module.exports = function (RED) {
 
         let node = this;
         this.port = config.port;
+        this.hostname = config.hostname;
         this.server = fastify();
 
         if(node.port > 0){
