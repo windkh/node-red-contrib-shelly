@@ -590,7 +590,8 @@ The node can communicate with several shelly types. You must select the correct 
 ## callback mode vs polling mode
 Unlike generation 1 device the new generation supports the usage of scripts. In polling mode the node just behaves like the generation 1 node.
 In callback mode a script is uploaded to the shelly which sends all notification events to the node. The node needs to open a network port to be able to receive these messages.
-You must configure this network port, make sure that it is not already in use.
+You must configure this network port, make sure that it is not already in use. If node-red runs inside a docker container or any other bridged network then you should also configure the hostname
+under that the shelly device can reach the node-red server (Leave this field empty if you run inside the same network segment).
 Right now only the Plus I4 is supported with callback mode. More will follow.
 
 

@@ -1435,7 +1435,7 @@ module.exports = function (RED) {
             let script = buffer.toString();
 
             let ipAddress = localIpAddress;
-            if(node.server.hostname !== ''){
+            if(node.server.hostname !== undefined && node.server.hostname !== ''){
                 ipAddress = node.server.hostname;
             }
             let url = 'http://' + ipAddress +  ':' + node.server.port + '/callback';

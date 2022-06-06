@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [9.3.0] - 2022-06-06
+## [9.3.1] - 2022-06-06
 ### added hostname to gen 2 server to support node-red running insode docker.
 
 ## [9.2.0] - 2022-04-30
