@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+
+## [9.4.0] - 2022-06-30
+###  fixed - [#77](https://github.com/windkh/node-red-contrib-shelly/issues/77)
+
 ## [9.3.1] - 2022-06-06
 ### added hostname to gen 2 server to support node-red running insode docker.
 

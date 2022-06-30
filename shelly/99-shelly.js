@@ -1421,7 +1421,7 @@ module.exports = function (RED) {
     }
 
     // starts polling or uploads a skript that calls a REST callback.
-    async function initializer2ButtonAsync(node, types){
+    async function initializer2CallbackAsync(node, types){
 
         let success = false;
         let mode = node.mode;
@@ -1460,7 +1460,8 @@ module.exports = function (RED) {
 
         switch(deviceType) {
             case 'Button':
-                result = initializer2ButtonAsync;
+            case 'Relay':
+                result = initializer2CallbackAsync;
                 break;
             default:
                 result = initializer2;
