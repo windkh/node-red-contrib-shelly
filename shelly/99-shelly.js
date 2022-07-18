@@ -1475,7 +1475,7 @@ module.exports = function (RED) {
         switch(deviceType) {
 
             case 'Relay':
-                deviceTypes = ["SNSW-", "SPSW-"];
+                deviceTypes = ["SNSW-", "SPSW-", "SNPL-"];
                 break;
             case 'Button':
                 deviceTypes = ["SNSN-"];

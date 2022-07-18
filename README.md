@@ -41,6 +41,7 @@ Generation 1 devices:
 Generation 2 devices:
 - Shelly Plus l, Plus 1 PM, Plus 2 PM, I4
 - Shelly Pro 1, Pro 1 PM, Pro 2 PM, Pro 4 PM
+- Shelly US Plug
 
 
 Others may work but are not really tested so far.
@@ -595,7 +596,7 @@ under that the shelly device can reach the node-red server (Leave this field emp
 Right now only the Plus I4 is supported with callback mode. More will follow.
 
 
-## Relay (Plus 1, Plus 1 PM, Plus 2 PM, Pro 1, Pro 1 PM, Pro 2, Pro 2 PM, Pro 4 PM)
+## Relay (Plus 1, Plus 1 PM, Plus 2 PM, Pro 1, Pro 1 PM, Pro 2, Pro 2 PM, Pro 4 PM, Plug US)
 The node is able to turn on and turn off a shelly switch. It outputs the status after every interaction with the shelly device.
 Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
 
