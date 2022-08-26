@@ -28,7 +28,7 @@ This package is under construction. Right now the following devices are supporte
 Generation 1 devices:
 - Shelly Switch 1 (PM), 2, L,  
 - Shelly Plug PlugS
-- Shelly 2.5 (roller shutter) 
+- Shelly 2, 2.5 (roller shutter) 
 - Shelly Dimmer / Shelly Bulb Duo, Vintage
 - Shelly Door / Shelly Door 2
 - Shelly RGBW2 / Shelly Bulb RGBW

@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [9.6.0] - 2022-08-26
+###  fixed - [#81](https://github.com/windkh/node-red-contrib-shelly/issues/81)
+
 ## [9.5.0] - 2022-07-18
 ###  added support for SNPL US version - [#78](https://github.com/windkh/node-red-contrib-shelly/issues/78)
 

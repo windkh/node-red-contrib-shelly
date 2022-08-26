@@ -1088,7 +1088,7 @@ module.exports = function (RED) {
                 deviceTypes = ["SHEM"];
                 break;
             case 'Roller':
-                deviceTypes = ["SHSW-L", "SHSW-25"];
+                deviceTypes = ["SHSW-L", "SHSW-25", "SHSW-21"];
                 break;
             case 'Dimmer':
                 deviceTypes = ["SHDM-", "SHBDUO-", "SHVIN-"];
