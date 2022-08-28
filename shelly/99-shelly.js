@@ -1077,37 +1077,21 @@ module.exports = function (RED) {
         return result;
     }
 
-    function getDeviceTypes1(deviceType){
-        let deviceTypes;
-        switch(deviceType) {
+    let gen1DeviceTypes = new Map([
+        ["Relay",      ["SHSW-", "SHPLG-", "SHUNI-", "SHEM-"]],
+        ["Measure",    ["SHEM-"]],
+        ["Roller",     ["SHSW-L", "SHSW-25", "SHSW-21"]],
+        ["Dimmer",     ["SHDM-", "SHBDUO-", "SHVIN-"]],
+        ["Thermostat", ["SHTRV-"]],
+        ["Sensor",     ["SHTSHDW-", "SHGS-", "SHWT-", "SHSM-", "SHHT-", "SHMOS-"]],
+        ["Button",     ["SHBTN-", "SHIX3-"]],
+        ["RGBW",       ["SHRGBW2", "SHCB-"]],
+    ]);
 
-            case 'Relay':
-                deviceTypes = ["SHSW", "SHPLG", "SHUNI", "SHEM"]; // not that SHEM is also a relay!
-                break;
-            case 'Measure':
-                deviceTypes = ["SHEM"];
-                break;
-            case 'Roller':
-                deviceTypes = ["SHSW-L", "SHSW-25", "SHSW-21"];
-                break;
-            case 'Dimmer':
-                deviceTypes = ["SHDM-", "SHBDUO-", "SHVIN-"];
-                break;
-            case 'Thermostat':
-                deviceTypes = ["SHTRV-" ];
-                break;
-            case 'Sensor':
-                deviceTypes = ["SHTSHDW-", "SHGS-", "SHWT-", "SHSM-", " SHHT-", "SHMOS-" ];
-                break;
-            case 'Button':
-                deviceTypes = ["SHBTN", "SHIX3"];
-                break;
-            case 'RGBW':
-                deviceTypes = ["SHRGBW2", "SHCB-1"];
-                break;
-            default:
-                deviceTypes = [];
-                break;
+    function getDeviceTypes1(deviceType){
+        let deviceTypes = gen1DeviceTypes.get(deviceType);
+        if(deviceTypes === undefined){
+            deviceTypes = []; 
         }
 
         return deviceTypes;
@@ -1470,19 +1454,15 @@ module.exports = function (RED) {
         return result;
     }
 
-    function getDeviceTypes2(deviceType){
-        let deviceTypes;
-        switch(deviceType) {
+    let gen2DeviceTypes = new Map([
+        ["Relay",      ["SNSW-", "SPSW-", "SNPL-"]],
+        ["Button",     ["SNSN-"]],
+    ]);
 
-            case 'Relay':
-                deviceTypes = ["SNSW-", "SPSW-", "SNPL-"];
-                break;
-            case 'Button':
-                deviceTypes = ["SNSN-"];
-                break;
-            default:
-                deviceTypes = [];
-                break;
+    function getDeviceTypes2(deviceType){
+        let deviceTypes = gen2DeviceTypes.get(deviceType);
+        if(deviceTypes === undefined){
+            deviceTypes = []; 
         }
 
         return deviceTypes;
