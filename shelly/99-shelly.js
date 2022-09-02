@@ -983,6 +983,7 @@ module.exports = function (RED) {
 
     function initializer1(node, types){
         let success = false;
+        let mode = node.mode;
         if(mode === 'polling'){
             start(node, types);
             success = true;
