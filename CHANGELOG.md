@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [9.7.0] - 2022-09-02
+###  added support for Shelly Plus H&T - [#71](https://github.com/windkh/node-red-contrib-shelly/issues/71)
+
 ## [9.6.0] - 2022-08-26
 ###  fixed - [#81](https://github.com/windkh/node-red-contrib-shelly/issues/81)
 

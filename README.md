@@ -655,6 +655,17 @@ The output of the node is an array of status objects for every relay of the swit
 
 
 
+## Sensor (Shelly Plus H&T)
+The node is able to control a shelly sensor. Usually sensors sleep all the time to save energy.
+Hence you will get an error when polling for the status but sometimes when the device wakes up you will receive valid data.
+Another possibility is to use the callback mode. Unlike other 2. generation devices sensors do often not support scripts.
+Therefore webhooks are installed as soon as the device is not sleeping. When the shelly calls the webhook, the node gets the 
+status and sends it to the output.
+You can wake up your device manually on redeploy to speed up initialization. Otherwise errors will be generated in the debugging
+pane telling you that installation of the webhook failed.
+
+
+
 # Shelly REST API
 For a complete documentation see also
 https://shelly-api-docs.shelly.cloud/#common-http-api

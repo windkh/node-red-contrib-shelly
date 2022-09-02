@@ -1241,7 +1241,7 @@ module.exports = function (RED) {
 
     // GEN 2 --------------------------------------------------------------------------------------
     
-     // Uploads a skript.
+    // Uploads a skript.
     async function tryUploadScriptAsync(node, script, scriptName){
         let success = false;
         if(node.hostname !== ''){    
@@ -1321,6 +1321,54 @@ module.exports = function (RED) {
             catch (error) {
                 node.error("Uploading script failed " + error);
                 node.status({ fill: "red", shape: "ring", text: "Uploading script failed "});
+            }     
+        }
+        else {
+            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
+        }
+
+        return success;
+    }
+    
+    // Installs a webhook.
+    async function tryInstallWebhookAsync(node, webhookUrl, webhookName){
+        let success = false;
+        if(node.hostname !== ''){    
+
+            let timeout = node.pollInterval;
+            node.status({ fill: "yellow", shape: "ring", text: "Installing webhook..." });
+
+            let credentials = getCredentials(node);
+
+            try {
+                let webhookListResponse = await shellyRequestAsync('get', '/rpc/Webhook.List', null, node, timeout, credentials);
+            
+                for (let webhookItem of webhookListResponse.hooks) {
+                    if(webhookItem.name == webhookName){
+                        let deleteParams = { 'id' : webhookItem.id };
+                        let deleteWebhookResonse = await shellyRequestAsync('get', '/rpc/Webhook.Delete', deleteParams, node, timeout, credentials);
+                    }
+                };
+
+                let supportedEventsResponse = await shellyRequestAsync('get', '/rpc/Webhook.ListSupported', null, node, timeout, credentials);
+                for (let hookType of supportedEventsResponse.hook_types) {  
+                    let url = webhookUrl + '?hookType=' + hookType;
+                    let createParams = { 
+                        'name' : webhookName,
+                        'event' : hookType,
+                        'cid' : 0,
+                        'enable' : true,
+                        "urls": [url]
+                    };
+                    let createWebhookResonse = await shellyRequestAsync('get', '/rpc/Webhook.Create', createParams, node, timeout, credentials);
+
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+                    success = true;
+                }
+            }
+            catch (error) {
+                node.error("Installing webhook failed " + error);
+                node.status({ fill: "red", shape: "ring", text: "Installing webhook failed "});
             }     
         }
         else {
@@ -1438,6 +1486,38 @@ module.exports = function (RED) {
         return success;
     }
 
+    // starts polling or installs a webhook that calls a REST callback.
+    async function initializer2WebhookAsync(node, types){
+
+        let success = false;
+        let mode = node.mode;
+        if(mode === 'polling'){
+            await startAsync(node, types);
+            success = true;
+        }
+        else if(mode === 'callback'){
+
+            // here we reuse callback for webhooks.
+            // As webhooks do not provide data we must poll the status on every event:
+            node.outputMode = 'status';
+
+            let ipAddress = localIpAddress;
+            if(node.server.hostname !== undefined && node.server.hostname !== ''){
+                ipAddress = node.server.hostname;
+            }
+
+            let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
+            let webhookName = 'node-red-contrib-shelly';
+            success = await tryInstallWebhookAsync(node, webhookUrl, webhookName);
+        }
+        else{
+            // nothing to do.
+            success = true;
+        }
+
+        return success;
+    }
+
     // Gets a function that initialize the device.
     function getInitializer2(deviceType){
         let result;
@@ -1446,6 +1526,9 @@ module.exports = function (RED) {
             case 'Button':
             case 'Relay':
                 result = initializer2CallbackAsync;
+                break;
+            case 'Sensor':
+                result = initializer2WebhookAsync;
                 break;
             default:
                 result = initializer2;
@@ -1457,6 +1540,7 @@ module.exports = function (RED) {
     let gen2DeviceTypes = new Map([
         ["Relay",      ["SNSW-", "SPSW-", "SNPL-"]],
         ["Button",     ["SNSN-"]],
+        ["Sensor",     ["SNSN-"]], // Shelly Plus H&T only supports Webhook, no scripting
     ]);
 
     function getDeviceTypes2(deviceType){
@@ -1468,36 +1552,44 @@ module.exports = function (RED) {
         return deviceTypes;
     }
 
+
+    let gen2StatusProperties = new Map([
+        ["switch:0", "switch0"],
+        ["switch:1", "switch1"],
+        ["switch:2", "switch2"],
+        ["switch:3", "switch3"],
+
+        ["input:0", "input0"],
+        ["input:1", "input1"],
+        ["input:2", "input2"],
+        ["input:3", "input3"],
+
+        ["temperature:0", "temperature0"],
+        ["temperature:1", "temperature1"],
+        ["temperature:2", "temperature2"],
+        ["temperature:3", "temperature3"],
+
+        ["humidity:0", "humidity0"],
+        ["humidity:1", "humidity1"],
+        ["humidity:2", "humidity2"],
+        ["humidity:3", "humidity3"],
+
+        ["devicepower:0", "devicepower0"],
+        ["devicepower:1", "devicepower1"],
+        ["devicepower:2", "devicepower2"],
+        ["devicepower:3", "devicepower3"],
+    ]);
+
     // Returns a status object with filtered properties.
     function convertStatus2(status){
-        let result = {
-        }
+        let result = {};
 
-        if(status['switch:0'] !== undefined){
-            result.switch0 = status['switch:0'];
-        }
-        if(status['switch:1'] !== undefined){
-            result.switch1 = status['switch:1'];
-        }
-        if(status['switch:2'] !== undefined){
-            result.switch2 = status['switch:2'];
-        }
-        if(status['switch:3'] !== undefined){
-            result.switch3 = status['switch:3'];
-        }
-
-        if(status['input:0'] !== undefined){
-            result.input0 = status['input:0'];
-        }
-        if(status['input:1'] !== undefined){
-            result.input1 = status['input:1'];
-        }
-        if(status['input:2'] !== undefined){
-            result.input2 = status['input:2'];
-        }
-        if(status['input:3'] !== undefined){
-            result.input3 = status['input:3'];
-        }
+        gen2StatusProperties.forEach((value, key, map) => {
+            let statusValue = status[key];
+            if(statusValue !== undefined) {
+                result[value] = statusValue;
+            }
+        })
 
         return result;
     }
@@ -1594,6 +1686,14 @@ module.exports = function (RED) {
             node.server.put("/callback", (request, reply) => {
                 let data = request.body;
                 node.emit('callback', data);
+                reply.code(200);
+                reply.send();
+            });
+
+            node.server.get("/webhook", (request, reply) => {
+                // let hookType = request.query.hookType;
+                // let data = request.body;
+                node.emit('callback', {});
                 reply.code(200);
                 reply.send();
             });
