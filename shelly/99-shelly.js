@@ -982,7 +982,84 @@ module.exports = function (RED) {
     }
 
     function initializer1(node, types){
-        start(node, types);
+        let success = false;
+        if(mode === 'polling'){
+            start(node, types);
+            success = true;
+        }
+        else if(mode === 'callback'){
+            node.error("Callback not supported for this type of device.");
+            node.status({ fill: "red", shape: "ring", text: "Callback not supported" });
+        }
+        else{
+            // nothing to do.
+            success = true;
+        }
+        return success;
+    }
+
+    // starts polling or installs a webhook that calls a REST callback.
+    async function initializer1WebhookAsync(node, types){
+
+        let success = false;
+        let mode = node.mode;
+        if(mode === 'polling'){
+            await startAsync(node, types);
+            success = true;
+        }
+        else if(mode === 'callback'){
+            let ipAddress = localIpAddress;
+            if(node.server.hostname !== undefined && node.server.hostname !== ''){
+                ipAddress = node.server.hostname;
+            }
+            
+            let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
+            let webhookName = 'node-red-contrib-shelly';
+            success = await tryInstallWebhook1Async(node, webhookUrl, webhookName);
+        }
+        else{
+            // nothing to do.
+            success = true;
+        }
+
+        return success;
+    }
+
+    // Installs a webhook.
+    async function tryInstallWebhook1Async(node, webhookUrl, webhookName){
+        let success = false;
+        if(node.hostname !== ''){    
+
+            let timeout = node.pollInterval;
+            node.status({ fill: "yellow", shape: "ring", text: "Installing webhook..." });
+
+            let credentials = getCredentials(node);
+
+            // delete ttp://192.168.33.1/settings/actions?index=0&name=report_url&urls[]=
+            // create http://192.168.33.1/settings/actions?index=0&name=report_url&enabled=true&urls[]=http://192.168.1.4/webhook
+            try {
+                let deleteRoute = '/settings/actions?index=0&name=report_url&urls[]=';
+                let createRoute = '/settings/actions?index=0&name=report_url&enabled=true&urls[]=' + webhookUrl;
+                try {
+                    //let result1 = await shellyRequestAsync('get', deleteRoute, null, node, timeout, credentials);
+                    let result2 = await shellyRequestAsync('get', createRoute, null, node, timeout, credentials);
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+                    success = true;
+                }
+                catch (error) {
+                    node.status({ fill: "yellow", shape: "ring", text: "Installing webhook...." });
+                }
+            }
+            catch (error) {
+                node.warn("Installing webhook failed " + error);
+                // node.status({ fill: "red", shape: "ring", text: "Installing webhook failed "});
+            }     
+        }
+        else {
+            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
+        }
+
+        return success;
     }
 
     // Gets a function that initialize the device.
@@ -992,6 +1069,9 @@ module.exports = function (RED) {
         switch(deviceType) {
             case 'RGBW':
                 result = initializerRGBW1Async;
+                break;
+            case 'Sensor':
+                result = initializer1WebhookAsync;
                 break;
             default:
                 result = initializer1;
@@ -1083,7 +1163,7 @@ module.exports = function (RED) {
         ["Roller",     ["SHSW-L", "SHSW-25", "SHSW-21"]],
         ["Dimmer",     ["SHDM-", "SHBDUO-", "SHVIN-"]],
         ["Thermostat", ["SHTRV-"]],
-        ["Sensor",     ["SHTSHDW-", "SHGS-", "SHWT-", "SHSM-", "SHHT-", "SHMOS-"]],
+        ["Sensor",     ["SHDW-", "SHGS-", "SHWT-", "SHSM-", "SHHT-", "SHMOS-"]],
         ["Button",     ["SHBTN-", "SHIX3-"]],
         ["RGBW",       ["SHRGBW2", "SHCB-"]],
     ]);
@@ -1158,21 +1238,30 @@ module.exports = function (RED) {
         }
     }
 
-    async function applySettings1Async(msg, node, credentials){
-        let settings = msg.settings;
+    async function applySettings1Async(settings, node, credentials, timeout){
+        let success = false;
         if(settings !== undefined && Array.isArray(settings)){
             for (let i = 0; i < settings.length; i++) {
                 let setting = settings[i];
 
                 let device = setting.device;
-                let index = setting.index || 0;
+                let index = setting.index;
                 let attribute = setting.attribute;
                 let value = setting.value;
 
                 if(device !== undefined && attribute !== undefined && value !== undefined){
-                    let settingRoute = '/settings/' + device + '/' + index + '?' + attribute + '=' + value;
+                    let settingRoute;
+                    
+                    if(index !== undefined) {
+                        settingRoute = '/settings/' + device + '/' + index + '?' + attribute + '=' + value;
+                    }
+                    else {
+                        settingRoute = '/settings/' + device + '?' + attribute + '=' + value;
+                    }
+
                     try {
-                        let body = await shellyGetAsync(settingRoute, credentials);
+                        let body = await shellyRequestAsync('get', settingRoute, null, node, timeout, credentials);
+                        success = true;
                     }
                     catch (error) {
                         node.status({ fill: "red", shape: "ring", text: "Failed to set settings to: " + settingRoute});
@@ -1184,22 +1273,77 @@ module.exports = function (RED) {
                 }
             }
         }
+
+        return success;
     }
+
+    // --------------------------------------------------------------------------------------------
+    // The shelly callback server node
+    function ShellyGen1ServerNode(config) {
+        RED.nodes.createNode(this, config);
+
+        let node = this;
+        this.port = config.port;
+        this.hostname = config.hostname;
+        this.server = fastify();
+
+        if(node.port > 0){
+            node.server.listen({port : node.port}, (err, address) => {
+                if (!err){
+                    console.info("Shelly server is listening on port " + node.port);
+                }
+                else{
+                    node.error("Shelly server failed to listen on port " + node.port);
+                }
+            })
+    
+            node.server.get("/webhook", (request, reply) => {
+                let data = {
+                    event : request.query
+                };
+                node.emit('callback', data);
+                reply.code(200);
+                reply.send();
+            });
+        }
+            
+        this.on('close', function (removed, done) {
+            node.server.close().then(() => {
+                done();
+            });
+        });
+    }
+    RED.nodes.registerType('shelly-gen1-server', ShellyGen1ServerNode, {
+        credentials: {
+            token: { type: 'text' },
+        },
+    });
+
 
     // --------------------------------------------------------------------------------------------
     // The shelly node controls a shelly generation 1 device.
     function ShellyGen1Node(config) {
         RED.nodes.createNode(this, config);
         let node = this;
+
+        node.server = RED.nodes.getNode(config.server);
+        node.outputMode = config.outputmode;
+        node.initializeRetryInterval = parseInt(config.uploadretryinterval);
+      
         node.hostname = config.hostname.trim();
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus;
         node.getStatusOnCommand = config.getstatusoncommand;
-
+        
         node.rgbwMode = config.rgbwmode;
 
         let deviceType = config.devicetype;
         node.deviceType = deviceType;
+
+        node.mode = config.mode;
+        if (!node.mode) {
+            node.mode = 'polling';
+        }
 
         node.status({});
 
@@ -1208,20 +1352,63 @@ module.exports = function (RED) {
             node.inputParser = getInputParser1(deviceType);
             node.types = getDeviceTypes1(deviceType);
             
-            node.initializer(node, node.types);
+            (async () => {
+                let initialized = await node.initializer(node, node.types);
+
+                // if the device is not online, then we wait until it is available and try again.
+                if(!initialized){
+                    node.initializeTimer = setInterval(async function() {
+
+                        let initialized = await node.initializer(node, node.types);
+                        if(initialized){
+                            clearInterval(node.initializeTimer);
+                        }
+                    }, node.initializeRetryInterval);
+                }
+            })();
             
             this.on('input', async function (msg) {
 
                 let credentials = getCredentials(node, msg);
 
-                await applySettings1Async(msg, node, credentials);
+                let settings = msg.settings;
+                let timeout = node.pollInterval;
+                let success = await applySettings1Async(settings, node, credentials, timeout);
          
                 let route = await node.inputParser(msg, node, credentials);
                 executeCommand1(msg, route, node, credentials);
             });
 
+            
+            // Callback mode:
+            if(node.server !== null && node.server !== undefined && node.mode === 'callback') {
+                node.onCallback = function (data) {
+                    if(node.outputMode === 'event'){
+                        let msg = {
+                            payload : data.event
+                        };
+                        node.send([msg]);
+                    }
+                    else if(node.outputMode === 'status'){
+                        node.emit("input", {});
+                    }
+                    else {
+                        // not implemented
+                    }
+                };
+                node.server.addListener('callback', node.onCallback);
+            }
+
             this.on('close', function(done) {
+                node.status({});
+
+                if (node.onCallback) {
+                    node.server.removeListener('callback', node.onCallback);
+                }
+    
+                // TODO: call node.uninitializer();
                 clearInterval(node.pollingTimer);
+                clearInterval(node.initializeTimer);
                 done();
             });
         }
@@ -1331,7 +1518,7 @@ module.exports = function (RED) {
     }
     
     // Installs a webhook.
-    async function tryInstallWebhookAsync(node, webhookUrl, webhookName){
+    async function tryInstallWebhook2Async(node, webhookUrl, webhookName){
         let success = false;
         if(node.hostname !== ''){    
 
@@ -1367,8 +1554,8 @@ module.exports = function (RED) {
                 }
             }
             catch (error) {
-                node.error("Installing webhook failed " + error);
-                node.status({ fill: "red", shape: "ring", text: "Installing webhook failed "});
+                // node.warn("Installing webhook failed " + error);
+                // node.status({ fill: "red", shape: "ring", text: "Installing webhook failed "});
             }     
         }
         else {
@@ -1508,7 +1695,7 @@ module.exports = function (RED) {
 
             let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
             let webhookName = 'node-red-contrib-shelly';
-            success = await tryInstallWebhookAsync(node, webhookUrl, webhookName);
+            success = await tryInstallWebhook2Async(node, webhookUrl, webhookName);
         }
         else{
             // nothing to do.
@@ -1743,7 +1930,7 @@ module.exports = function (RED) {
             node.types = getDeviceTypes2(deviceType);
             
             (async () => {
-                let initialized = await node.initializer(node, node.types, node.mode);
+                let initialized = await node.initializer(node, node.types);
 
                 // if the device is not online, then we wait until it is available and try again.
                 if(!initialized){
@@ -1764,9 +1951,8 @@ module.exports = function (RED) {
             });
 
             // Callback mode:
-            if(node.server !== null && node.server !== undefined) {
+            if(node.server !== null && node.server !== undefined && node.mode === 'callback') {
                 node.onCallback = function (data) {
-     
                     if(node.outputMode === 'event'){
                         let msg = {
                             payload : data.event
@@ -1784,7 +1970,6 @@ module.exports = function (RED) {
             }
 
             this.on('close', function(done) {
-
                 node.status({});
 
                 if (node.onCallback) {

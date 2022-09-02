@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [9.8.0] - 2022-09-02
+###  added webhook support for gen1 sensors to avoid polling - [#60](https://github.com/windkh/node-red-contrib-shelly/issues/60)
+
 ## [9.7.0] - 2022-09-02
 ###  added support for Shelly Plus H&T - [#71](https://github.com/windkh/node-red-contrib-shelly/issues/71)
 

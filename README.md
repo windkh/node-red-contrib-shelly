@@ -88,6 +88,17 @@ the msg.payload.hostname. This can be useful, if you want to use one node for se
 }
 ```
 
+## callback mode vs polling mode
+Unlike generation 2 devices which support scripts the older generation 1 supports only webhooks which are very limited. You can always use polling mode, but some devices like sensors and buttons
+often sleep to safe energy. In this state the node can not reach the shelly in the local network. This results in a polling error which is not a problem, but often generates
+confusion when the user sees error messages in the node-red debugger or console. To avoid this you can try to enable callback mode.
+In callback mode a webhook is configured to the shelly which notifies to the node when sensor data changed. The node needs to open a network port to be able to receive these messages.
+You must configure this network port, make sure that it is not already in use. If node-red runs inside a docker container or any other bridged network then you should also configure the hostname
+under that the shelly device can reach the node-red server (Leave this field empty if you run inside the same network segment).
+The node retries to set the webhook if the device is sleeping as long as it succeeds. As soon as the status shows "Connected" the webhook is set.
+The following devices are supported right now:
+Shelly Motion 2, Shelly H&T, Shelly Flood, Shelly Door/Window 1/2.
+
 
 # Shelly Node (Generation 1)
 See also https://shelly-api-docs.shelly.cloud/gen1/#shelly-family-overview
@@ -589,7 +600,7 @@ See also https://shelly-api-docs.shelly.cloud/gen2/Devices/ShellyPlus1PM
 The node can communicate with several shelly types. You must select the correct device type from the combobox when configuring the node.
 
 ## callback mode vs polling mode
-Unlike generation 1 device the new generation supports the usage of scripts. In polling mode the node just behaves like the generation 1 node.
+Unlike generation 1 devices the new generation supports the usage of scripts. In polling mode the node just behaves like the generation 1 node.
 In callback mode a script is uploaded to the shelly which sends all notification events to the node. The node needs to open a network port to be able to receive these messages.
 You must configure this network port, make sure that it is not already in use. If node-red runs inside a docker container or any other bridged network then you should also configure the hostname
 under that the shelly device can reach the node-red server (Leave this field empty if you run inside the same network segment).
