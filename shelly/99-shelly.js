@@ -1623,8 +1623,9 @@ module.exports = function (RED) {
     }
 
     // starts the polling mode.
-    function initializer2(node, types, mode){
+    function initializer2(node, types){
         let success = false;
+        let mode = node.mode;
         if(mode === 'polling'){
             start(node, types);
             success = true;
