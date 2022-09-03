@@ -1014,7 +1014,8 @@ module.exports = function (RED) {
                 ipAddress = node.server.hostname;
             }
             
-            let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
+            let sender = node.hostname;
+            let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook?sender=' + sender;
             let webhookName = 'node-red-contrib-shelly';
             success = await tryInstallWebhook1Async(node, webhookUrl, webhookName);
         }
@@ -1300,7 +1301,9 @@ module.exports = function (RED) {
     
             node.server.get("/webhook", (request, reply) => {
                 let data = {
-                    event : request.query
+                    hookType : 'report_url', // right now this is the only webhook we use.
+                    sender : request.query.sender,
+                    event : request.query, // request.body is null
                 };
                 node.emit('callback', data);
                 reply.code(200);
@@ -1384,17 +1387,19 @@ module.exports = function (RED) {
             // Callback mode:
             if(node.server !== null && node.server !== undefined && node.mode === 'callback') {
                 node.onCallback = function (data) {
-                    if(node.outputMode === 'event'){
-                        let msg = {
-                            payload : data.event
-                        };
-                        node.send([msg]);
-                    }
-                    else if(node.outputMode === 'status'){
-                        node.emit("input", {});
-                    }
-                    else {
-                        // not implemented
+                    if(data.sender === node.hostname){
+                        if(node.outputMode === 'event'){
+                            let msg = {
+                                payload : data.event
+                            };
+                            node.send([msg]);
+                        }
+                        else if(node.outputMode === 'status'){
+                            node.emit("input", {});
+                        }
+                        else {
+                            // not implemented
+                        }
                     }
                 };
                 node.server.addListener('callback', node.onCallback);
@@ -1540,7 +1545,8 @@ module.exports = function (RED) {
 
                 let supportedEventsResponse = await shellyRequestAsync('get', '/rpc/Webhook.ListSupported', null, node, timeout, credentials);
                 for (let hookType of supportedEventsResponse.hook_types) {  
-                    let url = webhookUrl + '?hookType=' + hookType;
+                    let sender = node.hostname;
+                    let url = webhookUrl + '?hookType=' + hookType + '&sender=' + sender;
                     let createParams = { 
                         'name' : webhookName,
                         'event' : hookType,
@@ -1685,11 +1691,6 @@ module.exports = function (RED) {
             success = true;
         }
         else if(mode === 'callback'){
-
-            // here we reuse callback for webhooks.
-            // As webhooks do not provide data we must poll the status on every event:
-            node.outputMode = 'status';
-
             let ipAddress = localIpAddress;
             if(node.server.hostname !== undefined && node.server.hostname !== ''){
                 ipAddress = node.server.hostname;
@@ -1873,16 +1874,22 @@ module.exports = function (RED) {
             })
     
             node.server.put("/callback", (request, reply) => {
-                let data = request.body;
+                let data = {
+                    sender : request.body.sender,
+                    event : request.body.event,
+                }
                 node.emit('callback', data);
                 reply.code(200);
                 reply.send();
             });
 
             node.server.get("/webhook", (request, reply) => {
-                // let hookType = request.query.hookType;
-                // let data = request.body;
-                node.emit('callback', {});
+                let data = {
+                    hookType : request.query.hookType,
+                    sender : request.query.sender,
+                    event : request.query, // request.body is null
+                }
+                node.emit('callback', data);
                 reply.code(200);
                 reply.send();
             });
@@ -1955,17 +1962,19 @@ module.exports = function (RED) {
             // Callback mode:
             if(node.server !== null && node.server !== undefined && node.mode === 'callback') {
                 node.onCallback = function (data) {
-                    if(node.outputMode === 'event'){
-                        let msg = {
-                            payload : data.event
-                        };
-                        node.send([msg]);
-                    }
-                    else if(node.outputMode === 'status'){
-                        node.emit("input", {});
-                    }
-                    else {
-                        // not implemented
+                    if(data.sender === node.hostname){
+                        if(node.outputMode === 'event'){
+                            let msg = {
+                                payload : data.event
+                            };
+                            node.send([msg]);
+                        }
+                        else if(node.outputMode === 'status'){
+                            node.emit("input", {});
+                        }
+                        else {
+                            // not implemented
+                        }
                     }
                 };
                 node.server.addListener('callback', node.onCallback);
