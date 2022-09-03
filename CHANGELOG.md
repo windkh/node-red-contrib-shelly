@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [9.11.0] - 2022-09-03
+###  added webhook support for Shelly Button 1 - [#85](https://github.com/windkh/node-red-contrib-shelly/issues/85)
+
 ## [9.10.0] - 2022-09-03
 ###  fixed - [#84](https://github.com/windkh/node-red-contrib-shelly/issues/84)
 

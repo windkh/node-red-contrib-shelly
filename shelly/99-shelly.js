@@ -1015,9 +1015,8 @@ module.exports = function (RED) {
             }
             
             let sender = node.hostname;
-            let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook?sender=' + sender;
-            let webhookName = 'node-red-contrib-shelly';
-            success = await tryInstallWebhook1Async(node, webhookUrl, webhookName);
+            let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
+            success = await tryInstallWebhook1Async(node, webhookUrl, sender);
         }
         else{
             // nothing to do.
@@ -1028,7 +1027,7 @@ module.exports = function (RED) {
     }
 
     // Installs a webhook.
-    async function tryInstallWebhook1Async(node, webhookUrl, webhookName){
+    async function tryInstallWebhook1Async(node, webhookUrl, sender){
         let success = false;
         if(node.hostname !== ''){    
 
@@ -1037,20 +1036,30 @@ module.exports = function (RED) {
 
             let credentials = getCredentials(node);
 
+            let hookTypes = getHookTypes1(node.deviceType);
+
             // delete ttp://192.168.33.1/settings/actions?index=0&name=report_url&urls[]=
             // create http://192.168.33.1/settings/actions?index=0&name=report_url&enabled=true&urls[]=http://192.168.1.4/webhook
             try {
-                let deleteRoute = '/settings/actions?index=0&name=report_url&urls[]=';
-                let createRoute = '/settings/actions?index=0&name=report_url&enabled=true&urls[]=' + webhookUrl;
-                try {
-                    //let result1 = await shellyRequestAsync('get', deleteRoute, null, node, timeout, credentials);
-                    let result2 = await shellyRequestAsync('get', createRoute, null, node, timeout, credentials);
-                    node.status({ fill: "green", shape: "ring", text: "Connected." });
-                    success = true;
-                }
-                catch (error) {
-                    node.status({ fill: "yellow", shape: "ring", text: "Installing webhook...." });
-                }
+
+                for (let i = 0; i < hookTypes.length; i++) {
+                    let hookType = hookTypes[i];
+                   
+                    // let deleteRoute = '/settings/actions?index=0&name=report_url&urls[]=';
+                    let url = webhookUrl + '?data=' + hookType + '?' + sender; // note that & can not be used in gen1!!!
+                    // let url = webhookUrl + '?sender=' + sender + '&h=' + hookType;
+                    let createRoute = '/settings/actions?index=0&name=' + hookType + '&enabled=true&urls[]=' + url;
+                    let deleteRoute = '/settings/actions?index=0&name=' + hookType + '&enabled=false&urls[]=';
+                    try {
+                        let result1 = await shellyRequestAsync('get', deleteRoute, null, node, timeout, credentials);
+                        let result2 = await shellyRequestAsync('get', createRoute, null, node, timeout, credentials);
+                        node.status({ fill: "green", shape: "ring", text: "Connected." });
+                        success = true;
+                    }
+                    catch (error) {
+                        node.status({ fill: "yellow", shape: "ring", text: "Installing webhook...." });
+                    }
+                };
             }
             catch (error) {
                 node.warn("Installing webhook failed " + error);
@@ -1072,6 +1081,7 @@ module.exports = function (RED) {
             case 'RGBW':
                 result = initializerRGBW1Async;
                 break;
+            case 'Button':
             case 'Sensor':
                 result = initializer1WebhookAsync;
                 break;
@@ -1177,6 +1187,26 @@ module.exports = function (RED) {
         }
 
         return deviceTypes;
+    }
+
+    let gen1HookTypes = new Map([
+        ["Relay",      []],
+        ["Measure",    []],
+        ["Roller",     []],
+        ["Dimmer",     []],
+        ["Thermostat", []],
+        ["Sensor",     ["report_url"]],
+        ["Button",     ["shortpush_url", "double_shortpush_url", "triple_shortpush_url", "longpush_url"]],
+        ["RGBW",       []],
+    ]);
+
+    function getHookTypes1(deviceType){
+        let hookTypes = gen1HookTypes.get(deviceType);
+        if(hookTypes === undefined){
+            hookTypes = []; 
+        }
+
+        return hookTypes;
     }
 
     function executeCommand1(msg, route, node, credentials){
@@ -1300,10 +1330,15 @@ module.exports = function (RED) {
             })
     
             node.server.get("/webhook", (request, reply) => {
+                let queryFields = request.query.data.split('?');
+                let query = {
+                    hookType : queryFields[0],
+                    sender : queryFields[1],
+                }
                 let data = {
-                    hookType : 'report_url', // right now this is the only webhook we use.
-                    sender : request.query.sender,
-                    event : request.query, // request.body is null
+                    hookType : queryFields[0],
+                    sender : queryFields[1],
+                    event : query, // request.body is null
                 };
                 node.emit('callback', data);
                 reply.code(200);

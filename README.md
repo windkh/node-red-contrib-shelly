@@ -98,7 +98,7 @@ under that the shelly device can reach the node-red server (Leave this field emp
 The node retries to set the webhook if the device is sleeping as long as it succeeds. As soon as the status shows "Connected" the webhook is set.
 Right now you must manually remove the webhook from the shelly if you go back to polling mode.
 The following devices are supported right now:
-Shelly Motion 2, Shelly H&T, Shelly Flood, Shelly Door/Window 1/2.
+Shelly Motion 2, Shelly H&T, Shelly Flood, Shelly Door/Window 1/2, Shelly Button1.
 
 
 # Shelly Node (Generation 1)
