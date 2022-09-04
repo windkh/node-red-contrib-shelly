@@ -11,6 +11,9 @@ module.exports = function (RED) {
     const path = require("path");
     const fastify = require('fastify');
 
+    let crypto = require('crypto');
+    let nonceCount = 1;
+
     let ip = require('ip');
     let localIpAddress = ip.address();
 
@@ -56,8 +59,14 @@ module.exports = function (RED) {
             password = node.credentials.password;
         }
 
+        let authType = node.authType;
+        if(authType === 'Digest') {
+            username = 'admin'; // see https://shelly-api-docs.shelly.cloud/gen2/General/Authentication
+        }
+
         let credentials = {
             hostname : hostname,
+            authType : authType,
             username : username,
             password : password,
         };
@@ -65,40 +74,117 @@ module.exports = function (RED) {
         return credentials;
     }
 
-    // Note that this function has a reduced timeout.
-    function shellyTryGet(route, node, timeout, credentials, callback, errorCallback){
-        let data;
-        return shellyTryRequest('get', route, data, node, timeout, credentials, callback, errorCallback);
+    // Encrypts a string using SHA-256.
+    function sha256(str){
+        let result = crypto.createHash('sha256').update(str).digest('hex');
+        return result;
+    }
+
+    // see https://shelly-api-docs.shelly.cloud/gen2/General/Authentication
+    // see https://github.com/axios/axios/issues/686
+    function getDigestAuthorization(response, credentials, config){
+        let authDetails = response.headers['www-authenticate'].split(', ');
+        let propertiesArray = authDetails.map(v => v.split('='));
+        let properties = new Map(propertiesArray.map(obj => [obj[0], obj[1]]));
+
+        nonceCount++; // global counter
+        let url = config.url;
+        let method = config.method;
+
+        let algorithm = properties.get('algorithm'); // TODO: check if it is still SHA-256 
+        let username = credentials.username;
+        let password = credentials.password;
+        let realm = properties.get('realm').replace(/"/g, '');
+        let authParts = [username, realm, password];
+
+        let ha1String = authParts.join(':');
+        let ha1 = sha256(ha1String);
+        let ha2String = method + ':' + url;
+        let ha2 = sha256(ha2String);
+        let nc = ('00000000' + nonceCount).slice(-8);
+        let nonce = properties.get('nonce').replace(/"/g, '');
+        let cnonce = crypto.randomBytes(24).toString('hex');
+        let responseString = ha1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + "auth" + ":" + ha2;
+        let responseHash = sha256(responseString);
+
+        const authorization = 
+            'Digest username="' + username + 
+            '", realm="' + realm + 
+            '", nonce="' + nonce + 
+            '", uri="' + url + 
+            '", cnonce="' + cnonce + 
+            '", nc=' + nc + 
+            ', qop=auth' + 
+            ', response="' + responseHash + 
+            '", algorithm=SHA-256';
+        return authorization;
+    }
+
+    // Gets a header with the authorization property for the request.
+    function getHeaders(credentials){
+        let headers = {};
+        if(credentials.authType === 'Basic') {
+            if(credentials.username !== undefined && credentials.password !== undefined) {
+                headers.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64");
+            };
+        }
+
+        return headers;
     }
 
     // Note that this function has a reduced timeout.
-    function shellyTryRequest(method, route, data, node, timeout, credentials, callback, errorCallback){
+    function shellyTryGet(route, node, credentials, timeout, callback, errorCallback){
+        let data;
+        return shellyTryRequest('GET', route, data, node, credentials, timeout, callback, errorCallback);
+    }
+
+    // Note that this function has a reduced timeout.
+    function shellyTryRequest(method, route, data, node, credentials, timeout, callback, errorCallback){
     
+        if(timeout === undefined || timeout === null){
+            timeout = 5000;
+        };
+
         // We avoid an invalid timeout by taking a default if 0.
         let requestTimeout = timeout;
         if(requestTimeout <= 0){
             requestTimeout = 5000;
         }
 
-        let headers = {};
-        if(credentials.username !== undefined && credentials.password !== undefined) {
-            headers.Authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64");
-        };
+        let headers = getHeaders(credentials);
 
-        let url = 'http://' + credentials.hostname + route;
-
+        let baseUrl = 'http://' + credentials.hostname;
         let config = {
-            url : url,
+            baseURL :  baseUrl,
+            url : route,
             method : method,
             data : data,
             headers : headers,
-            timeout: requestTimeout
+            timeout: requestTimeout,
+            validateStatus : (status) => status === 200 || status === 401
         };
+
         const request = axios.request(config);
 
         request.then(response => {
             if(response.status == 200){
                 callback(response.data);
+            }
+            else if(response.status == 401){
+                config.headers = {
+                    'Authorization': getDigestAuthorization(response, credentials, config)
+                }
+
+                const digestRequest = axios.request(config);
+                digestRequest.then(response => {
+                    if(response.status == 200){
+                        callback(response.data);
+                    }
+                    else {
+                        node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusText });
+                        node.warn("Error: " + response.statusText  + ' ' + config.url);
+                    }
+                })
             }
             else {
                 node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusText });
@@ -111,8 +197,12 @@ module.exports = function (RED) {
     }
 
     // generic REST request wrapper with promise
-    function shellyRequestAsync(method, route, data, node, timeout, credentials){
+    function shellyRequestAsync(method, route, data, credentials, timeout){
         return new Promise(function (resolve, reject) {
+
+            if(timeout === undefined || timeout === null){
+                timeout = 5000;
+            };
 
             // We avoid an invalid timeout by taking a default if 0.
             let requestTimeout = timeout;
@@ -120,26 +210,38 @@ module.exports = function (RED) {
                 requestTimeout = 5000;
             }
 
-            let headers = {};
-            if(credentials.username !== undefined && credentials.password !== undefined) {
-                headers.Authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64");
-            };
+            let headers = getHeaders(credentials);
 
-            let url = 'http://' + credentials.hostname + route;
-            
+            let baseUrl = 'http://' + credentials.hostname;
             let config = {
-                url : url,
+                baseURL :  baseUrl,
+                url : route,
                 method : method,
                 data : data,
                 headers : headers,
-                timeout: requestTimeout
+                timeout: requestTimeout,
+                validateStatus : (status) => status === 200 || status === 401
             };
+
             const request = axios.request(config);
     
-
             request.then(response => {
                 if(response.status == 200){
                     resolve(response.data)
+                } else if(response.status == 401){
+                    config.headers = {
+                        'Authorization': getDigestAuthorization(response, credentials, config)
+                    }
+    
+                    const digestRequest = axios.request(config);
+                    digestRequest.then(response => {
+                        if(response.status == 200){
+                            resolve(response.data)
+                        }
+                        else {
+                            reject(response.statusText + ' ' + config.url);
+                        }
+                    })
                 } else {
                     reject(response.statusText);
                 }
@@ -151,38 +253,10 @@ module.exports = function (RED) {
     }
 
 
-    // generic REST get wrapper with promise
-    function shellyGetAsync(route, credentials){
-        return new Promise(function (resolve, reject) {
-
-            let headers = {};
-            if(credentials.username !== undefined && credentials.password !== undefined) {
-                headers.Authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64");
-            };
-
-            let url = 'http://' + credentials.hostname + route;
-            
-            const request = axios.get(url, {
-                headers : headers
-            });
-
-            request.then(response => {
-                if(response.status == 200){
-                    resolve(response.data)
-                } else {
-                    reject(response.statusText);
-                }
-            })
-            .catch(error => {
-                reject(error);
-            });
-          });
-    }
-
     function shellyPing(node, credentials, types){
 
         // gen 1 and gen 2 devices support this endpoint (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
-        shellyTryGet('/shelly', node, node.pollInterval, credentials, function(body) {
+        shellyTryGet('/shelly', node, credentials, node.pollInterval, function(body) {
             node.shellyInfo = body;
 
             let deviceType;
@@ -362,7 +436,8 @@ module.exports = function (RED) {
                     node.status({ fill: "green", shape: "ring", text: "Downloading CSV " + emeter});
 
                     try {
-                        let body = await shellyGetAsync(downloadRoute, credentials);
+                        let timeout = 60000; // download can take very long of there is a lot of data.
+                        let body = await shellyRequestAsync('GET', downloadRoute, null, credentials, timeout);
                         data.push(body);
                     }
                     catch (error) {
@@ -663,7 +738,7 @@ module.exports = function (RED) {
                 if (node.rgbwMode === 'auto') {
                     try {
                         let modeRoute = '/settings?mode=' + nodeMode;
-                        let body = await shellyGetAsync(modeRoute, credentials);
+                        let body = await shellyRequestAsync('GET', modeRoute, null, credentials);
                     }
                     catch (error) {
                         node.status({ fill: "red", shape: "ring", text: "Failed to set mode to: " + nodeMode});
@@ -969,8 +1044,8 @@ module.exports = function (RED) {
                 try {
                     let credentials = getCredentials(node);
             
-                    let modeRoute = '/settings?mode=' + mode;
-                    let body = await shellyGetAsync(modeRoute, credentials);
+                    let modeRoute = '/settings?mode=' + mode;   
+                    let body = await shellyRequestAsync('GET', modeRoute, null, credentials);
                     // here we can not check if the mode is already changed so we can not display a proper status.
                 }
                 catch (error) {
@@ -1031,7 +1106,6 @@ module.exports = function (RED) {
         let success = false;
         if(node.hostname !== ''){    
 
-            let timeout = node.pollInterval;
             node.status({ fill: "yellow", shape: "ring", text: "Installing webhook..." });
 
             let credentials = getCredentials(node);
@@ -1051,8 +1125,9 @@ module.exports = function (RED) {
                     let createRoute = '/settings/actions?index=0&name=' + hookType + '&enabled=true&urls[]=' + url;
                     let deleteRoute = '/settings/actions?index=0&name=' + hookType + '&enabled=false&urls[]=';
                     try {
-                        let result1 = await shellyRequestAsync('get', deleteRoute, null, node, timeout, credentials);
-                        let result2 = await shellyRequestAsync('get', createRoute, null, node, timeout, credentials);
+                        let timeout = node.pollInterval;
+                        let result1 = await shellyRequestAsync('GET', deleteRoute, null, credentials, timeout);
+                        let result2 = await shellyRequestAsync('GET', createRoute, null, credentials, timeout);
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
                         success = true;
                     }
@@ -1213,9 +1288,9 @@ module.exports = function (RED) {
         let getStatusRoute = '/status';
         if (route !== undefined && route !== ''){
 
-            shellyTryGet(route, node, node.pollInterval, credentials, function(body) {
+            shellyTryGet(route, node, credentials, null, function(body) {
                 if (node.getStatusOnCommand) {
-                    shellyTryGet(getStatusRoute, node, node.pollInterval, credentials, function(body) {
+                    shellyTryGet(getStatusRoute, node, credentials, null, function(body) {
                         
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -1252,7 +1327,7 @@ module.exports = function (RED) {
             });
         }
         else {
-            shellyTryGet(getStatusRoute, node, node.pollInterval, credentials, function(body) {
+            shellyTryGet(getStatusRoute, node, credentials, null, function(body) {
                     
                 node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -1270,7 +1345,7 @@ module.exports = function (RED) {
         }
     }
 
-    async function applySettings1Async(settings, node, credentials, timeout){
+    async function applySettings1Async(settings, node, credentials){
         let success = false;
         if(settings !== undefined && Array.isArray(settings)){
             for (let i = 0; i < settings.length; i++) {
@@ -1292,7 +1367,7 @@ module.exports = function (RED) {
                     }
 
                     try {
-                        let body = await shellyRequestAsync('get', settingRoute, null, node, timeout, credentials);
+                        let body = await shellyRequestAsync('GET', settingRoute, null, credentials);
                         success = true;
                     }
                     catch (error) {
@@ -1318,7 +1393,7 @@ module.exports = function (RED) {
         this.port = config.port;
         this.hostname = config.hostname;
         this.server = fastify();
-
+        
         if(node.port > 0){
             node.server.listen({port : node.port}, (err, address) => {
                 if (!err){
@@ -1367,9 +1442,16 @@ module.exports = function (RED) {
 
         node.server = RED.nodes.getNode(config.server);
         node.outputMode = config.outputmode;
-        node.initializeRetryInterval = parseInt(config.uploadretryinterval);
+        
+        if(config.uploadretryinterval !== undefined) {
+            node.initializeRetryInterval = parseInt(config.uploadretryinterval);
+        }
+        else {
+            node.initializeRetryInterval = 5000;
+        }
       
         node.hostname = config.hostname.trim();
+        node.authType = "Basic";
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus;
         node.getStatusOnCommand = config.getstatusoncommand;
@@ -1411,8 +1493,7 @@ module.exports = function (RED) {
                 let credentials = getCredentials(node, msg);
 
                 let settings = msg.settings;
-                let timeout = node.pollInterval;
-                let success = await applySettings1Async(settings, node, credentials, timeout);
+                let success = await applySettings1Async(settings, node, credentials);
          
                 let route = await node.inputParser(msg, node, credentials);
                 executeCommand1(msg, route, node, credentials);
@@ -1474,13 +1555,12 @@ module.exports = function (RED) {
         let success = false;
         if(node.hostname !== ''){    
 
-            let timeout = node.pollInterval;
             node.status({ fill: "yellow", shape: "ring", text: "Uploading script..." });
 
             let credentials = getCredentials(node);
 
             try {
-                let scriptListResponse = await shellyRequestAsync('get', '/rpc/Script.List', null, node, timeout, credentials);
+                let scriptListResponse = await shellyRequestAsync('GET', '/rpc/Script.List', null, credentials);
             
                 let scriptId = -1;
                 for (let scriptItem of scriptListResponse.scripts) {
@@ -1492,11 +1572,11 @@ module.exports = function (RED) {
 
                 if(scriptId != -1) {
                     let deleteParams = { 'id' : scriptId };
-                    await shellyRequestAsync('get', '/rpc/Script.Delete', deleteParams, node, timeout, credentials);
+                    await shellyRequestAsync('GET', '/rpc/Script.Delete', deleteParams, credentials);
                 }
 
                 let createParams = { 'name' : scriptName };
-                let createScriptResonse = await shellyRequestAsync('get', '/rpc/Script.Create', createParams, node, timeout, credentials);
+                let createScriptResonse = await shellyRequestAsync('GET', '/rpc/Script.Create', createParams, credentials);
                 scriptId = createScriptResonse.id;
 
                 let chunkSize = 1024;
@@ -1517,7 +1597,7 @@ module.exports = function (RED) {
                         'code' : codeToSend,
                         'append' : true
                     };
-                    await shellyRequestAsync('post', '/rpc/Script.PutCode', putParams, node, timeout, credentials);
+                    await shellyRequestAsync('POST', '/rpc/Script.PutCode', putParams, credentials);
 
                 } while (!done);
 
@@ -1525,17 +1605,17 @@ module.exports = function (RED) {
                     'id' : scriptId,
                     'config' : {'enable' : true}
                 };
-                await shellyRequestAsync('get', '/rpc/Script.SetConfig ', configParams, node, timeout, credentials);
+                await shellyRequestAsync('GET', '/rpc/Script.SetConfig ', configParams, credentials);
                
                 let startParams = {  
                     'id' : scriptId,
                 };
-                await shellyRequestAsync('get', '/rpc/Script.Start ', startParams, node, timeout, credentials);
+                await shellyRequestAsync('GET', '/rpc/Script.Start ', startParams, credentials);
                
                 let statusParams = {  
                     'id' : scriptId,
                 };
-                let status = await shellyRequestAsync('get', '/rpc/Script.GetStatus ', statusParams, node, timeout, credentials);
+                let status = await shellyRequestAsync('GET', '/rpc/Script.GetStatus ', statusParams, credentials);
 
                 if(status.running === true){
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
@@ -1562,23 +1642,21 @@ module.exports = function (RED) {
     async function tryInstallWebhook2Async(node, webhookUrl, webhookName){
         let success = false;
         if(node.hostname !== ''){    
-
-            let timeout = node.pollInterval;
             node.status({ fill: "yellow", shape: "ring", text: "Installing webhook..." });
 
             let credentials = getCredentials(node);
 
             try {
-                let webhookListResponse = await shellyRequestAsync('get', '/rpc/Webhook.List', null, node, timeout, credentials);
+                let webhookListResponse = await shellyRequestAsync('GET', '/rpc/Webhook.List', null, credentials);
             
                 for (let webhookItem of webhookListResponse.hooks) {
                     if(webhookItem.name == webhookName){
                         let deleteParams = { 'id' : webhookItem.id };
-                        let deleteWebhookResonse = await shellyRequestAsync('get', '/rpc/Webhook.Delete', deleteParams, node, timeout, credentials);
+                        let deleteWebhookResonse = await shellyRequestAsync('GET', '/rpc/Webhook.Delete', deleteParams, credentials);
                     }
                 };
 
-                let supportedEventsResponse = await shellyRequestAsync('get', '/rpc/Webhook.ListSupported', null, node, timeout, credentials);
+                let supportedEventsResponse = await shellyRequestAsync('GET', '/rpc/Webhook.ListSupported', null, credentials);
                 for (let hookType of supportedEventsResponse.hook_types) {  
                     let sender = node.hostname;
                     let url = webhookUrl + '?hookType=' + hookType + '&sender=' + sender;
@@ -1589,7 +1667,7 @@ module.exports = function (RED) {
                         'enable' : true,
                         "urls": [url]
                     };
-                    let createWebhookResonse = await shellyRequestAsync('get', '/rpc/Webhook.Create', createParams, node, timeout, credentials);
+                    let createWebhookResonse = await shellyRequestAsync('GET', '/rpc/Webhook.Create', createParams, credentials);
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
                     success = true;
@@ -1610,7 +1688,7 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserGeneric2Async(msg){
         
-        let method = 'post';
+        let method = 'POST';
         let data;
         let route;
 
@@ -1828,10 +1906,10 @@ module.exports = function (RED) {
             let method = request.method;
             let data = request.data;
     
-            shellyTryRequest(method, route, data, node, node.pollInterval, credentials, function(body) {
+            shellyTryRequest(method, route, data, node, credentials, null, function(body) {
 
                 if (node.getStatusOnCommand) {
-                    shellyTryGet(getStatusRoute, node, node.pollInterval, credentials, function(body) {
+                    shellyTryGet(getStatusRoute, node, credentials, null, function(body) {
                         
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -1869,7 +1947,7 @@ module.exports = function (RED) {
             });
         }
         else {
-            shellyTryGet(getStatusRoute, node, node.pollInterval, credentials, function(body) {
+            shellyTryGet(getStatusRoute, node, credentials, null, function(body) {
                     
                 node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -1951,9 +2029,16 @@ module.exports = function (RED) {
         
         node.server = RED.nodes.getNode(config.server);
         node.outputMode = config.outputmode;
-        node.initializeRetryInterval = parseInt(config.uploadretryinterval);
+        
+        if(config.uploadretryinterval !== undefined) {
+            node.initializeRetryInterval = parseInt(config.uploadretryinterval);
+        }
+        else {
+            node.initializeRetryInterval = 5000;
+        }
         
         node.hostname = config.hostname.trim();
+        node.authType = "Digest";
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus;
         node.getStatusOnCommand = config.getstatusoncommand;

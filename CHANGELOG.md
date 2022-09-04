@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [9.12.0] - 2022-09-04
+###  fixed gen 2 authentication: Digest auth is used now - [#79](https://github.com/windkh/node-red-contrib-shelly/issues/79)
+###  fixed - [#87](https://github.com/windkh/node-red-contrib-shelly/issues/87)
+
 ## [9.11.0] - 2022-09-03
 ###  added webhook support for Shelly Button 1 - [#85](https://github.com/windkh/node-red-contrib-shelly/issues/85)
 

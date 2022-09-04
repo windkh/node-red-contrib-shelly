@@ -61,7 +61,7 @@
                 return ok;
             } },
             outputmode: { value: "event", required: false },
-            uploadretryinterval: { value: 5000,  validate:RED.validators.number() },
+            uploadretryinterval: { value: 5000, required: false, validate:RED.validators.number() },
             
             // polling
             pollinginterval: { value: 5000, validate:RED.validators.number() },
@@ -337,7 +337,7 @@
                 return ok;
             } },
             outputmode: { value: "event", required: false },
-            uploadretryinterval: { value: 5000,  validate:RED.validators.number() },
+            uploadretryinterval: { value: 5000,  required: false, validate:RED.validators.number() },
             
             // polling
             pollinginterval: { value: 5000,  validate:RED.validators.number() },
@@ -348,7 +348,6 @@
             outputs: {value: 1},
         },
         credentials: {
-            username: { type: "text" },
             password: { type: "password" },
         },
         inputs: 1,
@@ -415,10 +414,6 @@
     <div class="form-row">
         <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
         <input type="text" id="node-input-description" placeholder="The description of the device (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
-        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
     </div>
     <div class="form-row">
         <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
