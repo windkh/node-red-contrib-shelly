@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [9.13.0] - 2022-09-04
+###  added callback support for I3 - [#69](https://github.com/windkh/node-red-contrib-shelly/issues/69)
+
 ## [9.12.0] - 2022-09-04
 ###  fixed gen 2 authentication: Digest auth is used now - [#79](https://github.com/windkh/node-red-contrib-shelly/issues/79)
 ###  fixed - [#87](https://github.com/windkh/node-red-contrib-shelly/issues/87)

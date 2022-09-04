@@ -1116,25 +1116,36 @@ module.exports = function (RED) {
             // create http://192.168.33.1/settings/actions?index=0&name=report_url&enabled=true&urls[]=http://192.168.1.4/webhook
             try {
 
-                for (let i = 0; i < hookTypes.length; i++) {
-                    let hookType = hookTypes[i];
-                   
-                    // let deleteRoute = '/settings/actions?index=0&name=report_url&urls[]=';
-                    let url = webhookUrl + '?data=' + hookType + '?' + sender; // note that & can not be used in gen1!!!
-                    // let url = webhookUrl + '?sender=' + sender + '&h=' + hookType;
-                    let createRoute = '/settings/actions?index=0&name=' + hookType + '&enabled=true&urls[]=' + url;
-                    let deleteRoute = '/settings/actions?index=0&name=' + hookType + '&enabled=false&urls[]=';
-                    try {
-                        let timeout = node.pollInterval;
-                        let result1 = await shellyRequestAsync('GET', deleteRoute, null, credentials, timeout);
-                        let result2 = await shellyRequestAsync('GET', createRoute, null, credentials, timeout);
-                        node.status({ fill: "green", shape: "ring", text: "Connected." });
-                        success = true;
-                    }
-                    catch (error) {
-                        node.status({ fill: "yellow", shape: "ring", text: "Installing webhook...." });
-                    }
-                };
+                if (hookTypes[0] !== undefined && hookTypes[0].action === '*'){
+                    hookTypes = await getHookTypesFromDevice1(node);
+                }
+
+                if(hookTypes.length !== 0){
+                    for (let i = 0; i < hookTypes.length; i++) {
+                        let hookType = hookTypes[i];
+                        let name = hookType.action;
+                        let index = hookType.index;
+
+                        let url = webhookUrl + '?data=' + name + '?' + index + '?' + sender; // note that & can not be used in gen1!!!
+                        let deleteRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=false&urls[]=';
+                        let createRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=true&urls[]=' + url;
+                        try {
+                            let timeout = node.pollInterval;
+                            let result1 = await shellyRequestAsync('GET', deleteRoute, null, credentials, timeout);
+                            let result2 = await shellyRequestAsync('GET', createRoute, null, credentials, timeout);
+                            node.status({ fill: "green", shape: "ring", text: "Connected." });
+                            success = true;
+                        }
+                        catch (error) {
+                            node.status({ fill: "yellow", shape: "ring", text: "Installing webhook...." });
+                        }
+                    };
+                }
+                else
+                {
+                    node.status({ fill: "red", shape: "ring", text: "Device does not support callbacks" });
+                    node.warn("Installing webhook failed " + error);
+                }
             }
             catch (error) {
                 node.warn("Installing webhook failed " + error);
@@ -1265,13 +1276,13 @@ module.exports = function (RED) {
     }
 
     let gen1HookTypes = new Map([
-        ["Relay",      []],
-        ["Measure",    []],
-        ["Roller",     []],
-        ["Dimmer",     []],
+        ["Relay",      [{ action : "*", index : 0 }]],
+        ["Measure",    [{ action : "*", index : 0 }]],
+        ["Roller",     [{ action : "*", index : 0 }]],
+        ["Dimmer",     [{ action : "*", index : 0 }]],
         ["Thermostat", []],
-        ["Sensor",     ["report_url"]],
-        ["Button",     ["shortpush_url", "double_shortpush_url", "triple_shortpush_url", "longpush_url"]],
+        ["Sensor",     [{ action : "*", index : 0 }]],
+        ["Button",     [{ action : "*", index : 0 }]],
         ["RGBW",       []],
     ]);
 
@@ -1279,6 +1290,32 @@ module.exports = function (RED) {
         let hookTypes = gen1HookTypes.get(deviceType);
         if(hookTypes === undefined){
             hookTypes = []; 
+        }
+
+        return hookTypes;
+    }
+
+    async function getHookTypesFromDevice1(node){
+        let credentials = getCredentials(node);
+
+        let actionsRoute = '/settings/actions';
+        let result = await shellyRequestAsync('GET', actionsRoute, null, credentials);
+        
+        let hookTypes = [];
+        let actions = Object.keys(result.actions);
+        for (let i = 0; i < actions.length; i++) {
+            let action = actions[i];
+            let actionItems = result.actions[action];
+            for (let j = 0; j < actionItems.length; j++) {
+                let item = actionItems[j];
+                let index = item.index;
+
+                let hookType = {
+                    action : action,
+                    index : index
+                };
+                hookTypes.push(hookType);
+            }
         }
 
         return hookTypes;
@@ -1408,11 +1445,13 @@ module.exports = function (RED) {
                 let queryFields = request.query.data.split('?');
                 let query = {
                     hookType : queryFields[0],
-                    sender : queryFields[1],
+                    index : queryFields[1],
+                    sender : queryFields[2],
                 }
                 let data = {
                     hookType : queryFields[0],
-                    sender : queryFields[1],
+                    index : queryFields[1],
+                    sender : queryFields[2],
                     event : query, // request.body is null
                 };
                 node.emit('callback', data);
@@ -1605,17 +1644,17 @@ module.exports = function (RED) {
                     'id' : scriptId,
                     'config' : {'enable' : true}
                 };
-                await shellyRequestAsync('GET', '/rpc/Script.SetConfig ', configParams, credentials);
+                await shellyRequestAsync('GET', '/rpc/Script.SetConfig', configParams, credentials);
                
                 let startParams = {  
                     'id' : scriptId,
                 };
-                await shellyRequestAsync('GET', '/rpc/Script.Start ', startParams, credentials);
+                await shellyRequestAsync('GET', '/rpc/Script.Start', startParams, credentials);
                
                 let statusParams = {  
                     'id' : scriptId,
                 };
-                let status = await shellyRequestAsync('GET', '/rpc/Script.GetStatus ', statusParams, credentials);
+                let status = await shellyRequestAsync('GET', '/rpc/Script.GetStatus', statusParams, credentials);
 
                 if(status.running === true){
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
