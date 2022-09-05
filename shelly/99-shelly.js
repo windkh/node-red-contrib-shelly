@@ -1017,23 +1017,24 @@ module.exports = function (RED) {
 
     // initializes a RGBW node.
     async function initializerRGBW1Async(node, types){
+
+        let success = false;
+        try {
+            let credentials = getCredentials(node);
     
-        start(node, types);
-    
-        if(node.hostname !== ''){
-            try {
-                let credentials = getCredentials(node);
-        
-                let settingsRoute = '/settings';   
-                let settings = await shellyRequestAsync('GET', settingsRoute, null, credentials);
-                
-                node.rgbwMode = settings.mode;
-            }
-            catch (error) {
-                node.status({ fill: "red", shape: "ring", text: "Failed to get mode from settings."});
-                node.warn("Failed to set mode to: " + mode, error);
-            }
+            let settingsRoute = '/settings';   
+            let settings = await shellyRequestAsync('GET', settingsRoute, null, credentials);
+            
+            node.rgbwMode = settings.mode;
+
+            success = initializer1WebhookAsync(node, types);
         }
+        catch (error) {
+            node.status({ fill: "red", shape: "ring", text: "Failed to get mode from settings."});
+            node.warn("Failed to get mode from settings.", error);
+        }
+
+        return success;
     }
 
     function initializer1(node, types){
@@ -1325,16 +1326,7 @@ module.exports = function (RED) {
                 } else {
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    let payload;
-                    if(body.result !== undefined){
-                        payload = body.result;
-                    } else if(body.error !== undefined){
-                        payload = body.error;
-                    } else {
-                        // can this happen?
-                    }
-
-                    msg.payload = payload;
+                    msg.payload = body;
                     node.send([msg]);
                 }
             },
@@ -1462,7 +1454,7 @@ module.exports = function (RED) {
         node.server = RED.nodes.getNode(config.server);
         node.outputMode = config.outputmode;
         
-        if(config.uploadretryinterval !== undefined) {
+        if(config.uploadretryinterval !== undefined && config.uploadretryinterval !== '') {
             node.initializeRetryInterval = parseInt(config.uploadretryinterval);
         }
         else {
@@ -1947,16 +1939,7 @@ module.exports = function (RED) {
                 else {
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    let payload;
-                    if(body.result !== undefined){
-                        payload = body.result;
-                    } else if(body.error !== undefined){
-                        payload = body.error;
-                    } else {
-                        // can this happen?
-                    }
-
-                    msg.payload = payload;
+                    msg.payload = body;
                     node.send([msg]);
                 }
             },
