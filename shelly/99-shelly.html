@@ -70,9 +70,6 @@
 
             devicetype: { value: "", required: true},
             outputs: {value: 1},
-
-            // type specific settings
-            rgbwmode: { value:"color", required: true  },
         },
         credentials: {
             username: { type: "text" },
@@ -227,24 +224,6 @@
     </div>
 
     <hr align="middle"/>
-
-    <div class="form-row hidden" id="rgbw" style="background: #fbfbfb">
-        <label style="width: auto"><i class="fa fa-cogs"></i> RGBW Options:</label>
-            <div class="form-row">
-                <label for="node-input-rgbwmode"><i class="fa fa-pencil"></i> Device Type</label>
-                <div style="display: inline-block; position: relative; width: 70%; height: 19.1333px;">
-                <div style="position: absolute; left: 0; right: 0;">
-                <select id="node-input-rgbwmode" style="width:100%">
-                    <option value="none">None - Mode is passed in payload but device is not reconfigured.</option>
-                    <option value="auto">Auto - Mode configures the device automatically using the mode in msg.payload.</option>
-                    <option value="color">Color - Shelly controls Red, Blue, Green and White LED stripes</option>
-                    <option value="white">White - Shelly controls 4x White LED stripes</option>
-                </select>
-                </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="form-row" id="hiddeninputs">
         <label for="node-input-outputs"><i class="fa fa-envelope"></i> Output Count</label>

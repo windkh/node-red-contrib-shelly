@@ -731,25 +731,7 @@ module.exports = function (RED) {
         if(msg !== undefined && msg.payload !== undefined){
             let command = msg.payload;
 
-            let nodeMode;
-            if(command.mode !== undefined) {
-                nodeMode = command.mode;
-
-                if (node.rgbwMode === 'auto') {
-                    try {
-                        let modeRoute = '/settings?mode=' + nodeMode;
-                        let body = await shellyRequestAsync('GET', modeRoute, null, credentials);
-                    }
-                    catch (error) {
-                        node.status({ fill: "red", shape: "ring", text: "Failed to set mode to: " + nodeMode});
-                        node.warn("Failed to set mode to: " + nodeMode, error);
-                    }
-                }
-            }
-            else {
-                nodeMode = node.rgbwMode;
-            }
-
+            let nodeMode = node.rgbwMode;
             if(nodeMode === "color") {
 
                 let red;
@@ -1039,19 +1021,17 @@ module.exports = function (RED) {
         start(node, types);
     
         if(node.hostname !== ''){
-            let mode = node.rgbwMode;
-            if(mode === "color" || mode === "white"){
-                try {
-                    let credentials = getCredentials(node);
-            
-                    let modeRoute = '/settings?mode=' + mode;   
-                    let body = await shellyRequestAsync('GET', modeRoute, null, credentials);
-                    // here we can not check if the mode is already changed so we can not display a proper status.
-                }
-                catch (error) {
-                    node.status({ fill: "red", shape: "ring", text: "Failed to set mode to: " + mode});
-                    node.warn("Failed to set mode to: " + mode, error);
-                }
+            try {
+                let credentials = getCredentials(node);
+        
+                let settingsRoute = '/settings';   
+                let settings = await shellyRequestAsync('GET', settingsRoute, null, credentials);
+                
+                node.rgbwMode = settings.mode;
+            }
+            catch (error) {
+                node.status({ fill: "red", shape: "ring", text: "Failed to get mode from settings."});
+                node.warn("Failed to set mode to: " + mode, error);
             }
         }
     }
@@ -1283,7 +1263,7 @@ module.exports = function (RED) {
         ["Thermostat", []],
         ["Sensor",     [{ action : "*", index : 0 }]],
         ["Button",     [{ action : "*", index : 0 }]],
-        ["RGBW",       []],
+        ["RGBW",       [{ action : "*", index : 0 }]],
     ]);
 
     function getHookTypes1(deviceType){
@@ -1495,7 +1475,7 @@ module.exports = function (RED) {
         node.pollStatus = config.pollstatus;
         node.getStatusOnCommand = config.getstatusoncommand;
         
-        node.rgbwMode = config.rgbwmode;
+        node.rgbwMode = 'color';
 
         let deviceType = config.devicetype;
         node.deviceType = deviceType;

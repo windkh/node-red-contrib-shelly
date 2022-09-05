@@ -450,7 +450,6 @@ The node accepts the following input
 
 ```
 {
-    mode : 'color', // or 'white' is an optional value for dynamically reconfiguring the device.
     red : 0,
     green : 0,
 	blue : 0,
@@ -472,7 +471,6 @@ effect = 0 means no effect.
 timer can be a value in seconds to flip back on/off
 transition can be a value in milliseconds between 0 and 5000
 temp can be a value in K between 3000 and 6500 for white
-mode is optional an used for reconfiguring the device. Select auto in the configuration if mode should be dynamically changed.
 
 ```
 lights : [

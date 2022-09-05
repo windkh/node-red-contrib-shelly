@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [9.14.0] - 2022-09-05
+###  fixed RGBW2: mode removed - [#88](https://github.com/windkh/node-red-contrib-shelly/issues/88)
+
 ## [9.13.0] - 2022-09-04
 ###  added callback support for I3 - [#69](https://github.com/windkh/node-red-contrib-shelly/issues/69)
 
