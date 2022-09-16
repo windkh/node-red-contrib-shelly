@@ -1125,11 +1125,11 @@ module.exports = function (RED) {
                 else
                 {
                     node.status({ fill: "red", shape: "ring", text: "Device does not support callbacks" });
-                    node.warn("Installing webhook failed " + error);
+                    node.warn("Installing webhook failed (" + sender + ") " + error);
                 }
             }
             catch (error) {
-                node.warn("Installing webhook failed " + error);
+                // node.warn("Installing webhook failed (" + sender + ") " + error);
                 // node.status({ fill: "red", shape: "ring", text: "Installing webhook failed "});
             }     
         }
@@ -1148,8 +1148,12 @@ module.exports = function (RED) {
             case 'RGBW':
                 result = initializerRGBW1Async;
                 break;
-            case 'Button':
+            case 'Measure':
+            case 'Roller':
+            case 'Dimmer':
             case 'Sensor':
+            case 'Thermostat':
+            case 'Button':
                 result = initializer1WebhookAsync;
                 break;
             default:
@@ -1261,7 +1265,7 @@ module.exports = function (RED) {
         ["Measure",    [{ action : "*", index : 0 }]],
         ["Roller",     [{ action : "*", index : 0 }]],
         ["Dimmer",     [{ action : "*", index : 0 }]],
-        ["Thermostat", []],
+        ["Thermostat", [{ action : "*", index : 0 }]],
         ["Sensor",     [{ action : "*", index : 0 }]],
         ["Button",     [{ action : "*", index : 0 }]],
         ["RGBW",       [{ action : "*", index : 0 }]],

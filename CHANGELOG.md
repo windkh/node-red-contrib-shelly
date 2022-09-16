@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [9.15.0] - 2022-09-16
+###  fixed examples - [#89](https://github.com/windkh/node-red-contrib-shelly/issues/89)
+
 ## [9.14.0] - 2022-09-05
 ###  fixed RGBW2: mode removed - [#88](https://github.com/windkh/node-red-contrib-shelly/issues/88)
 
