@@ -1109,13 +1109,50 @@ module.exports = function (RED) {
 
                         let url = webhookUrl + '?data=' + name + '?' + index + '?' + sender; // note that & can not be used in gen1!!!
                         let deleteRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=false&urls[]=';
-                        let createRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=true&urls[]=' + url;
                         try {
                             let timeout = node.pollInterval;
-                            let result1 = await shellyRequestAsync('GET', deleteRoute, null, credentials, timeout);
-                            let result2 = await shellyRequestAsync('GET', createRoute, null, credentials, timeout);
-                            node.status({ fill: "green", shape: "ring", text: "Connected." });
-                            success = true;
+                            let deleteResult = await shellyRequestAsync('GET', deleteRoute, null, credentials, timeout);
+                            let actionsAfterDelete = deleteResult.actions[name][index];
+                            if(actionsAfterDelete.enabled === false) {
+                                // 1st try to set the action using the standard method
+                                let createRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=true&urls[]=' + url;
+                                let createResult = await shellyRequestAsync('GET', createRoute, null, credentials, timeout);
+                                let actionsAfterCreate = createResult.actions[name][index];
+
+                                if(actionsAfterCreate.enabled === true &&
+                                    actionsAfterCreate.urls.indexOf(url) > -1) {
+                                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+                                    success = true;
+                                }
+                                else {
+                                    // 2nd: maybe the device supports intervals
+                                    let createRoute2 = '/settings/actions?index=' + index + '&name=' + name + '&enabled=true&urls[0][url]=' + url + '&urls[0][int]=0000-0000';
+                                    let createResult2 = await shellyRequestAsync('GET', createRoute2, null, credentials, timeout);
+                                    let actionsAfterCreate2 = createResult2.actions[name][index];
+                                    if(actionsAfterCreate2.enabled === true) {
+
+                                        if(actionsAfterCreate2.urls[0].url === url) {
+                                            node.status({ fill: "green", shape: "ring", text: "Connected." });
+                                            success = true;
+                                        }
+                                        else {
+                                            console.warn("Failed to install webhook " + name + " for " + sender);
+                                            success = false;
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        console.warn("Failed to install webhook " + name + " for " + sender);
+                                        success = false;
+                                        break;
+                                    }
+                                }
+                            }
+                            else {
+                                console.warn("Failed to delete webhook " + name + " for " + sender);
+                                success = false;
+                                break;
+                            }
                         }
                         catch (error) {
                             node.status({ fill: "yellow", shape: "ring", text: "Installing webhook...." });
@@ -1410,10 +1447,10 @@ module.exports = function (RED) {
         if(node.port > 0){
             node.server.listen({port : node.port}, (err, address) => {
                 if (!err){
-                    console.info("Shelly server is listening on port " + node.port);
+                    console.info("Shelly gen1 server is listening on port " + node.port);
                 }
                 else{
-                    node.error("Shelly server failed to listen on port " + node.port);
+                    node.error("Shelly gen1 server failed to listen on port " + node.port);
                 }
             })
     
@@ -1985,10 +2022,10 @@ module.exports = function (RED) {
         if(node.port > 0){
             node.server.listen({port : node.port}, (err, address) => {
                 if (!err){
-                    console.info("Shelly server is listening on port " + node.port);
+                    console.info("Shelly gen2 server is listening on port " + node.port);
                 }
                 else{
-                    node.error("Shelly server failed to listen on port " + node.port);
+                    node.error("Shelly gen2 server failed to listen on port " + node.port);
                 }
             })
     

@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [9.16.0] - 2022-09-18
+###  fixed webhook for TRV and Motion: the devices support intervals and must be configured in a different way.
+
 ## [9.15.0] - 2022-09-16
 ###  fixed examples - [#89](https://github.com/windkh/node-red-contrib-shelly/issues/89)
 
