@@ -466,13 +466,121 @@
     <h3>Configuration</h3>
     <p>Hostname is the IP address or the hostname of the device.</p>
     <p>Description of the device.</p>
-    <p>User is optional and must only be set if security is enabled.</p>
     <p>Password is optional and must only be set if security is enabled.</p>
     <p>Ping interval is the time between the status pollings.</p>
     <p>Send status cyclically will send the status object on every poll cycle to the output.</p>
 
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. See documentation for device specific input.</p>
+    <p><code>msg.payload</code></p>
+    
+    <h3>Outputs</h3>
+    <p>1. Standard Ouput: status object.</p>
+    <p><code>msg.payload</code></p>
+    <p>Full status object is available at.</p>
+    <p><code>msg.status</code></p>
+</script>
+
+
+<!-- CLOUD ------------------------------------------------------------------------------------ -->
+
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/javascript">
+    RED.nodes.registerType('shelly-cloud-server', {
+        category: 'config',
+        defaults: {
+            description: { value:"" },
+        },
+        credentials: {
+            serveruri: { type: "text" },
+            authkey: { type: "password" },
+        },
+        label: function () {
+            return this.description || "Shelly Cloud";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="shelly-cloud-server">
+    <div class="form-row" style="min-width: 700px">
+        <div class="form-row">
+            <label for="node-config-input-description"><i class="fa fa-tag"></i> Description</label>
+            <input type="text" id="node-config-input-description" placeholder="Description of this configuration (optional).">
+        </div>
+
+        <div class="form-row">
+            <label for="node-config-input-serveruri"><i class="fa fa-user"></i> Server URI</label>
+            <input type="text" id="node-config-input-serveruri" placeholder="https://">
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-authkey"><i class="fa fa-key"></i> Authentication Key</label>
+            <input type="text" id="node-config-input-authkey" placeholder="Enter the auth key here">
+        </div>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="shelly-cloud-server">
+    <p>A configuration node that can be used by several shelly cloud nodes.</p>
+</script>
+
+
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/javascript">
+    RED.nodes.registerType('shelly-cloud', {
+        category: 'Shelly',
+        color: '#AEC860',
+        defaults: {
+            server: { value:"", type: "shelly-cloud-server", required: true },
+            deviceid: { value:"" },
+            description: { value:"" },
+    
+            outputs: {value: 1},
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "shellycloud.png",
+        paletteLabel: "shelly cloud",
+        label: function () {
+            return this.description || this.deviceid || "Shelly";
+        },
+        labelStyle: function() {
+            return this.description?"node_label_italic":"";
+        },
+        oneditprepare: function() {
+        }
+    });
+
+</script>
+
+<script type="text/x-red" data-template-name="shelly-cloud">
+
+    <div class="form-row">
+        <label for="node-input-server"><i class="fa fa-phone"></i> Server</label>
+        <input type="text" id="node-input-server" placeholder="Server">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
+        <input type="text" id="node-input-description" placeholder="The description of the device (optional)">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-deviceid"><i class="fa fa-tag"></i> Device ID</label>
+        <input type="text" id="node-input-deviceid" placeholder="The device ID (hexadecimal)">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="shelly-cloud">
+    <p>A node that controls a shelly cloud device.</p>
+
+    <h3>Configuration</h3>
+    <p>Device ID of the device in the shelly cloud.</p>
+    <p>Description of the device.</p>
+    <p>Server URI of shelly cloud.</p>
+    <p>Authentication Key of your account.</p>
+
+    <h3>Inputs</h3>
+    <p>Empty payload for getting the status.</p>
     <p><code>msg.payload</code></p>
     
     <h3>Outputs</h3>

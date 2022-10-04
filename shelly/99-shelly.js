@@ -2167,4 +2167,120 @@ module.exports = function (RED) {
             password: { type: "password" },
         }
     });
+
+
+    // CLOUD API ----------------------------------------------------------------------------------
+    // see https://shelly-api-docs.shelly.cloud/cloud-control-api/
+
+    // generic REST cloud request wrapper with promise
+    function shellyCloudRequestAsync(method, route, data, credentials, timeout){
+        return new Promise(function (resolve, reject) {
+
+            if(timeout === undefined || timeout === null){
+                timeout = 10000;
+            };
+
+            // We avoid an invalid timeout by taking a default if 0.
+            let requestTimeout = timeout;
+            if(requestTimeout <= 0){
+                requestTimeout = 10000;
+            }
+
+            let headers; // undefined
+
+            let encodedData = 'id=' + credentials.deviceId + '&auth_key=' + credentials.authKey;
+            if (data !== undefined && data !== null) {
+                encodedData += '&' + data;
+            }
+
+            let baseUrl = credentials.serverUri;
+            let config = {
+                baseURL :  baseUrl,
+                url : route,
+                method : method,
+                data : encodedData,
+                // headers : headers,
+                timeout: requestTimeout,
+                validateStatus : (status) => status === 200
+            };
+
+            const request = axios.request(config);
+    
+            request.then(response => {
+                if(response.status == 200){
+                    resolve(response.data)
+                } else {
+                    reject(response.statusText);
+                }
+            })
+            .catch(error => {
+                reject(error);
+            });
+        });
+    }
+
+    // --------------------------------------------------------------------------------------------
+    // The shelly cloud server node
+    function ShellyCloudServerNode(config) {
+        RED.nodes.createNode(this, config);
+
+        let node = this;
+
+        node.serverUri = node.credentials.serveruri.trim();
+        node.authKey = node.credentials.authkey.trim();
+
+        this.getCredentials = function (deviceId) {
+            const credentials = {
+                serverUri : node.serverUri,
+                authKey : node.authKey,
+                deviceId : deviceId,
+            };
+
+            return credentials;
+        };
+    }
+    RED.nodes.registerType('shelly-cloud-server', ShellyCloudServerNode, {
+        credentials: {
+            serveruri: { type: "text" },
+            authkey: { type: "password" },
+        },
+    });
+
+
+    // --------------------------------------------------------------------------------------------
+    // The shelly node controls a shelly via cloud api.
+    function ShellyCloudNode(config) {
+        RED.nodes.createNode(this, config);
+        let node = this;
+        
+        node.server = RED.nodes.getNode(config.server);
+        node.deviceId = config.deviceid;
+
+        node.status({});
+
+        this.on('input', async function (msg) {
+            try {
+                let credentials = node.server.getCredentials(node.deviceId);
+                let body = await shellyCloudRequestAsync('POST', '/device/status', null, credentials);
+
+                node.status({ fill: "green", shape: "ring", text: "OK" });
+
+                let status = body;
+                // msg.status = status;
+                msg.payload = status;
+                node.send([msg]);
+            }
+            catch (error) {
+                node.status({ fill: "red", shape: "ring", text: error});
+                node.error("Failed to get status: " + error, error);
+            }
+        });
+        
+        this.on('close', function(done) {
+            node.status({});
+            done();
+        });
+    }
+    RED.nodes.registerType("shelly-cloud", ShellyCloudNode, {
+    });
 }
