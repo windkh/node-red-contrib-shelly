@@ -6,7 +6,11 @@
 module.exports = function (RED) {
     "use strict";
     let axios = require('axios').default;      
-    
+
+    let cloudAxios = require('axios').default;      
+    // let axiosThrottle = require('axios-request-throttle');
+    // axiosThrottle.use(cloudAxios, { requestsPerSecond: 1});
+
     const fs = require("fs");
     const path = require("path");
     const fastify = require('fastify');
@@ -2186,11 +2190,16 @@ module.exports = function (RED) {
                 requestTimeout = 10000;
             }
 
-            let headers; // undefined
-
-            let encodedData = 'id=' + credentials.deviceId + '&auth_key=' + credentials.authKey;
+            let encodedData = 'auth_key=' + credentials.authKey;
             if (data !== undefined && data !== null) {
-                encodedData += '&' + data;
+
+                Object.keys(data).forEach(key => data[key] === undefined && delete data[key]);
+                
+                if(data.id === undefined){
+                    data.id = credentials.deviceId;
+                }
+                let params = new URLSearchParams(data).toString();
+                encodedData += '&' + params;
             }
 
             let baseUrl = credentials.serverUri;
@@ -2199,12 +2208,11 @@ module.exports = function (RED) {
                 url : route,
                 method : method,
                 data : encodedData,
-                // headers : headers,
                 timeout: requestTimeout,
                 validateStatus : (status) => status === 200
             };
 
-            const request = axios.request(config);
+            const request = cloudAxios.request(config);
     
             request.then(response => {
                 if(response.status == 200){
@@ -2259,9 +2267,45 @@ module.exports = function (RED) {
         node.status({});
 
         this.on('input', async function (msg) {
+
             try {
+                
+                let route = '/device/status';
+                let data = {};
+
+                if (msg.payload !== undefined && msg.payload !== null) {
+
+                    if (msg.payload.light !== undefined){
+                        data.channel = msg.payload.light;
+                        data.turn = msg.payload.turn;
+                        data.brightness = msg.payload.brightness;
+                        data.white = msg.payload.white;
+                        data.red = msg.payload.red;
+                        data.green = msg.payload.green;
+                        data.blue = msg.payload.blue;
+                        data.gain = msg.payload.gain;
+                        
+                        data.id = msg.payload.id;
+                        route = '/device/light/control';
+                    } else if (msg.payload.relay !== undefined){
+                        data.channel = msg.payload.relay;
+                        data.turn = msg.payload.turn;
+
+                        data.id = msg.payload.id;
+                        route = '/device/relay/control';
+                    } else if (msg.payload.roller !== undefined){
+                        data.channel = msg.payload.roller;
+                        data.direction = msg.payload.direction;
+                        data.pos = msg.payload.pos;
+                        
+                        data.id = msg.payload.id;
+                        route = '/device/relay/roller/control';
+                    } else {
+                    }
+                }
+
                 let credentials = node.server.getCredentials(node.deviceId);
-                let body = await shellyCloudRequestAsync('POST', '/device/status', null, credentials);
+                let body = await shellyCloudRequestAsync('POST', route, data, credentials);
 
                 node.status({ fill: "green", shape: "ring", text: "OK" });
 

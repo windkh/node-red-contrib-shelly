@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [9.17.0] - 2022-10-06
+###  Added support for cloud API - [#29](https://github.com/windkh/node-red-contrib-shelly/issues/29)
+
 ## [9.16.1] - 2022-10-04
 ###  First version of cloud node: status can be retrieved now
 

@@ -683,6 +683,77 @@ https://shelly-api-docs.shelly.cloud/#common-http-api
 
 
 
+# Shelly Cloud API
+See also https://shelly-api-docs.shelly.cloud/cloud-control-api/communication
+The node can communicate with your shellies via cloud API. You need to create an authentication key in your shelly app and enter it into the config node.
+All devices have unique IDs. You can configure the ID in the config node or send it into the node, just as you prefer.
+Note that the cloud API is limited to 1 call per second. If you call too fast you will likely receive an error 401.
+You can get the status of a device by simply triggering the node using an empty msg.payload or a msg.payload that 
+contains the id of the device
+
+
+```
+{
+    id : 'your device id here in hex',
+}
+```
+
+## Relay
+You can control relays as follows (the number after the property relay is the channel number):
+
+
+```
+{
+    id : 'your device id here in hex',
+	relay : 0,
+	turn : on | off
+}
+```
+
+### Examples  
+[**shelly cloud flow**](examples/cloud.json) 
+
+
+## Roller
+You can control rollers as follows (the number after the property roller is the channel number):
+
+
+```
+{
+    id : 'your device id here in hex',
+	roller : 0,
+	direction : open | close | stop
+	pos : 0..100
+}
+```
+
+### Examples  
+[**shelly cloud flow**](examples/cloud.json) 
+
+## Light
+You can control lights as follows (the number after the property light is the channel number):
+
+
+```
+{
+    id : 'your device id here in hex',
+	light : 0,
+	turn : on | off
+	
+	white : 0..255
+	red : 0..255
+	green : 0..255
+	blue : 0..255
+	gain : 0..255
+	brightness : 0..255
+}
+```
+
+### Examples  
+[**shelly cloud flow**](examples/cloud.json) 
+
+
+
 # License
 
 Author: Karl-Heinz Wind
