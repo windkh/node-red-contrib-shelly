@@ -531,7 +531,6 @@
         color: '#AEC860',
         defaults: {
             server: { value:"", type: "shelly-cloud-server", required: true },
-            deviceid: { value:"" },
             description: { value:"" },
     
             outputs: {value: 1},
@@ -541,7 +540,7 @@
         icon: "shellycloud.png",
         paletteLabel: "shelly cloud",
         label: function () {
-            return this.description || this.deviceid || "Shelly";
+            return this.description || "Shelly";
         },
         labelStyle: function() {
             return this.description?"node_label_italic":"";
@@ -564,12 +563,6 @@
         <input type="text" id="node-input-description" placeholder="The description of the device (optional)">
     </div>
 
-    <div class="form-row">
-        <label for="node-input-deviceid"><i class="fa fa-tag"></i> Device ID</label>
-        <input type="text" id="node-input-deviceid" placeholder="The device ID (hexadecimal)">
-    </div>
-
-    <div class="form-tips" style="width: auto"><b>Tip:</b> The device ID can be set here or you must pass it via msg.payload.id.</div>
 </script>
 
 <script type="text/x-red" data-help-name="shelly-cloud">

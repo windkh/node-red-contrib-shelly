@@ -2176,6 +2176,17 @@ module.exports = function (RED) {
     // CLOUD API ----------------------------------------------------------------------------------
     // see https://shelly-api-docs.shelly.cloud/cloud-control-api/
 
+    function encodeParams(data){
+        Object.keys(data).forEach(key => data[key] === undefined && delete data[key]);
+        let params = new URLSearchParams(data).toString();
+        return params;
+    };
+
+    function encodeArrayParams(data){
+        let params = JSON.stringify(data);
+        return params;
+    };
+
     // generic REST cloud request wrapper with promise
     function shellyCloudRequestAsync(method, route, data, credentials, timeout){
         return new Promise(function (resolve, reject) {
@@ -2192,14 +2203,7 @@ module.exports = function (RED) {
 
             let encodedData = 'auth_key=' + credentials.authKey;
             if (data !== undefined && data !== null) {
-
-                Object.keys(data).forEach(key => data[key] === undefined && delete data[key]);
-                
-                if(data.id === undefined){
-                    data.id = credentials.deviceId;
-                }
-                let params = new URLSearchParams(data).toString();
-                encodedData += '&' + params;
+                encodedData += '&' + data;
             }
 
             let baseUrl = credentials.serverUri;
@@ -2237,11 +2241,10 @@ module.exports = function (RED) {
         node.serverUri = node.credentials.serveruri.trim();
         node.authKey = node.credentials.authkey.trim();
 
-        this.getCredentials = function (deviceId) {
+        this.getCredentials = function () {
             const credentials = {
                 serverUri : node.serverUri,
-                authKey : node.authKey,
-                deviceId : deviceId,
+                authKey : node.authKey
             };
 
             return credentials;
@@ -2262,50 +2265,67 @@ module.exports = function (RED) {
         let node = this;
         
         node.server = RED.nodes.getNode(config.server);
-        node.deviceId = config.deviceid;
-
+       
         node.status({});
 
         this.on('input', async function (msg) {
 
             try {
-                
                 let route = '/device/status';
-                let data = {};
-
+                
+                let params;
                 if (msg.payload !== undefined && msg.payload !== null) {
 
-                    if (msg.payload.light !== undefined){
-                        data.channel = msg.payload.light;
-                        data.turn = msg.payload.turn;
-                        data.brightness = msg.payload.brightness;
-                        data.white = msg.payload.white;
-                        data.red = msg.payload.red;
-                        data.green = msg.payload.green;
-                        data.blue = msg.payload.blue;
-                        data.gain = msg.payload.gain;
-                        
-                        data.id = msg.payload.id;
+                    let type = msg.payload.type;
+                    if (type === 'light'){
                         route = '/device/light/control';
-                    } else if (msg.payload.relay !== undefined){
-                        data.channel = msg.payload.relay;
-                        data.turn = msg.payload.turn;
 
-                        data.id = msg.payload.id;
+                        let data = {
+                            id : msg.payload.id,
+                            channel : msg.payload.channel,
+                            turn : msg.payload.turn,
+                            brightness : msg.payload.brightness,
+                            white : msg.payload.white,
+                            red : msg.payload.red,
+                            green : msg.payload.green,
+                            blue : msg.payload.blue,
+                            gain : msg.payload.gain,
+                        };
+                        params = encodeParams(data);
+                    } else if (type === 'relay'){
                         route = '/device/relay/control';
-                    } else if (msg.payload.roller !== undefined){
-                        data.channel = msg.payload.roller;
-                        data.direction = msg.payload.direction;
-                        data.pos = msg.payload.pos;
-                        
-                        data.id = msg.payload.id;
+                   
+                        let data = {
+                            id : msg.payload.id,
+                            channel : msg.payload.channel,
+                            turn : msg.payload.turn,
+                        };
+                        params = encodeParams(data);
+                    } else if (type === 'roller'){
                         route = '/device/relay/roller/control';
+                    
+                        let data = {
+                            id : msg.payload.id,
+                            channel : msg.payload.channel,
+                            direction : msg.payload.direction,
+                            pos : msg.payload.pos,
+                        };    
+                        params = encodeParams(data);    
+                    } else if (type === 'relays'){
+                        route = '/device/relay/bulk_control';
+
+                        let data = {
+                            turn : msg.payload.turn
+                        };    
+                        params = encodeParams(data);
+                        params += '&devices=' + encodeArrayParams(msg.payload.devices); 
                     } else {
+                        params = null;
                     }
                 }
 
-                let credentials = node.server.getCredentials(node.deviceId);
-                let body = await shellyCloudRequestAsync('POST', route, data, credentials);
+                let credentials = node.server.getCredentials();
+                let body = await shellyCloudRequestAsync('POST', route, params, credentials);
 
                 node.status({ fill: "green", shape: "ring", text: "OK" });
 

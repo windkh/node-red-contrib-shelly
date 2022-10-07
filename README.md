@@ -699,13 +699,14 @@ contains the id of the device
 ```
 
 ## Relay
-You can control relays as follows (the number after the property relay is the channel number):
+You can control relays as follows:
 
 
 ```
 {
+    type : 'relay',
     id : 'your device id here in hex',
-	relay : 0,
+	channel : 0,
 	turn : on | off
 }
 ```
@@ -715,29 +716,33 @@ You can control relays as follows (the number after the property relay is the ch
 
 
 ## Roller
-You can control rollers as follows (the number after the property roller is the channel number):
+You can control rollers as follows:
 
 
 ```
 {
+    type : 'roller',
     id : 'your device id here in hex',
-	roller : 0,
 	direction : open | close | stop
 	pos : 0..100
 }
 ```
 
+Please use direction or pos here.
+
+
 ### Examples  
 [**shelly cloud flow**](examples/cloud.json) 
 
 ## Light
-You can control lights as follows (the number after the property light is the channel number):
+You can control lights as follows:
 
 
 ```
 {
+    type : 'light',
     id : 'your device id here in hex',
-	light : 0,
+	channel : 0,
 	turn : on | off
 	
 	white : 0..255
@@ -749,9 +754,32 @@ You can control lights as follows (the number after the property light is the ch
 }
 ```
 
+Please see documentation. It depends on if you have RGBW or White lights.
+
+
 ### Examples  
 [**shelly cloud flow**](examples/cloud.json) 
 
+
+## Bulk Control
+You can turn on|off many relays or rollers with one single call as follows:
+
+
+```
+{
+    type : 'relays',
+    turn : on | off,
+	devices : [
+		{
+		  id : 'your device id here in hex'
+		  channel : 0
+		},
+		{
+		    ...
+		}
+	]
+}
+```
 
 
 # License
