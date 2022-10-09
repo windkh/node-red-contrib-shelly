@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.1.0] - 2022-10-09
+###  Fixed webhook problem - [#94](https://github.com/windkh/node-red-contrib-shelly/issues/94)
+###  Fixed EM problems 
+
 ## [10.0.0] - 2022-10-07
 ###  Breaking change in cloud API - [#29](https://github.com/windkh/node-red-contrib-shelly/issues/29)
 

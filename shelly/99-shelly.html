@@ -53,13 +53,16 @@
         
             // callback
             server: { value:"", type: "shelly-gen1-server", validate:function(v) {
-                let mode = $("#node-config-input-mode").val();
+                let mode = $("#node-input-mode").val();
                 let ok = true;
+                
+                debugger;
                 if(mode == "callback"){
-                    if(v.length == 0){
+                    if(v.length == 0 || v === '_ADD_'){
                         ok = false;
                     }
                 }
+                
                 return ok;
             } },
             outputmode: { value: "event", required: false },
@@ -310,7 +313,7 @@
         
             // callback
             server: { value:"", type: "shelly-gen2-server", validate:function(v) {
-                let mode = $("#node-config-input-mode").val();
+                let mode = $("#node-input-mode").val();
                 let ok = true;
                 if(mode == "callback"){
                     if(v.length == 0){

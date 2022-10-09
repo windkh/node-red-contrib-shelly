@@ -1116,12 +1116,12 @@ module.exports = function (RED) {
                         try {
                             let timeout = node.pollInterval;
                             let deleteResult = await shellyRequestAsync('GET', deleteRoute, null, credentials, timeout);
-                            let actionsAfterDelete = deleteResult.actions[name][index];
+                            let actionsAfterDelete = deleteResult.actions[name][0];
                             if(actionsAfterDelete.enabled === false) {
                                 // 1st try to set the action using the standard method
                                 let createRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=true&urls[]=' + url;
                                 let createResult = await shellyRequestAsync('GET', createRoute, null, credentials, timeout);
-                                let actionsAfterCreate = createResult.actions[name][index];
+                                let actionsAfterCreate = createResult.actions[name][0];
 
                                 if(actionsAfterCreate.enabled === true &&
                                     actionsAfterCreate.urls.indexOf(url) > -1) {
@@ -1132,7 +1132,7 @@ module.exports = function (RED) {
                                     // 2nd: maybe the device supports intervals
                                     let createRoute2 = '/settings/actions?index=' + index + '&name=' + name + '&enabled=true&urls[0][url]=' + url + '&urls[0][int]=0000-0000';
                                     let createResult2 = await shellyRequestAsync('GET', createRoute2, null, credentials, timeout);
-                                    let actionsAfterCreate2 = createResult2.actions[name][index];
+                                    let actionsAfterCreate2 = createResult2.actions[name][0];
                                     if(actionsAfterCreate2.enabled === true) {
 
                                         if(actionsAfterCreate2.urls[0].url === url) {
@@ -1283,7 +1283,7 @@ module.exports = function (RED) {
 
     let gen1DeviceTypes = new Map([
         ["Relay",      ["SHSW-", "SHPLG-", "SHUNI-", "SHEM-"]],
-        ["Measure",    ["SHEM-"]],
+        ["Measure",    ["SHEM"]], // here no - as the device is only SHEM
         ["Roller",     ["SHSW-L", "SHSW-25", "SHSW-21"]],
         ["Dimmer",     ["SHDM-", "SHBDUO-", "SHVIN-"]],
         ["Thermostat", ["SHTRV-"]],
@@ -1518,7 +1518,7 @@ module.exports = function (RED) {
         node.deviceType = deviceType;
 
         node.mode = config.mode;
-        if (!node.mode) {
+        if (!node.mode || node.server === undefined || node.server === null) {
             node.mode = 'polling';
         }
 
