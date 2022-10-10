@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.3.0] - 2022-10-08
+###  SHEM3 can be used as relay
+
 ## [10.2.0] - 2022-10-08
 ###  Added SHPLG2-1 - [#95](https://github.com/windkh/node-red-contrib-shelly/issues/95)
 

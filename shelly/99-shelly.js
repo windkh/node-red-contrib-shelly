@@ -1282,7 +1282,7 @@ module.exports = function (RED) {
     }
 
     let gen1DeviceTypes = new Map([
-        ["Relay",      ["SHSW-", "SHPLG-", "SHUNI-", "SHEM-", "SHPLG2-"]],
+        ["Relay",      ["SHSW-", "SHPLG-", "SHUNI-", "SHEM", "SHPLG2-"]],
         ["Measure",    ["SHEM"]], // here no - as the device is only SHEM
         ["Roller",     ["SHSW-L", "SHSW-25", "SHSW-21"]],
         ["Dimmer",     ["SHDM-", "SHBDUO-", "SHVIN-"]],
