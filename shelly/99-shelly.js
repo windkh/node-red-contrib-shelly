@@ -1897,7 +1897,7 @@ module.exports = function (RED) {
     }
 
     let gen2DeviceTypes = new Map([
-        ["Relay",      ["SNSW-", "SPSW-", "SNPL-"]],
+        ["Relay",      ["SHSW-", "SNSW-", "SPSW-", "SNPL-"]],
         ["Button",     ["SNSN-"]],
         ["Sensor",     ["SNSN-"]], // Shelly Plus H&T only supports Webhook, no scripting
     ]);
