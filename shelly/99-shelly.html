@@ -316,7 +316,7 @@
                 let mode = $("#node-input-mode").val();
                 let ok = true;
                 if(mode == "callback"){
-                    if(v.length == 0){
+                    if(v.length == 0 || v === '_ADD_'){
                         ok = false;
                     }
                 }
