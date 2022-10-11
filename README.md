@@ -688,15 +688,17 @@ See also https://shelly-api-docs.shelly.cloud/cloud-control-api/communication
 The node can communicate with your shellies via cloud API. You need to create an authentication key in your shelly app and enter it into the config node.
 All devices have unique IDs. You can configure the ID in the config node or send it into the node, just as you prefer.
 Note that the cloud API is limited to 1 call per second. If you call too fast you will likely receive an error 401.
-You can get the status of a device by simply triggering the node using an empty msg.payload or a msg.payload that 
+You can get the status of a device by simply triggering the node using a msg.payload as follows 
 contains the id of the device
 
 
 ```
 {
+	type : 'status',
     id : 'your device id here in hex',
 }
 ```
+
 
 ## Relay
 You can control relays as follows:

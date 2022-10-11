@@ -6,10 +6,9 @@
 module.exports = function (RED) {
     "use strict";
     let axios = require('axios').default;      
-
-    let cloudAxios = require('axios').default;      
-    // let axiosThrottle = require('axios-request-throttle');
-    // axiosThrottle.use(cloudAxios, { requestsPerSecond: 1});
+    let rateLimit = require("axios-rate-limit");
+    
+    let cloudAxios = rateLimit(axios.create(), { maxRequests: 1, perMilliseconds: 1000, maxRPS: 1 });
 
     const fs = require("fs");
     const path = require("path");
@@ -2271,8 +2270,7 @@ module.exports = function (RED) {
         this.on('input', async function (msg) {
 
             try {
-                let route = '/device/status';
-                
+                let route;
                 let params;
                 if (msg.payload !== undefined && msg.payload !== null) {
 
@@ -2319,20 +2317,33 @@ module.exports = function (RED) {
                         };    
                         params = encodeParams(data);
                         params += '&devices=' + encodeArrayParams(msg.payload.devices); 
-                    } else {
-                        params = null;
+                    } else if (type === 'status'){
+                        route = '/device/status';
+
+                        let data = {
+                            id : msg.payload.id
+                        };    
+                        params = encodeParams(data);  
+                    }
+                    else {
+                        // nothing to do
                     }
                 }
 
-                let credentials = node.server.getCredentials();
-                let body = await shellyCloudRequestAsync('POST', route, params, credentials);
-
-                node.status({ fill: "green", shape: "ring", text: "OK" });
-
-                let status = body;
-                // msg.status = status;
-                msg.payload = status;
-                node.send([msg]);
+                if (route) {
+                    let credentials = node.server.getCredentials();
+                    let body = await shellyCloudRequestAsync('POST', route, params, credentials);
+    
+                    node.status({ fill: "green", shape: "ring", text: "OK" });
+    
+                    let status = body;
+                    // msg.status = status;
+                    msg.payload = status;
+                    node.send([msg]);
+                }
+                else {
+                    node.send([msg]);
+                }
             }
             catch (error) {
                 node.status({ fill: "red", shape: "ring", text: error});

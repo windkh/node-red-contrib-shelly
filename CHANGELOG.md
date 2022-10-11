@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.4.0] - 2022-10-08
+###  Added throttle mode to cloud node - [#92](https://github.com/windkh/node-red-contrib-shelly/issues/92)
+###  Status can be polled using cloud node
+
 ## [10.3.0] - 2022-10-08
 ###  SHEM3 can be used as relay
 ###  Gen2 Switches fixed
