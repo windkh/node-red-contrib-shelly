@@ -96,9 +96,6 @@ In callback mode a webhook is configured to the shelly which notifies to the nod
 You must configure this network port, make sure that it is not already in use. If node-red runs inside a docker container or any other bridged network then you should also configure the hostname
 under that the shelly device can reach the node-red server (Leave this field empty if you run inside the same network segment).
 The node retries to set the webhook if the device is sleeping as long as it succeeds. As soon as the status shows "Connected" the webhook is set.
-Right now you must manually remove the webhook from the shelly if you go back to polling mode.
-The following devices are supported right now:
-Shelly Motion 2, Shelly H&T, Shelly Flood, Shelly Door/Window 1/2, Shelly Button1.
 
 
 # Shelly Node (Generation 1)
@@ -603,8 +600,6 @@ Unlike generation 1 devices the new generation supports the usage of scripts. In
 In callback mode a script is uploaded to the shelly which sends all notification events to the node. The node needs to open a network port to be able to receive these messages.
 You must configure this network port, make sure that it is not already in use. If node-red runs inside a docker container or any other bridged network then you should also configure the hostname
 under that the shelly device can reach the node-red server (Leave this field empty if you run inside the same network segment).
-Right now only the Plus I4 is supported with callback mode. More will follow.
-Right now you must manually remove the webhook from the shelly if you go back to polling mode.
 
 
 ## Relay (Plus 1, Plus 1 PM, Plus 2 PM, Pro 1, Pro 1 PM, Pro 2, Pro 2 PM, Pro 4 PM, Plug US)

@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.5.0] - 2022-10-15
+###  Webhooks and scripts are automatically removed when switchingback to polling or none - [#83](https://github.com/windkh/node-red-contrib-shelly/issues/83)
+
 ## [10.4.0] - 2022-10-08
 ###  Added throttle mode to cloud node - [#92](https://github.com/windkh/node-red-contrib-shelly/issues/92)
 ###  Status can be polled using cloud node

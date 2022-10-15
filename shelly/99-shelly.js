@@ -6,8 +6,8 @@
 module.exports = function (RED) {
     "use strict";
     let axios = require('axios').default;      
+
     let rateLimit = require("axios-rate-limit");
-    
     let cloudAxios = rateLimit(axios.create(), { maxRequests: 1, perMilliseconds: 1000, maxRPS: 1 });
 
     const fs = require("fs");
@@ -294,8 +294,8 @@ module.exports = function (RED) {
             }
         },
         function(error){
-            node.status({ fill: "red", shape: "ring", text: error.message });
-            node.warn(error.message);
+            node.status({ fill: "red", shape: "ring", text: "Ping: " + error.message });
+            // node.warn(error.message); Removed as this would flood the output.
         });
     }
 
@@ -327,6 +327,7 @@ module.exports = function (RED) {
     function startAsync(node, types){
         return new Promise(function (resolve, reject) {
             start(node, types);
+            resolve();
         });
     }
 
@@ -1061,6 +1062,9 @@ module.exports = function (RED) {
     // starts polling or installs a webhook that calls a REST callback.
     async function initializer1WebhookAsync(node, types){
 
+        const sender = node.hostname;
+        await tryUninstallWebhook1Async(node, sender); // we ignore if it failed
+            
         let success = false;
         let mode = node.mode;
         if(mode === 'polling'){
@@ -1073,7 +1077,6 @@ module.exports = function (RED) {
                 ipAddress = node.server.hostname;
             }
             
-            let sender = node.hostname;
             let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
             success = await tryInstallWebhook1Async(node, webhookUrl, sender);
         }
@@ -1096,7 +1099,7 @@ module.exports = function (RED) {
 
             let hookTypes = getHookTypes1(node.deviceType);
 
-            // delete ttp://192.168.33.1/settings/actions?index=0&name=report_url&urls[]=
+            // delete http://192.168.33.1/settings/actions?index=0&name=report_url&urls[]=
             // create http://192.168.33.1/settings/actions?index=0&name=report_url&enabled=true&urls[]=http://192.168.1.4/webhook
             try {
 
@@ -1171,6 +1174,76 @@ module.exports = function (RED) {
             catch (error) {
                 // node.warn("Installing webhook failed (" + sender + ") " + error);
                 // node.status({ fill: "red", shape: "ring", text: "Installing webhook failed "});
+            }     
+        }
+        else {
+            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
+        }
+
+        return success;
+    }
+    
+    // Uninstalls a webhook.
+    async function tryUninstallWebhook1Async(node, sender){
+        let success = false;
+        if(node.hostname !== ''){    
+
+            // node.status({ fill: "yellow", shape: "ring", text: "Uninstalling webhook..." });
+
+            let credentials = getCredentials(node);
+
+            let hookTypes = getHookTypes1(node.deviceType);
+
+            // delete http://192.168.33.1/settings/actions?index=0&name=report_url&urls[]=
+            try {
+
+                if (hookTypes[0] !== undefined && hookTypes[0].action === '*'){
+                    hookTypes = await getHookTypesFromDevice1(node);
+                }
+
+                if(hookTypes.length !== 0){
+                    for (let i = 0; i < hookTypes.length; i++) {
+                        let hookType = hookTypes[i];
+                        let name = hookType.action;
+                        let index = hookType.index;
+                        let urls = hookType.urls;
+
+                        // We only delete the hook from us: find the sender url in the hook url.
+                        for (let j = 0; j < urls.length; j++) {
+                            let url = urls[i];
+
+                            // This is a vage assumption but it is the best we have at the moment to identify our hooks. 
+                            if(url.includes(sender)) {
+                                let deleteRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=false&urls[]=';
+                                try {
+                                    let timeout = node.pollInterval;
+                                    let deleteResult = await shellyRequestAsync('GET', deleteRoute, null, credentials, timeout);
+                                    let actionsAfterDelete = deleteResult.actions[name][0];
+                                    if(actionsAfterDelete.enabled === false) {
+                                        // failed
+                                    }
+                                    else {
+                                        console.warn("Failed to delete webhook " + name + " for " + sender);
+                                        success = false;
+                                        break;
+                                    }
+                                }
+                                catch (error) {
+                                    // node.status({ fill: "yellow", shape: "ring", text: "Uninstalling webhook...." });
+                                }
+                            }
+                        }
+                    };
+                }
+                else
+                {
+                    node.status({ fill: "red", shape: "ring", text: "Device does not support callbacks" });
+                    node.warn("Installing webhook failed (" + sender + ") " + error);
+                }
+            }
+            catch (error) {
+                // node.warn("Installing webhook failed (" + sender + ") " + error);
+                // node.status({ fill: "red", shape: "ring", text: "Uninstalling webhook failed "});
             }     
         }
         else {
@@ -1337,7 +1410,8 @@ module.exports = function (RED) {
 
                 let hookType = {
                     action : action,
-                    index : index
+                    index : index,
+                    urls : item.urls
                 };
                 hookTypes.push(hookType);
             }
@@ -1605,8 +1679,8 @@ module.exports = function (RED) {
 
     // GEN 2 --------------------------------------------------------------------------------------
     
-    // Uploads a skript.
-    async function tryUploadScriptAsync(node, script, scriptName){
+    // Uploads and enables a skript.
+    async function tryInstallScriptAsync(node, script, scriptName){
         let success = false;
         if(node.hostname !== ''){    
 
@@ -1615,27 +1689,20 @@ module.exports = function (RED) {
             let credentials = getCredentials(node);
 
             try {
-                let scriptListResponse = await shellyRequestAsync('GET', '/rpc/Script.List', null, credentials);
-            
-                let scriptId = -1;
-                for (let scriptItem of scriptListResponse.scripts) {
-                    if(scriptItem.name == scriptName){
-                        scriptId = scriptItem.id;
-                        break;
-                    }
-                };
-
-                if(scriptId != -1) {
-                    let deleteParams = { 'id' : scriptId };
-                    await shellyRequestAsync('GET', '/rpc/Script.Delete', deleteParams, credentials);
-                }
+                //// Remove all old scripts first
+                //let scriptListResponse = await shellyRequestAsync('GET', '/rpc/Script.List', null, credentials);
+                //for (let scriptItem of scriptListResponse.scripts) {
+                //    if(scriptItem.name == scriptName){
+                //        let deleteParams = { 'id' : scriptItem.id };
+                //        await shellyRequestAsync('GET', '/rpc/Script.Delete', deleteParams, credentials);
+                //    }
+                //};
 
                 let createParams = { 'name' : scriptName };
                 let createScriptResonse = await shellyRequestAsync('GET', '/rpc/Script.Create', createParams, credentials);
-                scriptId = createScriptResonse.id;
+                let scriptId = createScriptResonse.id;
 
-                let chunkSize = 1024;
-
+                const chunkSize = 1024;
                 let done = false;
                 do {
                     let codeToSend;
@@ -1665,7 +1732,7 @@ module.exports = function (RED) {
                 let startParams = {  
                     'id' : scriptId,
                 };
-                await shellyRequestAsync('GET', '/rpc/Script.Start', startParams, credentials);
+                await shellyRequestAsync('POST', '/rpc/Script.Start', startParams, credentials);
                
                 let statusParams = {  
                     'id' : scriptId,
@@ -1682,8 +1749,8 @@ module.exports = function (RED) {
                 }
             }
             catch (error) {
-                node.error("Uploading script failed " + error);
-                node.status({ fill: "red", shape: "ring", text: "Uploading script failed "});
+                // node.error("Uploading script failed " + error);
+                // node.status({ fill: "red", shape: "ring", text: "Uploading script failed "});
             }     
         }
         else {
@@ -1693,6 +1760,42 @@ module.exports = function (RED) {
         return success;
     }
     
+    async function tryUninstallScriptAsync(node, scriptName){
+        let success = false;
+        if(node.hostname !== ''){    
+
+            let credentials = getCredentials(node);
+
+            try {
+                let scriptListResponse = await shellyRequestAsync('GET', '/rpc/Script.List', null, credentials);
+            
+                for (let scriptItem of scriptListResponse.scripts) {
+                    if(scriptItem.name == scriptName){
+                        let params = {  
+                            'id' : scriptItem.id,
+                        };
+                        let status = await shellyRequestAsync('GET', '/rpc/Script.GetStatus', params, credentials);
+
+                        if(status.running === true){
+                            await shellyRequestAsync('POST', '/rpc/Script.Stop', params, credentials);
+                        }
+
+                        await shellyRequestAsync('GET', '/rpc/Script.Delete', params, credentials);
+                    }
+                };                
+            }
+            catch (error) {
+                // node.error("Uninstalling script failed " + error);
+                node.status({ fill: "red", shape: "ring", text: "Uninstalling script failed "});
+            }     
+        }
+        else {
+            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
+        }
+
+        return success;
+    }
+
     // Installs a webhook.
     async function tryInstallWebhook2Async(node, webhookUrl, webhookName){
         let success = false;
@@ -1702,8 +1805,8 @@ module.exports = function (RED) {
             let credentials = getCredentials(node);
 
             try {
+                // Remove all old webhooks async.
                 let webhookListResponse = await shellyRequestAsync('GET', '/rpc/Webhook.List', null, credentials);
-            
                 for (let webhookItem of webhookListResponse.hooks) {
                     if(webhookItem.name == webhookName){
                         let deleteParams = { 'id' : webhookItem.id };
@@ -1711,6 +1814,7 @@ module.exports = function (RED) {
                     }
                 };
 
+                // Create new webhooks.
                 let supportedEventsResponse = await shellyRequestAsync('GET', '/rpc/Webhook.ListSupported', null, credentials);
                 for (let hookType of supportedEventsResponse.hook_types) {  
                     let sender = node.hostname;
@@ -1731,6 +1835,36 @@ module.exports = function (RED) {
             catch (error) {
                 // node.warn("Installing webhook failed " + error);
                 // node.status({ fill: "red", shape: "ring", text: "Installing webhook failed "});
+            }     
+        }
+        else {
+            node.status({ fill: "red", shape: "ring", text: "Hostname not configured" });
+        }
+
+        return success;
+    }
+
+    // Uninstalls a webhook.
+    async function tryUninstallWebhook2Async(node, webhookName){
+        let success = false;
+        if(node.hostname !== ''){    
+            node.status({ fill: "yellow", shape: "ring", text: "Installing webhook..." });
+
+            let credentials = getCredentials(node);
+
+            try {
+                let webhookListResponse = await shellyRequestAsync('GET', '/rpc/Webhook.List', null, credentials);
+            
+                for (let webhookItem of webhookListResponse.hooks) {
+                    if(webhookItem.name == webhookName){
+                        let deleteParams = { 'id' : webhookItem.id };
+                        let deleteWebhookResonse = await shellyRequestAsync('GET', '/rpc/Webhook.Delete', deleteParams, credentials);
+                    }
+                };
+            }
+            catch (error) {
+                // node.warn("Uninstalling webhook failed " + error);
+                // node.status({ fill: "red", shape: "ring", text: "Uninstalling webhook failed "});
             }     
         }
         else {
@@ -1818,6 +1952,9 @@ module.exports = function (RED) {
     // starts polling or uploads a skript that calls a REST callback.
     async function initializer2CallbackAsync(node, types){
 
+        const scriptName = 'node-red-contrib-shelly';
+        await tryUninstallScriptAsync(node, scriptName); // we ignore if it failed.
+            
         let success = false;
         let mode = node.mode;
         if(mode === 'polling'){
@@ -1838,8 +1975,7 @@ module.exports = function (RED) {
             let sender = node.hostname;
             script = script.replace('%SENDER%', sender);
 
-            let scriptName = 'node-red-contrib-shelly';
-            success = await tryUploadScriptAsync(node, script, scriptName);
+            success = await tryInstallScriptAsync(node, script, scriptName);
         }
         else{
             // nothing to do.
@@ -1852,6 +1988,9 @@ module.exports = function (RED) {
     // starts polling or installs a webhook that calls a REST callback.
     async function initializer2WebhookAsync(node, types){
 
+        const webhookName = 'node-red-contrib-shelly';
+        await tryUninstallWebhook2Async(node, webhookName); // we ignore if it failed.
+            
         let success = false;
         let mode = node.mode;
         if(mode === 'polling'){
@@ -1865,7 +2004,6 @@ module.exports = function (RED) {
             }
 
             let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
-            let webhookName = 'node-red-contrib-shelly';
             success = await tryInstallWebhook2Async(node, webhookUrl, webhookName);
         }
         else{
