@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.6.0] - 2022-10-28
+###  added try catch when axios is called - [#98](https://github.com/windkh/node-red-contrib-shelly/issues/98)
+
 ## [10.5.0] - 2022-10-15
 ###  Webhooks and scripts are automatically removed when switchingback to polling or none - [#83](https://github.com/windkh/node-red-contrib-shelly/issues/83)
 

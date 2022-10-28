@@ -166,37 +166,42 @@ module.exports = function (RED) {
             timeout: requestTimeout,
             validateStatus : (status) => status === 200 || status === 401
         };
+        try
+        {
+            const request = axios.request(config);
 
-        const request = axios.request(config);
-
-        request.then(response => {
-            if(response.status == 200){
-                callback(response.data);
-            }
-            else if(response.status == 401){
-                config.headers = {
-                    'Authorization': getDigestAuthorization(response, credentials, config)
+            request.then(response => {
+                if(response.status == 200){
+                    callback(response.data);
                 }
+                else if(response.status == 401){
+                    config.headers = {
+                        'Authorization': getDigestAuthorization(response, credentials, config)
+                    }
 
-                const digestRequest = axios.request(config);
-                digestRequest.then(response => {
-                    if(response.status == 200){
-                        callback(response.data);
-                    }
-                    else {
-                        node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusText });
-                        node.warn("Error: " + response.statusText  + ' ' + config.url);
-                    }
-                })
-            }
-            else {
-                node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusText });
-                node.warn("Error: " + response.statusText );
-            }
-        })
-        .catch(error => {
-            errorCallback(error);
-        });
+                    const digestRequest = axios.request(config);
+                    digestRequest.then(response => {
+                        if(response.status == 200){
+                            callback(response.data);
+                        }
+                        else {
+                            node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusText });
+                            node.warn("Error: " + response.statusText  + ' ' + config.url);
+                        }
+                    })
+                }
+                else {
+                    node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusText });
+                    node.warn("Error: " + response.statusText );
+                }
+            })
+            .catch(error => {
+                errorCallback(error);
+            });
+        }
+        catch(error2) {
+            errorCallback(error2);
+        }
     }
 
     // generic REST request wrapper with promise
@@ -226,32 +231,38 @@ module.exports = function (RED) {
                 validateStatus : (status) => status === 200 || status === 401
             };
 
-            const request = axios.request(config);
-    
-            request.then(response => {
-                if(response.status == 200){
-                    resolve(response.data)
-                } else if(response.status == 401){
-                    config.headers = {
-                        'Authorization': getDigestAuthorization(response, credentials, config)
+            try
+            {
+                const request = axios.request(config);
+        
+                request.then(response => {
+                    if(response.status == 200){
+                        resolve(response.data)
+                    } else if(response.status == 401){
+                        config.headers = {
+                            'Authorization': getDigestAuthorization(response, credentials, config)
+                        }
+        
+                        const digestRequest = axios.request(config);
+                        digestRequest.then(response => {
+                            if(response.status == 200){
+                                resolve(response.data)
+                            }
+                            else {
+                                reject(response.statusText + ' ' + config.url);
+                            }
+                        })
+                    } else {
+                        reject(response.statusText);
                     }
-    
-                    const digestRequest = axios.request(config);
-                    digestRequest.then(response => {
-                        if(response.status == 200){
-                            resolve(response.data)
-                        }
-                        else {
-                            reject(response.statusText + ' ' + config.url);
-                        }
-                    })
-                } else {
-                    reject(response.statusText);
-                }
-            })
-            .catch(error => {
-                reject(error);
-            });
+                })
+                .catch(error => {
+                    reject(error);
+                });
+            }
+            catch(error2) {
+                reject(error2);
+            }
         });
     }
 
@@ -2353,18 +2364,24 @@ module.exports = function (RED) {
                 validateStatus : (status) => status === 200
             };
 
-            const request = cloudAxios.request(config);
-    
-            request.then(response => {
-                if(response.status == 200){
-                    resolve(response.data)
-                } else {
-                    reject(response.statusText);
-                }
-            })
-            .catch(error => {
-                reject(error);
-            });
+            try
+            {
+                const request = cloudAxios.request(config);
+        
+                request.then(response => {
+                    if(response.status == 200){
+                        resolve(response.data)
+                    } else {
+                        reject(response.statusText);
+                    }
+                })
+                .catch(error => {
+                    reject(error);
+                });
+            }
+            catch(error2) {
+                reject(error2);
+            }
         });
     }
 
