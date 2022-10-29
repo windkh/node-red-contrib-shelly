@@ -21,9 +21,7 @@ This package depends on the following libraries
 - axios-rate-limit https://github.com/aishek/axios-rate-limit
 - fastify see https://github.com/fastify/fastify
 - ip see https://github.com/indutny/node-ip
-- crypto see https://github.com/brix/crypto-js
 - path see https://github.com/jinder/path
-- fs 
 
 
 # Supported Devices

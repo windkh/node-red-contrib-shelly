@@ -5,20 +5,19 @@
 
 module.exports = function (RED) {
     "use strict";
-    let axios = require('axios').default;      
+    const axios = require('axios').default;      
 
-    let rateLimit = require("axios-rate-limit");
-    let cloudAxios = rateLimit(axios.create(), { maxRequests: 1, perMilliseconds: 1000, maxRPS: 1 });
+    const rateLimit = require("axios-rate-limit");
+    const cloudAxios = rateLimit(axios.create(), { maxRequests: 1, perMilliseconds: 1000, maxRPS: 1 });
 
-    const fs = require("fs");
-    const path = require("path");
+    const { readFile } = require('fs/promises');
+    const path = require('node:path');
     const fastify = require('fastify');
-
-    let crypto = require('crypto');
-    let nonceCount = 1;
-
-    let ip = require('ip');
+    const crypto = require('node:crypto');
+    
+    const ip = require('ip');
     let localIpAddress = ip.address();
+    let nonceCount = 1;
 
     //  no operation function
     function noop(){}
@@ -1974,7 +1973,7 @@ module.exports = function (RED) {
         }
         else if(mode === 'callback'){
             let scriptPath = path.resolve(__dirname, './scripts/button.script');
-            const buffer = fs.readFileSync(scriptPath);
+            const buffer = await readFile(scriptPath);
             let script = buffer.toString();
 
             let ipAddress = localIpAddress;

@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.7.0] - 2022-10-29
+###  replaced crypto package - [#99](https://github.com/windkh/node-red-contrib-shelly/issues/99)
+###  replaced fs package - [#96](https://github.com/windkh/node-red-contrib-shelly/issues/96)
+
 ## [10.6.0] - 2022-10-28
 ###  added try catch when axios is called - [#98](https://github.com/windkh/node-red-contrib-shelly/issues/98)
 
