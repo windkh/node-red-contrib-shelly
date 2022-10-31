@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.8.0] - 2022-10-31
+###  partially reverted changes from 10.7.0 - [#101](https://github.com/windkh/node-red-contrib-shelly/issues/101)
+
 ## [10.7.0] - 2022-10-29
 ###  replaced crypto package - [#99](https://github.com/windkh/node-red-contrib-shelly/issues/99)
 ###  replaced fs package - [#96](https://github.com/windkh/node-red-contrib-shelly/issues/96)

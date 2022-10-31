@@ -10,11 +10,15 @@ module.exports = function (RED) {
     const rateLimit = require("axios-rate-limit");
     const cloudAxios = rateLimit(axios.create(), { maxRequests: 1, perMilliseconds: 1000, maxRPS: 1 });
 
-    const { readFile } = require('fs/promises');
+    const fs = require("fs");
+    // const { readFile } = require('fs/promises'); see #96 nodejs V19
+    
+    let crypto = require('crypto');
+    // const crypto = require('node:crypto'); see #99 nodejs V19
+    
     const path = require('node:path');
     const fastify = require('fastify');
-    const crypto = require('node:crypto');
-    
+
     const ip = require('ip');
     let localIpAddress = ip.address();
     let nonceCount = 1;
@@ -1973,7 +1977,8 @@ module.exports = function (RED) {
         }
         else if(mode === 'callback'){
             let scriptPath = path.resolve(__dirname, './scripts/button.script');
-            const buffer = await readFile(scriptPath);
+            const buffer = fs.readFileSync(scriptPath);
+            // const buffer = await readFile(scriptPath); #96 nodejs V19
             let script = buffer.toString();
 
             let ipAddress = localIpAddress;
