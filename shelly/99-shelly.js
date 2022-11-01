@@ -16,7 +16,9 @@ module.exports = function (RED) {
     let crypto = require('crypto');
     // const crypto = require('node:crypto'); see #99 nodejs V19
     
-    const path = require('node:path');
+    const path = require("path");
+    // const path = require('node:path'); see #99 nodejs V19
+    
     const fastify = require('fastify');
 
     const ip = require('ip');
