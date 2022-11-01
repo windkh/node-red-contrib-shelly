@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.9.1] - 2022-11-01
+###  fixed package.json
+
 ## [10.9.0] - 2022-11-01
 ###  reverted path require from 10.7.0 - [#101](https://github.com/windkh/node-red-contrib-shelly/issues/101)
 
