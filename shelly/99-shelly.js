@@ -1366,6 +1366,20 @@ module.exports = function (RED) {
             result.concentration = status.concentration;
         }
 
+        if(status.ext_temperature !== undefined && !isEmpty(status.ext_temperature)){
+            if(result.ext === undefined) {
+                result.ext = {};
+            }
+            result.ext.temperature = status.ext_temperature;
+        }
+
+        if(status.ext_humidity !== undefined && !isEmpty(status.ext_humidity)){
+            if(result.ext === undefined) {
+                result.ext = {};
+            }
+            result.ext.humidity = status.ext_humidity;
+        }
+
         return result;
     }
 

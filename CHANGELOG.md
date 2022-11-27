@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.10.0] - 2022-11-27
+###  added new porperty ext for shelly gen 1 - [#90](https://github.com/windkh/node-red-contrib-shelly/issues/90)
+###  added new porperty ext for shelly gen 1 - [#104](https://github.com/windkh/node-red-contrib-shelly/issues/104)
+
 ## [10.9.1] - 2022-11-01
 ###  fixed package.json
 
