@@ -21,8 +21,6 @@ module.exports = function (RED) {
     
     const fastify = require('fastify');
 
-    const ip = require('ip');
-    let localIpAddress = ip.address();
     let nonceCount = 1;
 
     //  no operation function
@@ -41,6 +39,52 @@ module.exports = function (RED) {
 
         route += parameters;
         return route;
+    }
+
+    // gets all IP addresses: https://stackoverflow.com/questions/3653065/get-local-ip-address-in-node-js?page=2&tab=scoredesc#tab-top
+    function getIPAddresses() {
+        let ipAddresses = [];
+    
+        let interfaces = require('os').networkInterfaces();
+        for (let devName in interfaces) {
+            let iface = interfaces[devName];
+            for (let i = 0; i < iface.length; i++) {
+                let alias = iface[i];
+                if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+                    ipAddresses.push(alias.address);
+                }
+            }
+        }
+
+        return ipAddresses;
+    }
+
+    RED.httpAdmin.get("/node-red-contrib-shelly-getipaddresses", function(req, res) {
+        let ipAddresses = getIPAddresses();
+        res.json(ipAddresses);
+    });
+
+    // Gets the local IP address from the node or using auto detection.
+    function getIPAddress(node) {
+        let ipAddress;
+        
+        if (node.server.hostip !== undefined && node.server.hostip !== '' && node.server.hostip !== 'hostname') {
+            ipAddress = node.server.hostip;
+        }
+        else if (node.server.hostip === 'hostname' && node.server.hostname !== undefined && node.server.hostname !== '') {
+            ipAddress = node.server.hostname;
+        }
+        else {
+            let ipAddresses = getIPAddresses();
+            if (ipAddresses !== undefined && ipAddresses.length > 0) {
+                ipAddress =  ipAddresses[0];
+            }
+            else {
+                node.error("Could not detect local IP address: please configure hostname.");
+            }
+        }
+
+        return ipAddress;
     }
 
     // extracts the credentials from the message and the node.
@@ -1088,11 +1132,7 @@ module.exports = function (RED) {
             success = true;
         }
         else if(mode === 'callback'){
-            let ipAddress = localIpAddress;
-            if(node.server.hostname !== undefined && node.server.hostname !== ''){
-                ipAddress = node.server.hostname;
-            }
-            
+            let ipAddress = getIPAddress(node);
             let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
             success = await tryInstallWebhook1Async(node, webhookUrl, sender);
         }
@@ -1283,6 +1323,7 @@ module.exports = function (RED) {
             case 'Sensor':
             case 'Thermostat':
             case 'Button':
+            case 'Relay':
                 result = initializer1WebhookAsync;
                 break;
             default:
@@ -1549,6 +1590,7 @@ module.exports = function (RED) {
         let node = this;
         this.port = config.port;
         this.hostname = config.hostname;
+        this.hostip = config.hostip;
         this.server = fastify();
         
         if(node.port > 0){
@@ -1997,10 +2039,7 @@ module.exports = function (RED) {
             // const buffer = await readFile(scriptPath); #96 nodejs V19
             let script = buffer.toString();
 
-            let ipAddress = localIpAddress;
-            if(node.server.hostname !== undefined && node.server.hostname !== ''){
-                ipAddress = node.server.hostname;
-            }
+            let ipAddress = getIPAddress(node);
             let url = 'http://' + ipAddress +  ':' + node.server.port + '/callback';
             script = script.replace('%URL%', url);
             let sender = node.hostname;
@@ -2029,11 +2068,7 @@ module.exports = function (RED) {
             success = true;
         }
         else if(mode === 'callback'){
-            let ipAddress = localIpAddress;
-            if(node.server.hostname !== undefined && node.server.hostname !== ''){
-                ipAddress = node.server.hostname;
-            }
-
+            let ipAddress = getIPAddress(node);
             let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
             success = await tryInstallWebhook2Async(node, webhookUrl, webhookName);
         }
@@ -2189,6 +2224,7 @@ module.exports = function (RED) {
         let node = this;
         this.port = config.port;
         this.hostname = config.hostname;
+        this.hostip = config.hostip;
         this.server = fastify();
 
         if(node.port > 0){

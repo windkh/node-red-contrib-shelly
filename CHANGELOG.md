@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.11.0] - 2022-12-08
+###  Added support for IP detection in server nodes
+
 ## [10.10.0] - 2022-11-27
 ###  added new porperty ext for shelly gen 1 - [#90](https://github.com/windkh/node-red-contrib-shelly/issues/90)
 ###  added new porperty ext for shelly gen 1 - [#104](https://github.com/windkh/node-red-contrib-shelly/issues/104)

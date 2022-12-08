@@ -11,9 +11,36 @@
         defaults: {
             port: { value: 0, validate:RED.validators.number() },
             hostname: { value:"" },
+            hostip: { value:"" },
         },
         label: function () {
             return this.port;
+        },
+        oneditprepare: function() {
+
+            // ip or hostname
+            let updateMode = function() {
+                let mode = $("#node-config-input-hostip").val();
+                if (mode == "hostname") {
+                    $("#hostnameinput").show();
+                }  else {
+                    $("#hostnameinput").hide();
+                }
+            };
+            updateMode();
+            $("#node-config-input-hostip").change(updateMode);
+
+            let populateHostnames = function() {
+                $.getJSON('node-red-contrib-shelly-getipaddresses', function(ipAddresses) {
+                    for (let i = 0; i <= ipAddresses.length; i++) {
+                        let ipAddress = ipAddresses[i];
+                        if (ipAddress !== undefined) {
+                            $('#node-config-input-hostip').append('<option value="' + ipAddress + '">' + ipAddress + '</option>');
+                        }
+                    }
+                }); 
+            };
+            populateHostnames();
         }
     });
 </script>
@@ -24,12 +51,21 @@
             <label for="node-config-input-port"><i class="fa fa-phone"></i> Port</label>
             <input type="text" id="node-config-input-port" placeholder="(The network port to open)">
         </div>
+
         <div class="form-row">
-            <label for="node-config-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
-            <input type="text" id="node-config-input-hostname" placeholder="Optional: hostname or IP-Address of this node-red server.">
+            <label for="node-config-input-hostip"><i class="fa fa-tag"></i> IP Address</label>
+            <select id="node-config-input-hostip" style="width:70%">
+                <option value="">Auto Detect</option>
+                <option value="hostname">Hostname</option>
+            </select>
         </div>
 
-        <div class="form-tips" style="width: auto"><b>Tip:</b> The hostname or IP should be set when for example running inside a docker container or behind NAT.</div>
+        <div class="form-row hidden" id="hostnameinput">
+            <label for="node-config-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
+            <input type="text" id="node-config-input-hostname" placeholder="hostname of this node-red server.">
+        </div>
+
+        <div class="form-tips" style="width: auto"><b>Tip:</b> The hostname or IP should be set manually when for example running inside a docker container or behind NAT.</div>
     </div>
 </script>
 
@@ -56,7 +92,6 @@
                 let mode = $("#node-input-mode").val();
                 let ok = true;
                 
-                debugger;
                 if(mode == "callback"){
                     if(v.length == 0 || v === '_ADD_'){
                         ok = false;
@@ -271,9 +306,36 @@
         defaults: {
             port: { value: 0, validate:RED.validators.number() },
             hostname: { value:"" },
+            hostip: { value:"" },
         },
         label: function () {
             return this.port;
+        },
+        oneditprepare: function() {
+
+            // ip or hostname
+            let updateMode = function() {
+                let mode = $("#node-config-input-hostip").val();
+                if (mode == "hostname") {
+                    $("#hostnameinput").show();
+                }  else {
+                    $("#hostnameinput").hide();
+                }
+            };
+            updateMode();
+            $("#node-config-input-hostip").change(updateMode);
+
+            let populateHostnames = function() {
+                $.getJSON('node-red-contrib-shelly-getipaddresses', function(ipAddresses) {
+                    for (let i = 0; i <= ipAddresses.length; i++) {
+                        let ipAddress = ipAddresses[i];
+                        if (ipAddress !== undefined) {
+                            $('#node-config-input-hostip').append('<option value="' + ipAddress + '">' + ipAddress + '</option>');
+                        }
+                    }
+                }); 
+            };
+            populateHostnames();
         }
     });
 </script>
@@ -285,11 +347,19 @@
             <input type="text" id="node-config-input-port" placeholder="(The network port to open)">
         </div>
         <div class="form-row">
-            <label for="node-config-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
-            <input type="text" id="node-config-input-hostname" placeholder="Optional: hostname or IP-Address of this node-red server.">
+            <label for="node-config-input-hostip"><i class="fa fa-tag"></i> IP Address</label>
+            <select id="node-config-input-hostip" style="width:70%">
+                <option value="">Auto Detect</option>
+                <option value="hostname">Hostname</option>
+            </select>
         </div>
 
-        <div class="form-tips" style="width: auto"><b>Tip:</b> The hostname or IP should be set when for example running inside a docker container or behind NAT.</div>
+        <div class="form-row hidden" id="hostnameinput">
+            <label for="node-config-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
+            <input type="text" id="node-config-input-hostname" placeholder="hostname of this node-red server.">
+        </div>
+
+        <div class="form-tips" style="width: auto"><b>Tip:</b> The hostname or IP should be set manually when for example running inside a docker container or behind NAT.</div>
     </div>
 </script>
 
