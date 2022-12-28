@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.12.0] - 2022-28-12
+###  Added support gen 2 add on
+
 ## [10.11.0] - 2022-12-08
 ###  Added support for IP detection in server nodes
 

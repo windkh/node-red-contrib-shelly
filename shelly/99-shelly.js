@@ -2114,44 +2114,20 @@ module.exports = function (RED) {
         return deviceTypes;
     }
 
-
-    let gen2StatusProperties = new Map([
-        ["switch:0", "switch0"],
-        ["switch:1", "switch1"],
-        ["switch:2", "switch2"],
-        ["switch:3", "switch3"],
-
-        ["input:0", "input0"],
-        ["input:1", "input1"],
-        ["input:2", "input2"],
-        ["input:3", "input3"],
-
-        ["temperature:0", "temperature0"],
-        ["temperature:1", "temperature1"],
-        ["temperature:2", "temperature2"],
-        ["temperature:3", "temperature3"],
-
-        ["humidity:0", "humidity0"],
-        ["humidity:1", "humidity1"],
-        ["humidity:2", "humidity2"],
-        ["humidity:3", "humidity3"],
-
-        ["devicepower:0", "devicepower0"],
-        ["devicepower:1", "devicepower1"],
-        ["devicepower:2", "devicepower2"],
-        ["devicepower:3", "devicepower3"],
-    ]);
-
     // Returns a status object with filtered properties.
     function convertStatus2(status){
         let result = {};
 
-        gen2StatusProperties.forEach((value, key, map) => {
+        Object.keys(status).forEach(key => {
             let statusValue = status[key];
             if(statusValue !== undefined) {
-                result[value] = statusValue;
+                // we only copy the key that contain a : like input:0...
+                if(key.indexOf(":") !== -1){
+                    let newKey = key.replace(":", "");
+                    result[newKey] = statusValue;
+                }
             }
-        })
+        });
 
         return result;
     }
