@@ -6,7 +6,7 @@
 [![Downloads](https://img.shields.io/npm/dm/node-red-contrib-shelly.svg)](https://www.npmjs.com/package/node-red-contrib-shelly)
 [![Total Downloads](https://img.shields.io/npm/dt/node-red-contrib-shelly.svg)](https://www.npmjs.com/package/node-red-contrib-shelly)
 [![Package Quality](http://npm.packagequality.com/shield/node-red-contrib-shelly.png)](http://packagequality.com/#?package=node-red-contrib-shelly)
-![Build](https://img.shields.io/github/workflow/status/windkh/node-red-contrib-shelly/Node.js%20CI?event=push)
+![Build](https://img.shields.io/github/actions/workflow/status/windkh/node-red-contrib-shelly/node.js.yml)
 [![Open Issues](https://img.shields.io/github/issues-raw/windkh/node-red-contrib-shelly.svg)](https://github.com/windkh/node-red-contrib-shelly/issues)
 [![Closed Issues](https://img.shields.io/github/issues-closed-raw/windkh/node-red-contrib-shelly.svg)](https://github.com/windkh/node-red-contrib-shelly/issues?q=is%3Aissue+is%3Aclosed)
 ...
@@ -22,6 +22,7 @@ This package depends on the following libraries
 - fastify see https://github.com/fastify/fastify
 - ip see https://github.com/indutny/node-ip
 - path see https://github.com/jinder/path
+- crypto see https://github.com/brix/crypto-js
 
 
 # Supported Devices
