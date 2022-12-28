@@ -35,7 +35,7 @@ Generation 1 devices:
 - Shelly Dimmer / Shelly Bulb Duo, Vintage
 - Shelly Door / Shelly Door 2
 - Shelly RGBW2 / Shelly Bulb RGBW
-- Shelly Motion
+- Shelly Motion 1/2
 - Shelly Emeasure (EM, EM3)
 - Shelly UNI
 - Shelly TRV
@@ -495,7 +495,7 @@ timer can be a value in seconds to flip back on/off
 
 
 
-## Sensor (Shelly Window/Door Node 1/2, Shelly Flood, Shelly H&T, Shelly Motion )
+## Sensor (Shelly Window/Door Node 1/2, Shelly Flood, Shelly H&T, Shelly Motion 1/2 )
 The node is able to poll a shelly window/door, motion, gas, ... sensor. It outputs the sensor status together with battery and sensor values on every change sensor status.
 Note that some sensors sleep when nothing is detected and is thus not accessible via REST.
 
