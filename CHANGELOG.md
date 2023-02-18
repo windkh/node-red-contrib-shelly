@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.12.1] - 2023-02-18
+###  replaced replace function - [#108](https://github.com/windkh/node-red-contrib-shelly/issues/108)
+
 ## [10.12.0] - 2022-28-12
 ###  Added support gen 2 add on
 

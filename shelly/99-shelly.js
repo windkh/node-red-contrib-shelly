@@ -30,6 +30,24 @@ module.exports = function (RED) {
         return Object.keys(obj).length === 0;
     }
 
+    function trim(str) {
+        let result;
+        if(str !== undefined){
+            result = str.trim();
+        }
+
+        return result;
+    }
+    
+    function replace(str, pattern, replacement) {
+        let result;
+        if(str !== undefined){
+            result = str.replace(pattern, replacement);
+        }
+
+        return result;
+    }
+
     function combineUrl(path, parameters) {
         let route = path + '?';
 
@@ -146,7 +164,7 @@ module.exports = function (RED) {
         let algorithm = properties.get('algorithm'); // TODO: check if it is still SHA-256 
         let username = credentials.username;
         let password = credentials.password;
-        let realm = properties.get('realm').replace(/"/g, '');
+        let realm = replace(properties.get('realm'), /"/g, '');
         let authParts = [username, realm, password];
 
         let ha1String = authParts.join(':');
@@ -154,7 +172,7 @@ module.exports = function (RED) {
         let ha2String = method + ':' + url;
         let ha2 = sha256(ha2String);
         let nc = ('00000000' + nonceCount).slice(-8);
-        let nonce = properties.get('nonce').replace(/"/g, '');
+        let nonce = replace(properties.get('nonce'), /"/g, '');
         let cnonce = crypto.randomBytes(24).toString('hex');
         let responseString = ha1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + "auth" + ":" + ha2;
         let responseHash = sha256(responseString);
@@ -1651,7 +1669,7 @@ module.exports = function (RED) {
             node.initializeRetryInterval = 5000;
         }
       
-        node.hostname = config.hostname.trim();
+        node.hostname = trim(config.hostname);
         node.authType = "Basic";
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus;
@@ -2041,9 +2059,9 @@ module.exports = function (RED) {
 
             let ipAddress = getIPAddress(node);
             let url = 'http://' + ipAddress +  ':' + node.server.port + '/callback';
-            script = script.replace('%URL%', url);
+            script = replace(script, '%URL%', url);
             let sender = node.hostname;
-            script = script.replace('%SENDER%', sender);
+            script = replace(script, '%SENDER%', sender);
 
             success = await tryInstallScriptAsync(node, script, scriptName);
         }
@@ -2123,7 +2141,7 @@ module.exports = function (RED) {
             if(statusValue !== undefined) {
                 // we only copy the key that contain a : like input:0...
                 if(key.indexOf(":") !== -1){
-                    let newKey = key.replace(":", "");
+                    let newKey = replace(key, ":", "");
                     result[newKey] = statusValue;
                 }
             }
@@ -2264,7 +2282,7 @@ module.exports = function (RED) {
             node.initializeRetryInterval = 5000;
         }
         
-        node.hostname = config.hostname.trim();
+        node.hostname = trim(config.hostname);
         node.authType = "Digest";
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus;
@@ -2424,8 +2442,8 @@ module.exports = function (RED) {
 
         let node = this;
 
-        node.serverUri = node.credentials.serveruri.trim();
-        node.authKey = node.credentials.authkey.trim();
+        node.serverUri = trim(node.credentials.serveruri);
+        node.authKey = trim(node.credentials.authkey);
 
         this.getCredentials = function () {
             const credentials = {
