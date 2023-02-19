@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.13.0] - 2023-02-19
+###  fixed Basic auth header for TRV - [#108](https://github.com/windkh/node-red-contrib-shelly/issues/108)
+
 ## [10.12.1] - 2023-02-18
 ###  replaced replace function - [#108](https://github.com/windkh/node-red-contrib-shelly/issues/108)
 

@@ -193,10 +193,14 @@ module.exports = function (RED) {
     // Gets a header with the authorization property for the request.
     function getHeaders(credentials){
         let headers = {};
-        if(credentials.authType === 'Basic') {
-            if(credentials.username !== undefined && credentials.password !== undefined) {
-                headers.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64");
-            };
+
+        if(credentials !== undefined) {
+            if(credentials.authType === 'Basic') {
+                if(credentials.username !== undefined && credentials.password !== undefined) {
+                    // Authorization is case sensitive for some devices like the TRV!
+                    headers.Authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64");
+                };
+            }
         }
 
         return headers;
@@ -334,6 +338,7 @@ module.exports = function (RED) {
     }
 
 
+    // Hint: the /shelly route can be accessed without authorization
     function shellyPing(node, credentials, types){
 
         // gen 1 and gen 2 devices support this endpoint (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
