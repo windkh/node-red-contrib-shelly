@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.13.1] - 2023-02-21
+###  added support for Plus Plug S, Plus Smoke
+
 ## [10.13.0] - 2023-02-19
 ###  fixed Basic auth header for TRV - [#108](https://github.com/windkh/node-red-contrib-shelly/issues/108)
 

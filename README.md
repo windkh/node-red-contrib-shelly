@@ -45,6 +45,9 @@ Generation 2 devices:
 - Shelly Plus l, Plus 1 PM, Plus 2 PM, I4
 - Shelly Pro 1, Pro 1 PM, Pro 2 PM, Pro 4 PM
 - Shelly US Plug
+- Shelly Plus Plug S
+- Shelly Plus Smoke
+- Shelly Plus H&T
 
 
 Others may work but are not really tested so far.
@@ -664,7 +667,7 @@ The output of the node is an array of status objects for every relay of the swit
 
 
 
-## Sensor (Shelly Plus H&T)
+## Sensor (Shelly Plus H&T, Plus Smoke)
 The node is able to control a shelly sensor. Usually sensors sleep all the time to save energy.
 Hence you will get an error when polling for the status but sometimes when the device wakes up you will receive valid data.
 Another possibility is to use the callback mode. Unlike other 2. generation devices sensors do often not support scripts.
