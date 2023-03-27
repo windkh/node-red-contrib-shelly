@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.13.2] - 2023-03-27
+###  added timer for dimmer - [#113](https://github.com/windkh/node-red-contrib-shelly/issues/113)
+
 ## [10.13.1] - 2023-02-21
 ###  added support for Plus Plug S, Plus Smoke
 

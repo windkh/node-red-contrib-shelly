@@ -660,6 +660,25 @@ module.exports = function (RED) {
                 }
             }
 
+            let timer;
+            if(command.timer !== undefined){
+                if(command.timer >=0){
+                    timer = command.timer;
+                } else { 
+                    // Default is undefined
+                }
+            }
+
+            let dim;
+            if(command.dim !== undefined){
+                dim = command.dim;
+            }
+
+            let step;
+            if(command.step !== undefined){
+                step = command.step;
+            }
+
 
             let parameters = '';
             if (turn !== undefined){
@@ -680,6 +699,18 @@ module.exports = function (RED) {
 
             if(transition !== undefined) {
                 parameters += "&transition=" + transition;
+            }
+
+            if(timer !== undefined) {
+                parameters += "&timer=" + timer;
+            }
+
+            if(step !== undefined) {
+                parameters += "&step=" + step;
+            }
+            
+            if(dim !== undefined) {
+                parameters += "&dim=" + dim;
             }
 
             if (parameters !== '') {
@@ -2016,6 +2047,7 @@ module.exports = function (RED) {
         switch(deviceType) {
             case 'Relay':
             case 'Button':
+            case 'Measure':
                 result = inputParserGeneric2Async;
                 break;
             default:
@@ -2110,6 +2142,7 @@ module.exports = function (RED) {
         switch(deviceType) {
             case 'Button':
             case 'Relay':
+            case 'Measure':
                 result = initializer2CallbackAsync;
                 break;
             case 'Sensor':
@@ -2126,6 +2159,7 @@ module.exports = function (RED) {
         ["Relay",      ["SHSW-", "SNSW-", "SPSW-", "SNPL-"]],
         ["Button",     ["SNSN-"]],
         ["Sensor",     ["SNSN-"]], // Shelly Plus H&T / PLus Smoke only support Webhook, no scripting
+        ["Measure",    ["SPEM"]],
     ]);
 
     function getDeviceTypes2(deviceType){

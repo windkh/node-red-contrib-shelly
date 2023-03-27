@@ -366,7 +366,10 @@ Turning on is done by sending the following payload into the input. The light nu
     brightness: 100,
 	white: 100, // for bulb duo
 	temp : 2700, // for bulb duo (same as white but in K 2700 - 6500)
-	transition : 0 // for bulb duo (0..5000ms)
+	transition : 0 // for bulb duo (0..5000ms),
+	timer : 1, // flip back timer in seconds,
+	dim : 'up', // up, down, stop
+	step : 10, // dim step in %
 }
 ```
 
