@@ -417,8 +417,8 @@ meters : [
 ```
 
 ### Examples:  
-[**shelly dimmer flow**](examples/bulbduo.json)  
-[**shelly bulb duo flow**](examples/dimmer.json)  
+[**shelly dimmer flow**](examples/dimmer.json)  
+[**shelly bulb duo flow**](examples/bulbduo.json)  
 
 
 ## Thermostat (Shelly TRV)
