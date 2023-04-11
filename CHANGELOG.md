@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.13.3] - 2023-04-11
+###  added support for shelly pro EM - [#112](https://github.com/windkh/node-red-contrib-shelly/issues/112)
+
 ## [10.13.2] - 2023-03-27
 ###  added timer for dimmer - [#113](https://github.com/windkh/node-red-contrib-shelly/issues/113)
 

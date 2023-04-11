@@ -237,6 +237,7 @@ module.exports = function (RED) {
             timeout: requestTimeout,
             validateStatus : (status) => status === 200 || status === 401
         };
+
         try
         {
             const request = axios.request(config);
@@ -345,35 +346,48 @@ module.exports = function (RED) {
         shellyTryGet('/shelly', node, credentials, node.pollInterval, function(body) {
             node.shellyInfo = body;
 
+            let requiredNodeType;
             let deviceType;
             // Generation 1 devices
             if(node.shellyInfo.type !== undefined){
                 deviceType = node.shellyInfo.type;
+                requiredNodeType = 'shelly-gen1';
             } // Generation 2 devices 
-            else if(node.shellyInfo.model !== undefined && node.shellyInfo.gen === 2)
-            {
+            else if(node.shellyInfo.model !== undefined && node.shellyInfo.gen === 2){
                 deviceType = node.shellyInfo.model;
+                requiredNodeType = 'shelly-gen2';
+            }
+            else {
+                // this can not happen right now.
+                requiredNodeType = 'not shupported';
             }
 
-            let found = false;
-            for (let i = 0; i < types.length; i++) {
-                let type = types[i];
 
-                // Generation 1 devices
-                if(deviceType !== undefined){
-                    found  = deviceType.startsWith(type);
-                    if (found) {
-                        break;
-                    }    
+            if(requiredNodeType === node.type) {
+                let found = false;
+                for (let i = 0; i < types.length; i++) {
+                    let type = types[i];
+
+                    // Generation 1 devices
+                    if(deviceType !== undefined){
+                        found  = deviceType.startsWith(type);
+                        if (found) {
+                            break;
+                        }    
+                    }
+                }
+                
+                if(found){
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
+                }
+                else{
+                    node.status({ fill: "red", shape: "ring", text: "Shelly type mismatch: " + deviceType });
+                    node.warn("Shelly type mismatch: " + deviceType);
                 }
             }
-            
-            if(found){
-                node.status({ fill: "green", shape: "ring", text: "Connected." });
-            }
-            else{
-                node.status({ fill: "red", shape: "ring", text: "Shelly type mismatch: " + deviceType });
-                node.warn("Shelly type mismatch: " + deviceType);
+            else {
+                node.status({ fill: "red", shape: "ring", text: "Wrong node type. Please use " + requiredNodeType });
+                node.warn("Wrong node type. Please use " + requiredNodeType);
             }
         },
         function(error){
@@ -2159,7 +2173,7 @@ module.exports = function (RED) {
         ["Relay",      ["SHSW-", "SNSW-", "SPSW-", "SNPL-"]],
         ["Button",     ["SNSN-"]],
         ["Sensor",     ["SNSN-"]], // Shelly Plus H&T / PLus Smoke only support Webhook, no scripting
-        ["Measure",    ["SPEM"]],
+        ["Measure",    ["SPEM-"]],
     ]);
 
     function getDeviceTypes2(deviceType){
