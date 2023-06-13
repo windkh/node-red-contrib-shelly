@@ -2062,6 +2062,7 @@ module.exports = function (RED) {
             case 'Relay':
             case 'Button':
             case 'Measure':
+            case 'Dimmer':
                 result = inputParserGeneric2Async;
                 break;
             default:
@@ -2157,6 +2158,7 @@ module.exports = function (RED) {
             case 'Button':
             case 'Relay':
             case 'Measure':
+            case 'Dimmer':
                 result = initializer2CallbackAsync;
                 break;
             case 'Sensor':
@@ -2174,6 +2176,7 @@ module.exports = function (RED) {
         ["Button",     ["SNSN-"]],
         ["Sensor",     ["SNSN-"]], // Shelly Plus H&T / PLus Smoke only support Webhook, no scripting
         ["Measure",    ["SPEM-"]],
+        ["Dimmer",     ["SHDM-"]],
     ]);
 
     function getDeviceTypes2(deviceType){

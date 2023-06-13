@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.13.4] - 2023-06-13
+###  added support for shelly plus wall dimmer - [#115](https://github.com/windkh/node-red-contrib-shelly/issues/115)
+
 ## [10.13.3] - 2023-04-11
 ###  added support for shelly pro EM - [#112](https://github.com/windkh/node-red-contrib-shelly/issues/112)
 

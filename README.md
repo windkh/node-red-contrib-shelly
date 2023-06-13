@@ -48,6 +48,7 @@ Generation 2 devices:
 - Shelly Plus Plug S
 - Shelly Plus Smoke
 - Shelly Plus H&T
+- Shelly Plus Wall Dimmer
 
 
 Others may work but are not really tested so far.
