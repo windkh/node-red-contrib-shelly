@@ -697,10 +697,20 @@ You can get the status of a device by simply triggering the node using a msg.pay
 contains the id of the device
 
 
+
 ```
 {
 	type : 'status',
     id : 'your device id here in hex',
+}
+```
+
+## Listing all devices
+Similar to retrieving the status of a device, you can retrieve the status of all devices by changing the type to "status_all" and removing the "id" line:
+
+```
+{
+	type : 'status_all'
 }
 ```
 
