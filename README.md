@@ -69,6 +69,7 @@ If you want to support this free project. Any help is welcome. You can donate by
 - minuq for providing pull request for issue #7
 - Paul-Reed for enhancing the dimmer node see issue #21
 - Docjones for providing the skeleton for ShellyRGBW node see pull request #15
+- arvidcarlander  for adding all_status feature to cloud node
 
 
 # Changelog
