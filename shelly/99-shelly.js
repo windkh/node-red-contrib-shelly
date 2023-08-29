@@ -2585,6 +2585,13 @@ module.exports = function (RED) {
                             id : msg.payload.id
                         };    
                         params = encodeParams(data);  
+                    } else if (type === 'all_status'){
+                        route = '/device/all_status';
+
+                        let data = {
+                            id : msg.payload.id
+                        };    
+                        params = encodeParams(data);  
                     }
                     else {
                         // nothing to do
