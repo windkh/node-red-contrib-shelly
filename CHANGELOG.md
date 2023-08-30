@@ -1,7 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [10.13.6] - 2023-06-13
+## [10.13.7] - 2023-08-30
+###  added further properties to all_status
+
+## [10.13.6] - 2023-08-..
 ###  added support for the shelly cloud "status_all" command which gives a listing of all devices with their status
 
 ## [10.13.5] - 2023-06-13

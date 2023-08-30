@@ -2589,7 +2589,8 @@ module.exports = function (RED) {
                         route = '/device/all_status';
 
                         let data = {
-                            id : msg.payload.id
+                            show_info : msg.payload.show_info,
+                            no_shared : msg.payload.no_shared
                         };    
                         params = encodeParams(data);  
                     }
