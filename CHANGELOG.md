@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.13.8] - 2023-09-29
+###  added support for shelly plus 1 mini- [#127](https://github.com/windkh/node-red-contrib-shelly/issues/127)
+
 ## [10.13.7] - 2023-08-30
 ###  added further properties to all_status
 

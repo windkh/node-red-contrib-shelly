@@ -1,6 +1,6 @@
 {
     "name": "node-red-contrib-shelly",
-    "version": "10.13.7",
+    "version": "10.13.8",
     "description": "Shelly nodes.",
     "node-red": {
         "version": ">=0.1.0",

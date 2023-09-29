@@ -1889,8 +1889,8 @@ module.exports = function (RED) {
                 }
             }
             catch (error) {
-                // node.error("Uploading script failed " + error);
-                // node.status({ fill: "red", shape: "ring", text: "Uploading script failed "});
+                node.error("Uploading script failed " + error);
+                node.status({ fill: "red", shape: "ring", text: "Uploading script failed "});
             }     
         }
         else {
@@ -2172,7 +2172,7 @@ module.exports = function (RED) {
     }
 
     let gen2DeviceTypes = new Map([
-        ["Relay",      ["SHSW-", "SNSW-", "SPSW-", "SNPL-"]],
+        ["Relay",      ["SHSW-", "SNSW-", "SPSW-", "SNPL-", "SNPM-"]],
         ["Button",     ["SNSN-"]],
         ["Sensor",     ["SNSN-"]], // Shelly Plus H&T / PLus Smoke only support Webhook, no scripting
         ["Measure",    ["SPEM-"]],
