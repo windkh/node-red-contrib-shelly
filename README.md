@@ -42,7 +42,7 @@ Generation 1 devices:
 - Shelly Button / I3
 
 Generation 2 devices:
-- Shelly Plus l, Plus 1 PM, Plus 2 PM, I4
+- Shelly Plus l, Plus 1 PM, Plus 2 PM,Shelly Plus PM Mini, I4
 - Shelly Pro 1, Pro 1 PM, Pro 2 PM, Pro 4 PM
 - Shelly US Plug
 - Shelly Plus Plug S
