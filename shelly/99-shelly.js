@@ -209,11 +209,12 @@ module.exports = function (RED) {
     // Note that this function has a reduced timeout.
     function shellyTryGet(route, node, credentials, timeout, callback, errorCallback){
         let data;
-        return shellyTryRequest('GET', route, data, node, credentials, timeout, callback, errorCallback);
+        let params;
+        return shellyTryRequest('GET', route, params, data, node, credentials, timeout, callback, errorCallback);
     }
 
     // Note that this function has a reduced timeout.
-    function shellyTryRequest(method, route, data, node, credentials, timeout, callback, errorCallback){
+    function shellyTryRequest(method, route, params, data, node, credentials, timeout, callback, errorCallback){
     
         if(timeout === undefined || timeout === null){
             timeout = 5000;
@@ -232,6 +233,7 @@ module.exports = function (RED) {
             baseURL :  baseUrl,
             url : route,
             method : method,
+            params : params,
             data : data,
             headers : headers,
             timeout: requestTimeout,
@@ -277,7 +279,7 @@ module.exports = function (RED) {
     }
 
     // generic REST request wrapper with promise
-    function shellyRequestAsync(method, route, data, credentials, timeout){
+    function shellyRequestAsync(method, route, params, data, credentials, timeout){
         return new Promise(function (resolve, reject) {
 
             if(timeout === undefined || timeout === null){
@@ -297,6 +299,7 @@ module.exports = function (RED) {
                 baseURL :  baseUrl,
                 url : route,
                 method : method,
+                params : params,
                 data : data,
                 headers : headers,
                 timeout: requestTimeout,
@@ -538,7 +541,7 @@ module.exports = function (RED) {
 
                     try {
                         let timeout = 60000; // download can take very long of there is a lot of data.
-                        let body = await shellyRequestAsync('GET', downloadRoute, null, credentials, timeout);
+                        let body = await shellyRequestAsync('GET', downloadRoute, null, null, credentials, timeout);
                         data.push(body);
                     }
                     catch (error) {
@@ -1155,7 +1158,7 @@ module.exports = function (RED) {
             let credentials = getCredentials(node);
     
             let settingsRoute = '/settings';   
-            let settings = await shellyRequestAsync('GET', settingsRoute, null, credentials);
+            let settings = await shellyRequestAsync('GET', settingsRoute, null, null, credentials);
             
             node.rgbwMode = settings.mode;
 
@@ -1241,12 +1244,12 @@ module.exports = function (RED) {
                         let deleteRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=false&urls[]=';
                         try {
                             let timeout = node.pollInterval;
-                            let deleteResult = await shellyRequestAsync('GET', deleteRoute, null, credentials, timeout);
+                            let deleteResult = await shellyRequestAsync('GET', deleteRoute, null, null, credentials, timeout);
                             let actionsAfterDelete = deleteResult.actions[name][0];
                             if(actionsAfterDelete.enabled === false) {
                                 // 1st try to set the action using the standard method
                                 let createRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=true&urls[]=' + url;
-                                let createResult = await shellyRequestAsync('GET', createRoute, null, credentials, timeout);
+                                let createResult = await shellyRequestAsync('GET', createRoute, null, null, credentials, timeout);
                                 let actionsAfterCreate = createResult.actions[name][0];
 
                                 if(actionsAfterCreate.enabled === true &&
@@ -1257,7 +1260,7 @@ module.exports = function (RED) {
                                 else {
                                     // 2nd: maybe the device supports intervals
                                     let createRoute2 = '/settings/actions?index=' + index + '&name=' + name + '&enabled=true&urls[0][url]=' + url + '&urls[0][int]=0000-0000';
-                                    let createResult2 = await shellyRequestAsync('GET', createRoute2, null, credentials, timeout);
+                                    let createResult2 = await shellyRequestAsync('GET', createRoute2, null, null, credentials, timeout);
                                     let actionsAfterCreate2 = createResult2.actions[name][0];
                                     if(actionsAfterCreate2.enabled === true) {
 
@@ -1341,7 +1344,7 @@ module.exports = function (RED) {
                                 let deleteRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=false&urls[]=';
                                 try {
                                     let timeout = node.pollInterval;
-                                    let deleteResult = await shellyRequestAsync('GET', deleteRoute, null, credentials, timeout);
+                                    let deleteResult = await shellyRequestAsync('GET', deleteRoute, null, null, credentials, timeout);
                                     let actionsAfterDelete = deleteResult.actions[name][0];
                                     if(actionsAfterDelete.enabled === false) {
                                         // failed
@@ -1536,7 +1539,7 @@ module.exports = function (RED) {
         let credentials = getCredentials(node);
 
         let actionsRoute = '/settings/actions';
-        let result = await shellyRequestAsync('GET', actionsRoute, null, credentials);
+        let result = await shellyRequestAsync('GET', actionsRoute, null, null, credentials);
         
         let hookTypes = [];
         let actions = Object.keys(result.actions);
@@ -1633,7 +1636,7 @@ module.exports = function (RED) {
                     }
 
                     try {
-                        let body = await shellyRequestAsync('GET', settingRoute, null, credentials);
+                        let body = await shellyRequestAsync('GET', settingRoute, null, null, credentials);
                         success = true;
                     }
                     catch (error) {
@@ -1829,21 +1832,25 @@ module.exports = function (RED) {
             let credentials = getCredentials(node);
 
             try {
-                //// Remove all old scripts first
-                //let scriptListResponse = await shellyRequestAsync('GET', '/rpc/Script.List', null, credentials);
-                //for (let scriptItem of scriptListResponse.scripts) {
-                //    if(scriptItem.name == scriptName){
-                //        let deleteParams = { 'id' : scriptItem.id };
-                //        await shellyRequestAsync('GET', '/rpc/Script.Delete', deleteParams, credentials);
-                //    }
-                //};
+                // Remove all old scripts first
+                let scriptListResponse = await shellyRequestAsync('GET', '/rpc/Script.List', null, null, credentials);
+                for (let scriptItem of scriptListResponse.scripts) {
+                    if(scriptItem.name == scriptName){
+                        let stopParams = { 'id' : scriptItem.id };
+                        await shellyRequestAsync('POST', '/rpc/Script.Stop', null, stopParams, credentials);
+
+                        let deleteParams = { 'id' : scriptItem.id };
+                        await shellyRequestAsync('POST', '/rpc/Script.Delete', null, deleteParams, credentials);
+                    }
+                };
 
                 let createParams = { 'name' : scriptName };
-                let createScriptResonse = await shellyRequestAsync('GET', '/rpc/Script.Create', createParams, credentials);
+                let createScriptResonse = await shellyRequestAsync('POST', '/rpc/Script.Create', null, createParams, credentials);
                 let scriptId = createScriptResonse.id;
 
                 const chunkSize = 1024;
                 let done = false;
+                let first = true;
                 do {
                     let codeToSend;
                     if (script.length > chunkSize) {
@@ -1857,27 +1864,27 @@ module.exports = function (RED) {
                     let putParams = {  
                         'id' : scriptId,
                         'code' : codeToSend,
-                        'append' : true
+                        'append' : !first
                     };
-                    await shellyRequestAsync('POST', '/rpc/Script.PutCode', putParams, credentials);
-
+                    await shellyRequestAsync('POST', '/rpc/Script.PutCode', null, putParams, credentials);
+                    first = false;
                 } while (!done);
 
                 let configParams = {  
                     'id' : scriptId,
                     'config' : {'enable' : true}
                 };
-                await shellyRequestAsync('GET', '/rpc/Script.SetConfig', configParams, credentials);
+                await shellyRequestAsync('POST', '/rpc/Script.SetConfig', null, configParams, credentials);
                
                 let startParams = {  
                     'id' : scriptId,
                 };
-                await shellyRequestAsync('POST', '/rpc/Script.Start', startParams, credentials);
+                await shellyRequestAsync('POST', '/rpc/Script.Start', null, startParams, credentials);
                
                 let statusParams = {  
                     'id' : scriptId,
                 };
-                let status = await shellyRequestAsync('GET', '/rpc/Script.GetStatus', statusParams, credentials);
+                let status = await shellyRequestAsync('GET', '/rpc/Script.GetStatus', statusParams, null, credentials);
 
                 if(status.running === true){
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
@@ -1890,6 +1897,9 @@ module.exports = function (RED) {
             }
             catch (error) {
                 node.error("Uploading script failed " + error);
+                if(error.request !== undefined){
+                    node.error("Request: " + error.request.method + " " + error.request.path);
+                }
                 node.status({ fill: "red", shape: "ring", text: "Uploading script failed "});
             }     
         }
@@ -1907,20 +1917,20 @@ module.exports = function (RED) {
             let credentials = getCredentials(node);
 
             try {
-                let scriptListResponse = await shellyRequestAsync('GET', '/rpc/Script.List', null, credentials);
+                let scriptListResponse = await shellyRequestAsync('GET', '/rpc/Script.List', null, null, credentials);
             
                 for (let scriptItem of scriptListResponse.scripts) {
                     if(scriptItem.name == scriptName){
                         let params = {  
                             'id' : scriptItem.id,
                         };
-                        let status = await shellyRequestAsync('GET', '/rpc/Script.GetStatus', params, credentials);
+                        let status = await shellyRequestAsync('GET', '/rpc/Script.GetStatus', params, null, credentials);
 
                         if(status.running === true){
-                            await shellyRequestAsync('POST', '/rpc/Script.Stop', params, credentials);
+                            await shellyRequestAsync('POST', '/rpc/Script.Stop', params, null, credentials);
                         }
 
-                        await shellyRequestAsync('GET', '/rpc/Script.Delete', params, credentials);
+                        await shellyRequestAsync('GET', '/rpc/Script.Delete', params, null, credentials);
                     }
                 };                
             }
@@ -1946,16 +1956,16 @@ module.exports = function (RED) {
 
             try {
                 // Remove all old webhooks async.
-                let webhookListResponse = await shellyRequestAsync('GET', '/rpc/Webhook.List', null, credentials);
+                let webhookListResponse = await shellyRequestAsync('GET', '/rpc/Webhook.List', null, null, credentials);
                 for (let webhookItem of webhookListResponse.hooks) {
                     if(webhookItem.name == webhookName){
                         let deleteParams = { 'id' : webhookItem.id };
-                        let deleteWebhookResonse = await shellyRequestAsync('GET', '/rpc/Webhook.Delete', deleteParams, credentials);
+                        let deleteWebhookResonse = await shellyRequestAsync('GET', '/rpc/Webhook.Delete', deleteParams, null, credentials);
                     }
                 };
 
                 // Create new webhooks.
-                let supportedEventsResponse = await shellyRequestAsync('GET', '/rpc/Webhook.ListSupported', null, credentials);
+                let supportedEventsResponse = await shellyRequestAsync('GET', '/rpc/Webhook.ListSupported', null, null, credentials);
                 for (let hookType of supportedEventsResponse.hook_types) {  
                     let sender = node.hostname;
                     let url = webhookUrl + '?hookType=' + hookType + '&sender=' + sender;
@@ -1966,7 +1976,7 @@ module.exports = function (RED) {
                         'enable' : true,
                         "urls": [url]
                     };
-                    let createWebhookResonse = await shellyRequestAsync('GET', '/rpc/Webhook.Create', createParams, credentials);
+                    let createWebhookResonse = await shellyRequestAsync('GET', '/rpc/Webhook.Create', createParams, null, credentials);
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
                     success = true;
@@ -1993,12 +2003,12 @@ module.exports = function (RED) {
             let credentials = getCredentials(node);
 
             try {
-                let webhookListResponse = await shellyRequestAsync('GET', '/rpc/Webhook.List', null, credentials);
+                let webhookListResponse = await shellyRequestAsync('GET', '/rpc/Webhook.List', null, null, credentials);
             
                 for (let webhookItem of webhookListResponse.hooks) {
                     if(webhookItem.name == webhookName){
                         let deleteParams = { 'id' : webhookItem.id };
-                        let deleteWebhookResonse = await shellyRequestAsync('GET', '/rpc/Webhook.Delete', deleteParams, credentials);
+                        let deleteWebhookResonse = await shellyRequestAsync('GET', '/rpc/Webhook.Delete', deleteParams, null, credentials);
                     }
                 };
             }
@@ -2214,8 +2224,9 @@ module.exports = function (RED) {
             let route = request.route;
             let method = request.method;
             let data = request.data;
+            let params = request.params;
     
-            shellyTryRequest(method, route, data, node, credentials, null, function(body) {
+            shellyTryRequest(method, route, params, data, node, credentials, null, function(body) {
 
                 if (node.getStatusOnCommand) {
                     shellyTryGet(getStatusRoute, node, credentials, null, function(body) {
