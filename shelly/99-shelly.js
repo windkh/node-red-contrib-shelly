@@ -1960,7 +1960,7 @@ module.exports = function (RED) {
                 for (let webhookItem of webhookListResponse.hooks) {
                     if(webhookItem.name == webhookName){
                         let deleteParams = { 'id' : webhookItem.id };
-                        let deleteWebhookResonse = await shellyRequestAsync('GET', '/rpc/Webhook.Delete', deleteParams, null, credentials);
+                        let deleteWebhookResonse = await shellyRequestAsync('POST', '/rpc/Webhook.Delete', null, deleteParams, credentials);
                     }
                 };
 
@@ -1976,14 +1976,14 @@ module.exports = function (RED) {
                         'enable' : true,
                         "urls": [url]
                     };
-                    let createWebhookResonse = await shellyRequestAsync('GET', '/rpc/Webhook.Create', createParams, null, credentials);
+                    let createWebhookResonse = await shellyRequestAsync('POST', '/rpc/Webhook.Create', null, createParams, credentials);
 
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
                     success = true;
                 }
             }
             catch (error) {
-                // node.warn("Installing webhook failed " + error);
+                //node.warn("Installing webhook failed " + error);
                 // node.status({ fill: "red", shape: "ring", text: "Installing webhook failed "});
             }     
         }
@@ -2008,7 +2008,7 @@ module.exports = function (RED) {
                 for (let webhookItem of webhookListResponse.hooks) {
                     if(webhookItem.name == webhookName){
                         let deleteParams = { 'id' : webhookItem.id };
-                        let deleteWebhookResonse = await shellyRequestAsync('GET', '/rpc/Webhook.Delete', deleteParams, null, credentials);
+                        let deleteWebhookResonse = await shellyRequestAsync('POST', '/rpc/Webhook.Delete', null, deleteParams, credentials);
                     }
                 };
             }
