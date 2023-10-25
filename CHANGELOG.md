@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.14.2] - 2023-10-05
+###  added support for shelly plus wall dimmer - [#131](https://github.com/windkh/node-red-contrib-shelly/issues/131)
+
 ## [10.14.1] - 2023-10-05
 ###  install webhook problems fixed with next gen 2 fw - [#129](https://github.com/windkh/node-red-contrib-shelly/issues/129)
 

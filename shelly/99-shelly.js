@@ -2186,7 +2186,7 @@ module.exports = function (RED) {
         ["Button",     ["SNSN-"]],
         ["Sensor",     ["SNSN-"]], // Shelly Plus H&T / PLus Smoke only support Webhook, no scripting
         ["Measure",    ["SPEM-"]],
-        ["Dimmer",     ["SHDM-"]],
+        ["Dimmer",     ["SNDM-"]],
     ]);
 
     function getDeviceTypes2(deviceType){
