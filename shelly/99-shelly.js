@@ -1966,21 +1966,48 @@ module.exports = function (RED) {
 
                 // Create new webhooks.
                 let supportedEventsResponse = await shellyRequestAsync('GET', '/rpc/Webhook.ListSupported', null, null, credentials);
-                for (let hookType of supportedEventsResponse.hook_types) {  
-                    let sender = node.hostname;
-                    let url = webhookUrl + '?hookType=' + hookType + '&sender=' + sender;
-                    let createParams = { 
-                        'name' : webhookName,
-                        'event' : hookType,
-                        'cid' : 0,
-                        'enable' : true,
-                        "urls": [url]
-                    };
-                    let createWebhookResonse = await shellyRequestAsync('POST', '/rpc/Webhook.Create', null, createParams, credentials);
-
-                    node.status({ fill: "green", shape: "ring", text: "Connected." });
-                    success = true;
+                let hookTypes = supportedEventsResponse.hook_types; // before fw 1.0
+                if (hookTypes !== undefined) 
+                {
+                    for (let hookType of hookTypes) {  
+                        let sender = node.hostname;
+                        let url = webhookUrl + '?hookType=' + hookType + '&sender=' + sender;
+                        let createParams = { 
+                            'name' : webhookName,
+                            'event' : hookType,
+                            'cid' : 0,
+                            'enable' : true,
+                            "urls": [url]
+                        };
+                        let createWebhookResonse = await shellyRequestAsync('POST', '/rpc/Webhook.Create', null, createParams, credentials);
+    
+                        node.status({ fill: "green", shape: "ring", text: "Connected." });
+                        success = true;
+                    }
                 }
+                else
+                {
+                    hookTypes = supportedEventsResponse.types; // after fw 1.0
+                    for (let hookType in hookTypes) {
+                        if (Object.prototype.hasOwnProperty.call(hookTypes, hookType)) {
+                            let sender = node.hostname;
+                            let url = webhookUrl + '?hookType=' + hookType + '&sender=' + sender;
+                            let createParams = { 
+                                'name' : webhookName,
+                                'event' : hookType,
+                                'cid' : 0,
+                                'enable' : true,
+                                "urls": [url]
+                            };
+                            let createWebhookResonse = await shellyRequestAsync('POST', '/rpc/Webhook.Create', null, createParams, credentials);
+        
+                            node.status({ fill: "green", shape: "ring", text: "Connected." });
+                            success = true;       
+                        }
+                    }
+                }
+
+                
             }
             catch (error) {
                 //node.warn("Installing webhook failed " + error);
