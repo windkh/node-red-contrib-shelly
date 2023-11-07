@@ -1884,7 +1884,7 @@ module.exports = function (RED) {
                 let statusParams = {  
                     'id' : scriptId,
                 };
-                let status = await shellyRequestAsync('GET', '/rpc/Script.GetStatus', statusParams, null, credentials);
+                let status = await shellyRequestAsync('POST', '/rpc/Script.GetStatus', null, statusParams, credentials);
 
                 if(status.running === true){
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
@@ -1924,13 +1924,13 @@ module.exports = function (RED) {
                         let params = {  
                             'id' : scriptItem.id,
                         };
-                        let status = await shellyRequestAsync('GET', '/rpc/Script.GetStatus', params, null, credentials);
-
+                        let status = await shellyRequestAsync('POST', '/rpc/Script.GetStatus', null, params, credentials);
+                        
                         if(status.running === true){
-                            await shellyRequestAsync('POST', '/rpc/Script.Stop', params, null, credentials);
+                            await shellyRequestAsync('POST', '/rpc/Script.Stop', null, params, credentials);
                         }
-
-                        await shellyRequestAsync('GET', '/rpc/Script.Delete', params, null, credentials);
+                        
+                        await shellyRequestAsync('GET', '/rpc/Script.Delete', null, params, credentials);
                     }
                 };                
             }
