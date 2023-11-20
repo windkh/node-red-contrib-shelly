@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.15.0] - 2023-10-31
+###  added support blu gateway - [#136](https://github.com/windkh/node-red-contrib-shelly/issues/136)
+
 ## [10.14.3] - 2023-10-31
 ###  2nd attempt to fix webhook problems next gen 2 fw - [#129](https://github.com/windkh/node-red-contrib-shelly/issues/129)
 

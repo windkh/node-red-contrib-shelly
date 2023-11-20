@@ -2162,6 +2162,36 @@ module.exports = function (RED) {
         return success;
     }
 
+    // like initializer2CallbackAsync it installs a callback script 
+    // and in addition to that it installs a BLU scanner that emits catured bluetooth messages.
+    async function initializer2BluCallbackAsync(node, types){
+  
+        const scriptName = 'node-red-contrib-shelly-blu';
+        await tryUninstallScriptAsync(node, scriptName); // we ignore if it failed.
+            
+        let success = false;
+        let mode = node.mode;
+        if(mode === 'polling'){
+            await startAsync(node, types);
+            success = true;
+        }
+        else if(mode === 'callback'){
+            await initializer2CallbackAsync(node, types);
+      
+            let scriptPath = path.resolve(__dirname, './scripts/blugateway.script');
+            const buffer = fs.readFileSync(scriptPath);
+            // const buffer = await readFile(scriptPath); #96 nodejs V19
+            let script = buffer.toString();
+            success = await tryInstallScriptAsync(node, script, scriptName);
+        }
+        else{
+            // nothing to do.
+            success = true;
+        }
+
+        return success;
+    }
+
     // starts polling or installs a webhook that calls a REST callback.
     async function initializer2WebhookAsync(node, types){
 
@@ -2196,9 +2226,12 @@ module.exports = function (RED) {
             case 'Relay':
             case 'Measure':
             case 'Dimmer':
-                result = initializer2CallbackAsync;
+            result = initializer2CallbackAsync;
                 break;
-            case 'Sensor':
+                case 'BluGateway':
+            result = initializer2BluCallbackAsync;
+                    break;
+                case 'Sensor':
                 result = initializer2WebhookAsync;
                 break;
             default:
@@ -2214,6 +2247,7 @@ module.exports = function (RED) {
         ["Sensor",     ["SNSN-"]], // Shelly Plus H&T / PLus Smoke only support Webhook, no scripting
         ["Measure",    ["SPEM-"]],
         ["Dimmer",     ["SNDM-"]],
+        ["BluGateway", ["SNGW-"]],
     ]);
 
     function getDeviceTypes2(deviceType){
