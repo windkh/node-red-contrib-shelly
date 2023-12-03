@@ -22,7 +22,7 @@
     "author": "Karl-Heinz Wind",
     "license": "MIT",
     "dependencies": {
-        "axios": "^0.26.0",
+        "axios": "^1.6.0",
         "axios-rate-limit": "^1.3.0",
         "crypto": "^1.0.1",
         "fastify": "^3.29.0",
