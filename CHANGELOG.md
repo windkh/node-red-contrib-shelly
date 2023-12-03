@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.16.1] - 2023-12-03
+###  Improved uninstalling script from blu gateway
+
 ## [10.16.0] - 2023-12-03
 ###  gen 2 fixed deleting script - [#137](https://github.com/windkh/node-red-contrib-shelly/issues/137)
 

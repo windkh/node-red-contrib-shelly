@@ -2171,13 +2171,7 @@ module.exports = function (RED) {
             
         let success = false;
         let mode = node.mode;
-        if(mode === 'polling'){
-            await startAsync(node, types);
-            success = true;
-        }
-        else if(mode === 'callback'){
-            await initializer2CallbackAsync(node, types);
-      
+        if(mode === 'callback'){
             let scriptPath = path.resolve(__dirname, './scripts/blugateway.script');
             const buffer = fs.readFileSync(scriptPath);
             // const buffer = await readFile(scriptPath); #96 nodejs V19
@@ -2189,6 +2183,10 @@ module.exports = function (RED) {
             success = true;
         }
 
+        if(success){
+            success = await initializer2CallbackAsync(node, types);
+        }
+        
         return success;
     }
 
