@@ -1930,7 +1930,7 @@ module.exports = function (RED) {
                             await shellyRequestAsync('POST', '/rpc/Script.Stop', null, params, credentials);
                         }
                         
-                        await shellyRequestAsync('GET', '/rpc/Script.Delete', null, params, credentials);
+                        await shellyRequestAsync('POST', '/rpc/Script.Delete', null, params, credentials);
                     }
                 };                
             }
