@@ -49,6 +49,7 @@ Generation 2 devices:
 - Shelly Plus Smoke
 - Shelly Plus H&T
 - Shelly Plus Wall Dimmer
+- Shelly Blu Gateway
 
 
 Others may work but are not really tested so far.
@@ -70,6 +71,7 @@ If you want to support this free project. Any help is welcome. You can donate by
 - Paul-Reed for enhancing the dimmer node see issue #21
 - Docjones for providing the skeleton for ShellyRGBW node see pull request #15
 - arvidcarlander  for adding all_status feature to cloud node
+- teixemf for testing and fixing gen 2 rpc problems 
 
 
 # Changelog
@@ -680,6 +682,31 @@ Therefore webhooks are installed as soon as the device is not sleeping. When the
 status and sends it to the output.
 You can wake up your device manually on redeploy to speed up initialization. Otherwise errors will be generated in the debugging
 pane telling you that installation of the webhook failed.
+
+
+
+## BLU Gateway (Shelly BLU Gateway)
+The node is able to control a shelly BLU gateway. This node should be only used with callback mode and event output.
+It uploads two scripts: one for the callback like in all other gen 2 devices and one that scans for bluetooth signals.
+
+The output of the node is an event object. Bluetooth event objects have the event name "shelly-blu".
+
+
+```
+msg.payload.info.event === "shelly-blu"
+```
+
+
+You can take the mac-address to find out what BLU device sent the messages:
+
+
+```
+msg.payload.info.data.address
+```
+
+
+### Examples:  
+[**shelly BLU gateways flow**](examples/blugateway.json) 
 
 
 
