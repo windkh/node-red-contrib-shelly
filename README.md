@@ -654,6 +654,7 @@ For further rpc commands see the shelly documentation.
 
 ### Examples:  
 [**shelly switch gen 2 flow**](examples/switchplus.json) 
+[**shelly rollerplus flow (Shelly Plus 2 PM)**](examples/rollerplus.json) 
 
 
 
