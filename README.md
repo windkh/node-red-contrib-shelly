@@ -72,6 +72,8 @@ If you want to support this free project. Any help is welcome. You can donate by
 - Docjones for providing the skeleton for ShellyRGBW node see pull request #15
 - arvidcarlander  for adding all_status feature to cloud node
 - teixemf for testing and fixing gen 2 rpc problems 
+- MichaelEFlip for improving the readme
+- Solarer for fixing script overload
 
 
 # Changelog

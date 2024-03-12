@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.17.0] - 2024-03-12
+###  gen 2 script ignores power and current changes - [#142](https://github.com/windkh/node-red-contrib-shelly/issues/142)
+
 ## [10.16.1] - 2023-12-03
 ###  Improved uninstalling script from blu gateway
 
