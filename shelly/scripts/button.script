@@ -22,7 +22,8 @@ Shelly.addEventHandler(
    function (event, userdata) {
            if (typeof event.info.event !== 'undefined') {
                let eventType = event.info.event;
-               if(eventType !== 'btn_up' && eventType !== 'btn_down'){
+               if(eventType !== 'power_update' && eventType !== 'current_update' &&
+                  eventType !== 'btn_up' && eventType !== 'btn_down'){
                    CallNodeRed(event)
                }
            }
