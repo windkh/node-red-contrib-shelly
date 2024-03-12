@@ -30,9 +30,20 @@ module.exports = function (RED) {
         return Object.keys(obj).length === 0;
     }
 
+    function isMsgPayloadValid(msg) {
+        let isValid = false;
+        if (msg && msg.payload && !Array.isArray(msg)) {
+            if (!Array.isArray(msg.payload) && !isEmpty(msg.payload)) {
+                isValid = true;
+            }
+        }
+
+        return isValid;
+    }
+
     function trim(str) {
         let result;
-        if(str !== undefined){
+        if(str){
             result = str.trim();
         }
 
@@ -41,7 +52,7 @@ module.exports = function (RED) {
     
     function replace(str, pattern, replacement) {
         let result;
-        if(str !== undefined){
+        if(str){
             result = str.replace(pattern, replacement);
         }
 
@@ -86,15 +97,15 @@ module.exports = function (RED) {
     function getIPAddress(node) {
         let ipAddress;
         
-        if (node.server.hostip !== undefined && node.server.hostip !== '' && node.server.hostip !== 'hostname') {
+        if (node.server.hostip && node.server.hostip !== '' && node.server.hostip !== 'hostname') {
             ipAddress = node.server.hostip;
         }
-        else if (node.server.hostip === 'hostname' && node.server.hostname !== undefined && node.server.hostname !== '') {
+        else if (node.server.hostip === 'hostname' && node.server.hostname && node.server.hostname !== '') {
             ipAddress = node.server.hostname;
         }
         else {
             let ipAddresses = getIPAddresses();
-            if (ipAddresses !== undefined && ipAddresses.length > 0) {
+            if (ipAddresses && ipAddresses.length > 0) {
                 ipAddress =  ipAddresses[0];
             }
             else {
@@ -111,7 +122,7 @@ module.exports = function (RED) {
         let hostname;
         let username;
         let password;
-        if(msg !== undefined && msg.payload !== undefined){
+        if(isMsgPayloadValid(msg)){
             hostname = msg.payload.hostname; 
             username = msg.payload.username; 
             password = msg.payload.password; 
@@ -194,9 +205,9 @@ module.exports = function (RED) {
     function getHeaders(credentials){
         let headers = {};
 
-        if(credentials !== undefined) {
+        if(credentials) {
             if(credentials.authType === 'Basic') {
-                if(credentials.username !== undefined && credentials.password !== undefined) {
+                if(credentials.username && credentials.password) {
                     // Authorization is case sensitive for some devices like the TRV!
                     headers.Authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64");
                 };
@@ -352,11 +363,11 @@ module.exports = function (RED) {
             let requiredNodeType;
             let deviceType;
             // Generation 1 devices
-            if(node.shellyInfo.type !== undefined){
+            if(node.shellyInfo.type){
                 deviceType = node.shellyInfo.type;
                 requiredNodeType = 'shelly-gen1';
             } // Generation 2 devices 
-            else if(node.shellyInfo.model !== undefined && node.shellyInfo.gen === 2){
+            else if(node.shellyInfo.model && node.shellyInfo.gen === 2){
                 deviceType = node.shellyInfo.model;
                 requiredNodeType = 'shelly-gen2';
             }
@@ -372,7 +383,7 @@ module.exports = function (RED) {
                     let type = types[i];
 
                     // Generation 1 devices
-                    if(deviceType !== undefined){
+                    if(deviceType){
                         found  = deviceType.startsWith(type);
                         if (found) {
                             break;
@@ -436,11 +447,11 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserRelay1Async(msg){
         let route;
-        if(msg !== undefined && msg.payload !== undefined){
+        if(isMsgPayloadValid(msg)){
             let command = msg.payload;
 
             let relay = 0;
-            if(command.relay !== undefined){
+            if(command.relay){
                 relay = command.relay;
             }
 
@@ -453,22 +464,22 @@ module.exports = function (RED) {
                     turn = "off"
                 }
             }
-            else if(command.turn !== undefined){
+            else if(command.turn){
                 turn = command.turn;
             }
 
             let timerSeconds;
-            if(command.timer !== undefined){
+            if(command.timer){
                 timerSeconds = command.timer;
             }
 
 
             let parameters = '';
-            if (turn !== undefined){
+            if (turn){
                 parameters += "&turn=" + turn;
             }
 
-            if(timerSeconds !== undefined){
+            if(timerSeconds){
                 parameters += "&timer=" + timerSeconds;
             }
 
@@ -482,11 +493,11 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserMeasure1Async(msg, node, credentials){
         let route;
-        if(msg !== undefined && msg.payload !== undefined){
+        if(isMsgPayloadValid(msg)){
             let command = msg.payload;
 
             let relay = 0;
-            if(command.relay !== undefined){
+            if(command.relay){
                 relay = command.relay;
             }
 
@@ -499,22 +510,22 @@ module.exports = function (RED) {
                     turn = "off"
                 }
             }
-            else if(command.turn !== undefined){
+            else if(command.turn){
                 turn = command.turn;
             }
 
             let timerSeconds;
-            if(command.timer !== undefined){
+            if(command.timer){
                 timerSeconds = command.timer;
             }
 
 
             let parameters = '';
-            if (turn !== undefined){
+            if (turn){
                 parameters += "&turn=" + turn;
             }
 
-            if(timerSeconds !== undefined){
+            if(timerSeconds){
                 parameters += "&timer=" + timerSeconds;
             }
 
@@ -525,12 +536,12 @@ module.exports = function (RED) {
 
             // Download EM data if required.
             let emetersToDownload;
-            if(command.download !== undefined){
+            if(command.download){
                 emetersToDownload = command.download;
             }
 
             // special download code for EM devices that can store historical data.
-            if(emetersToDownload !== undefined){
+            if(emetersToDownload){
 
                 let data = [];
                 for (let i = 0; i < emetersToDownload.length; i++) {
@@ -564,24 +575,24 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserRoller1Async(msg){
         let route;
-        if(msg !== undefined && msg.payload !== undefined){
+        if(isMsgPayloadValid(msg)){
             let command = msg.payload;
 
             let roller = 0;
-            if(command.roller !== undefined){
+            if(command.roller){
                 roller = command.roller;
             }
 
             let go;
-            if(command.go !== undefined){
+            if(command.go){
                 go = command.go;
 
-                if (command.go == "to_pos" && command.roller_pos !== undefined) {
+                if (command.go == "to_pos" && command.roller_pos) {
                     go += "&roller_pos=" + command.roller_pos;
                 }
             }
 
-            if(go !== undefined){
+            if(go){
                 route = "/roller/" + roller + "?go=" + go;
             }
 
@@ -589,7 +600,7 @@ module.exports = function (RED) {
             if(route === undefined)
             {
                 let relay = 0;
-                if(command.relay !== undefined){
+                if(command.relay){
                     relay = command.relay;
                 }
 
@@ -602,11 +613,11 @@ module.exports = function (RED) {
                         turn = "off"
                     }
                 }
-                else if(command.turn !== undefined){
+                else if(command.turn){
                     turn = command.turn;
                 }
 
-                if(turn !== undefined){
+                if(turn){
                     route = "/relay/" + relay + "?turn=" + turn;
                 }
             }
@@ -617,11 +628,11 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserDimmer1Async(msg){
         let route;
-        if(msg !== undefined && msg.payload !== undefined){
+        if(isMsgPayloadValid(msg)){
             let command = msg.payload;
 
             let light = 0;
-            if(command.light !== undefined){
+            if(command.light){
                 light = command.light;
             }
 
@@ -634,7 +645,7 @@ module.exports = function (RED) {
                     turn = "off"
                 }
             }
-            else if(command.turn !== undefined){
+            else if(command.turn){
                 turn = command.turn;
             }
             else{
@@ -642,7 +653,7 @@ module.exports = function (RED) {
             }
 
             let brightness;
-            if(command.brightness !== undefined){
+            if(command.brightness){
                 if(command.brightness >=1 && command.brightness <= 100){
                     brightness = command.brightness;
                 } else { 
@@ -651,7 +662,7 @@ module.exports = function (RED) {
             }
 
             let white;
-            if(command.white !== undefined){
+            if(command.white){
                 if(command.white >=1 && command.white <= 100){
                     white = command.white;
                 } else { 
@@ -660,7 +671,7 @@ module.exports = function (RED) {
             }
 
             let temperature;
-            if(command.temp !== undefined){
+            if(command.temp){
                 if(command.temp >=2700 && command.temp <= 6500){
                     temperature = command.temp;
                 } else { 
@@ -669,7 +680,7 @@ module.exports = function (RED) {
             }
 
             let transition;
-            if(command.transition !== undefined){
+            if(command.transition){
                 if(command.transition >=0 && command.transition <= 5000){
                     transition = command.transition;
                 } else { 
@@ -678,7 +689,7 @@ module.exports = function (RED) {
             }
 
             let timer;
-            if(command.timer !== undefined){
+            if(command.timer){
                 if(command.timer >=0){
                     timer = command.timer;
                 } else { 
@@ -687,46 +698,45 @@ module.exports = function (RED) {
             }
 
             let dim;
-            if(command.dim !== undefined){
+            if(command.dim){
                 dim = command.dim;
             }
 
             let step;
-            if(command.step !== undefined){
+            if(command.step){
                 step = command.step;
             }
 
-
             let parameters = '';
-            if (turn !== undefined){
+            if (turn){
                 parameters += "&turn=" + turn;
             }
 
-            if (brightness !== undefined){
+            if (brightness){
                 parameters += "&brightness=" + brightness;
             }
 
-            if(white !== undefined) {
+            if(white) {
                 parameters += "&white=" + white;
             }
 
-            if(temperature !== undefined) {
+            if(temperature) {
                 parameters += "&temp=" + temperature;
             }
 
-            if(transition !== undefined) {
+            if(transition) {
                 parameters += "&transition=" + transition;
             }
 
-            if(timer !== undefined) {
+            if(timer) {
                 parameters += "&timer=" + timer;
             }
 
-            if(step !== undefined) {
+            if(step) {
                 parameters += "&step=" + step;
             }
             
-            if(dim !== undefined) {
+            if(dim) {
                 parameters += "&dim=" + dim;
             }
 
@@ -740,13 +750,13 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserThermostat1Async(msg){
         let route;
-        if(msg !== undefined && msg.payload !== undefined){
+        if(isMsgPayloadValid(msg)){
             let command = msg.payload;
 
             let thermostat = 0;
         
             let position;
-            if(command.position !== undefined){
+            if(command.position){
                 if(command.position >=0 && command.position <= 100){
                     position = command.position;
                 } else { 
@@ -755,7 +765,7 @@ module.exports = function (RED) {
             }
 
             let temperature;
-            if(command.temperature !== undefined){
+            if(command.temperature){
                 if(command.temperature >=4 && command.temperature <= 31){
                     temperature = command.temperature;
                 } else { 
@@ -764,21 +774,21 @@ module.exports = function (RED) {
             }
 
             let schedule;
-            if(command.schedule !== undefined){
+            if(command.schedule){
                 if(command.schedule == true || command.schedule == false){
                     schedule = command.schedule;
                 }
             }
 
             let scheduleProfile;
-            if(command.scheduleProfile !== undefined){
+            if(command.scheduleProfile){
                 if(command.scheduleProfile >= 1 || command.scheduleProfile <= 5){
                     scheduleProfile = command.scheduleProfile;
                 }
             }
 
             let boostMinutes;
-            if(command.boostMinutes !== undefined){
+            if(command.boostMinutes){
                 if(command.boostMinutes >= 0){
                     boostMinutes = command.boostMinutes;
                 }
@@ -786,23 +796,23 @@ module.exports = function (RED) {
 
 
             let parameters = '';
-            if (position !== undefined){
+            if (position){
                 parameters = "&pos=" + position;
             }
 
-            if (temperature !== undefined){
+            if (temperature){
                 parameters += "&target_t=" + temperature;
             }
 
-            if (schedule !== undefined){
+            if (schedule){
                 parameters += "&schedule=" + schedule;
             }
 
-            if (scheduleProfile !== undefined){
+            if (scheduleProfile){
                 parameters += "&schedule_profile=" + scheduleProfile;
             }
 
-            if (boostMinutes !== undefined){
+            if (boostMinutes){
                 parameters += "&boost_minutes=" + boostMinutes;
             }
 
@@ -816,7 +826,7 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserSensor1Async(msg){
         let route;
-        if(msg !== undefined && msg.payload !== undefined){
+        if(isMsgPayloadValid(msg)){
             // right now sensors do not accept input commands.
         }
         return route;
@@ -825,31 +835,31 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserButton1Async(msg){
         let route;
-        if(msg !== undefined && msg.payload !== undefined){
+        if(isMsgPayloadValid(msg)){
             let command = msg.payload;
 
             let input = 0;
-            if(command.input !== undefined){
+            if(command.input){
                 input = command.input;
             }
 
             let event = 'S';
-            if(command.event !== undefined){
+            if(command.event){
                 event = command.event;
             }
 
             let eventCount;
-            if(command.eventCount !== undefined){
+            if(command.eventCount){
                 eventCount = command.eventCount;
             }
 
 
             let parameters = '';
-            if (event !== undefined){
+            if (event){
                 parameters = "&event=" + event;
             }
 
-            if (eventCount !== undefined){
+            if (eventCount){
                 parameters += "&event_cnt=" + eventCount;
             }
 
@@ -863,14 +873,14 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserRGBW1Async(msg, node, credentials){
         let route;
-        if(msg !== undefined && msg.payload !== undefined){
+        if(isMsgPayloadValid(msg)){
             let command = msg.payload;
 
             let nodeMode = node.rgbwMode;
             if(nodeMode === "color") {
 
                 let red;
-                if(command.red !== undefined) {
+                if(command.red) {
                     if(command.red >= 0 && command.red <= 255) {
                         red = command.red;
                     } else {
@@ -879,7 +889,7 @@ module.exports = function (RED) {
                 }
 
                 let green;
-                if (command.green !== undefined) {
+                if (command.green) {
                     if (command.green >= 0 && command.green <= 255) {
                         green = command.green;
                     } else {
@@ -888,7 +898,7 @@ module.exports = function (RED) {
                 }
 
                 let blue ;
-                if(command.blue !== undefined){
+                if(command.blue){
                     if (command.blue >= 0 && command.blue <= 255){
                         blue = command.blue;
                     } else {
@@ -897,7 +907,7 @@ module.exports = function (RED) {
                 }
 
                 let white;
-                if(command.white !== undefined) {
+                if(command.white) {
                     if (command.white >= 0 && command.white <= 255) {
                         white = command.white;
                     } else {
@@ -906,7 +916,7 @@ module.exports = function (RED) {
                 }
 
                 let temperature;
-                if(command.temp !== undefined) {
+                if(command.temp) {
                     if (command.temp >= 3000 && command.temp <= 6500) {
                         temperature = command.temp;
                     } else {
@@ -915,7 +925,7 @@ module.exports = function (RED) {
                 }
 
                 let gain;
-                if (command.gain !== undefined) {
+                if (command.gain) {
                     if (command.gain >= 0 && command.gain <= 100) {
                         gain = command.gain;
                     } else {
@@ -924,7 +934,7 @@ module.exports = function (RED) {
                 }
 
                 let brightness;
-                if (command.brightness !== undefined) {
+                if (command.brightness) {
                     if (command.brightness >= 0 && command.brightness <= 100) {
                         brightness = command.brightness;
                     } else {
@@ -933,7 +943,7 @@ module.exports = function (RED) {
                 }
 
                 let effect;
-                if (command.effect !== undefined) {
+                if (command.effect) {
                     if (command.effect >=0) {
                         effect = command.effect;
                     } else {
@@ -942,7 +952,7 @@ module.exports = function (RED) {
                 }
 
                 let transition;
-                if (command.transition !== undefined) {
+                if (command.transition) {
                     if (command.transition >= 0 && command.transition <= 5000) {
                         transition = command.transition;
                     } else {
@@ -951,7 +961,7 @@ module.exports = function (RED) {
                 }
 
                 let timer;
-                if (command.timer !== undefined) {
+                if (command.timer) {
                     if (command.timer >=0) {
                         timer = command.timer;
                     } else {
@@ -968,7 +978,7 @@ module.exports = function (RED) {
                         turn = "off"
                     }
                 }
-                else if (command.turn !== undefined) {
+                else if (command.turn) {
                     turn = command.turn;
                 }
                 else
@@ -980,50 +990,50 @@ module.exports = function (RED) {
                 // create route
                 route = "/color/0?turn=" + turn;
 
-                if(gain !== undefined) {
+                if(gain) {
                     route += "&gain=" + gain;
                 }
                 
-                if(red !== undefined) {
+                if(red) {
                     route += "&red=" + red;
                 }
 
-                if(green !== undefined) {
+                if(green) {
                     route += "&green=" + green;
                 }
 
-                if(blue !== undefined) {
+                if(blue) {
                     route += "&blue=" + blue;
                 }
 
-                if(white !== undefined) {
+                if(white) {
                     route += "&white=" + white;
                 }
 
-                if(temperature !== undefined) {
+                if(temperature) {
                     route += "&temp=" + temperature;
                 }
 
-                if(brightness !== undefined) {
+                if(brightness) {
                     route += "&brightness=" + brightness;
                 }
 
-                if(effect !== undefined) {
+                if(effect) {
                     route += "&effect=" + effect;
                 }
 
-                if(transition !== undefined) {
+                if(transition) {
                     route += "&transition=" + transition;
                 }
 
-                if(timer !== undefined && timer > 0) {
+                if(timer && timer > 0) {
                     route += "&timer=" + timer;
                 }
             }
             else if(nodeMode === "white") {
 
                 let light = 0;
-                if (command.light !== undefined) {
+                if (command.light) {
                     if (command.light >=0) {
                         light = command.light;
                     } else {
@@ -1032,7 +1042,7 @@ module.exports = function (RED) {
                 }
 
                 let brightness;
-                if (command.brightness !== undefined) {
+                if (command.brightness) {
                     if (command.brightness >= 0 && command.brightness <= 100) {
                         brightness = command.brightness;
                     } else {
@@ -1041,7 +1051,7 @@ module.exports = function (RED) {
                 }
 
                 let temperature;
-                if(command.temp !== undefined) {
+                if(command.temp) {
                     if (command.temp >= 3000 && command.temp <= 6500) {
                         temperature = command.temp;
                     } else {
@@ -1050,7 +1060,7 @@ module.exports = function (RED) {
                 }
 
                 let transition;
-                if (command.transition !== undefined) {
+                if (command.transition) {
                     if (command.transition >= 0 && command.transition <= 5000) {
                         transition = command.transition;
                     } else {
@@ -1059,7 +1069,7 @@ module.exports = function (RED) {
                 }
 
                 let timer;
-                if (command.timer !== undefined) {
+                if (command.timer) {
                     if (command.timer >=0) {
                         timer = command.timer;
                     } else {
@@ -1076,7 +1086,7 @@ module.exports = function (RED) {
                         turn = "off"
                     }
                 }
-                else if (command.turn !== undefined) {
+                else if (command.turn) {
                     turn = command.turn;
                 }
                 else
@@ -1088,19 +1098,19 @@ module.exports = function (RED) {
                 // create route
                 route = "/white/" + light + "?turn=" + turn;
 
-                if(brightness !== undefined) {
+                if(brightness) {
                     route += "&brightness=" + brightness;
                 }
 
-                if(temperature !== undefined) {
+                if(temperature) {
                     route += "&temp=" + temperature;
                 }
 
-                if(transition !== undefined) {
+                if(transition) {
                     route += "&transition=" + transition;
                 }
 
-                if(timer !== undefined && timer > 0) {
+                if(timer && timer > 0) {
                     route += "&timer=" + timer;
                 }
             }
@@ -1230,7 +1240,7 @@ module.exports = function (RED) {
             // create http://192.168.33.1/settings/actions?index=0&name=report_url&enabled=true&urls[]=http://192.168.1.4/webhook
             try {
 
-                if (hookTypes[0] !== undefined && hookTypes[0].action === '*'){
+                if (hookTypes[0] && hookTypes[0].action === '*'){
                     hookTypes = await getHookTypesFromDevice1(node);
                 }
 
@@ -1324,7 +1334,7 @@ module.exports = function (RED) {
             // delete http://192.168.33.1/settings/actions?index=0&name=report_url&urls[]=
             try {
 
-                if (hookTypes[0] !== undefined && hookTypes[0].action === '*'){
+                if (hookTypes[0] && hookTypes[0].action === '*'){
                     hookTypes = await getHookTypesFromDevice1(node);
                 }
 
@@ -1410,82 +1420,82 @@ module.exports = function (RED) {
         let result = {
         }
 
-        if(status.relays !== undefined){
+        if(status.relays){
             result.relays = status.relays;
         }
 
-        if(status.rollers !== undefined){
+        if(status.rollers){
             result.rollers = status.rollers;
         }
 
-        if(status.lights !== undefined){
+        if(status.lights){
             result.lights = status.lights;
         }
 
-        if(status.thermostats !== undefined){
+        if(status.thermostats){
             result.thermostats = status.thermostats;
         }
 
-        if(status.meters !== undefined){
+        if(status.meters){
             result.meters = status.meters;
         }
 
-        if(status.emeters !== undefined){
+        if(status.emeters){
             result.emeters = status.emeters;
         }
 
-        if(status.inputs !== undefined){
+        if(status.inputs){
             result.inputs = status.inputs;
         }
 
-        if(status.adcs !== undefined){
+        if(status.adcs){
             result.adcs = status.adcs;
         }
 
-        if(status.sensor !== undefined){
+        if(status.sensor){
             result.sensor = status.sensor;
         }
 
-        if(status.lux !== undefined){
+        if(status.lux){
             result.lux = status.lux;
         }
 
-        if(status.bat !== undefined){
+        if(status.bat){
             result.bat = status.bat;
         }
 
-        if(status.tmp !== undefined){
+        if(status.tmp){
             result.tmp = status.tmp;
         }
 
-        if(status.hum !== undefined){
+        if(status.hum){
             result.hum = status.hum;
         }
 
-        if(status.smoke !== undefined){
+        if(status.smoke){
             result.smoke = status.smoke;
         }
 
-        if(status.flood !== undefined){
+        if(status.flood){
             result.flood = status.flood;
         }
 
-        if(status.accel !== undefined){
+        if(status.accel){
             result.accel = status.accel;
         }
 
-        if(status.concentration !== undefined){
+        if(status.concentration){
             result.concentration = status.concentration;
         }
 
-        if(status.ext_temperature !== undefined && !isEmpty(status.ext_temperature)){
+        if(status.ext_temperature && !isEmpty(status.ext_temperature)){
             if(result.ext === undefined) {
                 result.ext = {};
             }
             result.ext.temperature = status.ext_temperature;
         }
 
-        if(status.ext_humidity !== undefined && !isEmpty(status.ext_humidity)){
+        if(status.ext_humidity && !isEmpty(status.ext_humidity)){
             if(result.ext === undefined) {
                 result.ext = {};
             }
@@ -1564,7 +1574,7 @@ module.exports = function (RED) {
 
     function executeCommand1(msg, route, node, credentials){
         let getStatusRoute = '/status';
-        if (route !== undefined && route !== ''){
+        if (route && route !== ''){
 
             shellyTryGet(route, node, credentials, null, function(body) {
                 if (node.getStatusOnCommand) {
@@ -1616,7 +1626,7 @@ module.exports = function (RED) {
 
     async function applySettings1Async(settings, node, credentials){
         let success = false;
-        if(settings !== undefined && Array.isArray(settings)){
+        if(settings && Array.isArray(settings)){
             for (let i = 0; i < settings.length; i++) {
                 let setting = settings[i];
 
@@ -1625,10 +1635,10 @@ module.exports = function (RED) {
                 let attribute = setting.attribute;
                 let value = setting.value;
 
-                if(device !== undefined && attribute !== undefined && value !== undefined){
+                if(device && attribute && value){
                     let settingRoute;
                     
-                    if(index !== undefined) {
+                    if(index) {
                         settingRoute = '/settings/' + device + '/' + index + '?' + attribute + '=' + value;
                     }
                     else {
@@ -1715,7 +1725,7 @@ module.exports = function (RED) {
         node.server = RED.nodes.getNode(config.server);
         node.outputMode = config.outputmode;
         
-        if(config.uploadretryinterval !== undefined && config.uploadretryinterval !== '') {
+        if(config.uploadretryinterval && config.uploadretryinterval !== '') {
             node.initializeRetryInterval = parseInt(config.uploadretryinterval);
         }
         else {
@@ -1740,7 +1750,7 @@ module.exports = function (RED) {
 
         node.status({});
 
-        if(deviceType !== undefined && deviceType !== "") {
+        if(deviceType && deviceType !== "") {
             node.initializer = getInitializer1(deviceType);
             node.inputParser = getInputParser1(deviceType);
             node.types = getDeviceTypes1(deviceType);
@@ -1773,7 +1783,7 @@ module.exports = function (RED) {
 
             
             // Callback mode:
-            if(node.server !== null && node.server !== undefined && node.mode === 'callback') {
+            if(node.server !== null && node.server && node.mode === 'callback') {
                 node.onCallback = function (data) {
                     if(data.sender === node.hostname){
                         if(node.outputMode === 'event'){
@@ -1897,7 +1907,7 @@ module.exports = function (RED) {
             }
             catch (error) {
                 node.error("Uploading script failed " + error);
-                if(error.request !== undefined){
+                if(error.request){
                     node.error("Request: " + error.request.method + " " + error.request.path);
                 }
                 node.status({ fill: "red", shape: "ring", text: "Uploading script failed "});
@@ -1967,7 +1977,7 @@ module.exports = function (RED) {
                 // Create new webhooks.
                 let supportedEventsResponse = await shellyRequestAsync('GET', '/rpc/Webhook.ListSupported', null, null, credentials);
                 let hookTypes = supportedEventsResponse.hook_types; // before fw 1.0
-                if (hookTypes !== undefined) 
+                if (hookTypes) 
                 {
                     for (let hookType of hookTypes) {  
                         let sender = node.hostname;
@@ -2058,21 +2068,21 @@ module.exports = function (RED) {
         let data;
         let route;
 
-        if(msg !== undefined && msg.payload !== undefined){
+        if(isMsgPayloadValid(msg)){
             
             let command = msg.payload;
 
             let rpcMethod;
-            if(command.method !== undefined){
+            if(command.method){
                 rpcMethod = command.method;
             }
 
             let parameters;
-            if(command.parameters !== undefined){
+            if(command.parameters){
                 parameters = command.parameters;
             }
 
-            if(rpcMethod !== undefined){
+            if(rpcMethod){
                 route = "/rpc/";
                 data = {
                     id : 1,
@@ -2263,7 +2273,7 @@ module.exports = function (RED) {
 
         Object.keys(status).forEach(key => {
             let statusValue = status[key];
-            if(statusValue !== undefined) {
+            if(statusValue) {
                 // we only copy the key that contain a : like input:0...
                 if(key.indexOf(":") !== -1){
                     let newKey = replace(key, ":", "");
@@ -2278,7 +2288,7 @@ module.exports = function (RED) {
     function executeCommand2(msg, request, node, credentials){
 
         let getStatusRoute = '/rpc/Shelly.GetStatus';
-        if (request !== undefined && request.route !== undefined && request.route !== ''){
+        if (request && request.route && request.route !== ''){
 
             let route = request.route;
             let method = request.method;
@@ -2401,7 +2411,7 @@ module.exports = function (RED) {
         node.server = RED.nodes.getNode(config.server);
         node.outputMode = config.outputmode;
         
-        if(config.uploadretryinterval !== undefined) {
+        if(config.uploadretryinterval) {
             node.initializeRetryInterval = parseInt(config.uploadretryinterval);
         }
         else {
@@ -2424,7 +2434,7 @@ module.exports = function (RED) {
 
         node.status({});
 
-        if(deviceType !== undefined && deviceType !== "") {
+        if(deviceType && deviceType !== "") {
             node.initializer = getInitializer2(deviceType);
             node.inputParser = getInputParser2(deviceType);
             node.types = getDeviceTypes2(deviceType);
@@ -2451,7 +2461,7 @@ module.exports = function (RED) {
             });
 
             // Callback mode:
-            if(node.server !== null && node.server !== undefined && node.mode === 'callback') {
+            if(node.server !== null && node.server && node.mode === 'callback') {
                 node.onCallback = function (data) {
                     if(data.sender === node.hostname){
                         if(node.outputMode === 'event'){
@@ -2603,7 +2613,7 @@ module.exports = function (RED) {
             try {
                 let route;
                 let params;
-                if (msg.payload !== undefined && msg.payload !== null) {
+                if (isMsgPayloadValid(msg)) {
 
                     let type = msg.payload.type;
                     if (type === 'light'){
