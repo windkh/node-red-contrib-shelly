@@ -370,10 +370,15 @@ module.exports = function (RED) {
             else if(node.shellyInfo.model && node.shellyInfo.gen === 2){
                 deviceType = node.shellyInfo.model;
                 requiredNodeType = 'shelly-gen2';
+                
+            } // Generation 3 devices 
+            else if(node.shellyInfo.model && node.shellyInfo.gen === 3){
+                deviceType = node.shellyInfo.model;
+                requiredNodeType = 'shelly-gen2'; // right now the protocol is compatible to gen 2
             }
             else {
                 // this can not happen right now.
-                requiredNodeType = 'not shupported';
+                requiredNodeType = 'shelly gen-type is not supported';
             }
 
 
@@ -2151,7 +2156,7 @@ module.exports = function (RED) {
             success = true;
         }
         else if(mode === 'callback'){
-            let scriptPath = path.resolve(__dirname, './scripts/button.script');
+            let scriptPath = path.resolve(__dirname, './scripts/callback.script');
             const buffer = fs.readFileSync(scriptPath);
             // const buffer = await readFile(scriptPath); #96 nodejs V19
             let script = buffer.toString();
@@ -2250,9 +2255,9 @@ module.exports = function (RED) {
     }
 
     let gen2DeviceTypes = new Map([
-        ["Relay",      ["SHSW-", "SNSW-", "SPSW-", "SNPL-", "SNPM-"]],
+        ["Relay",      ["SHSW-", "SNSW-", "SPSW-", "SNPL-", "SNPM-", , "S3SW-"]],
         ["Button",     ["SNSN-"]],
-        ["Sensor",     ["SNSN-"]], // Shelly Plus H&T / PLus Smoke only support Webhook, no scripting
+        ["Sensor",     ["SNSN-", "S3SN-"]], // Shelly Plus H&T / PLus Smoke only support Webhook, no scripting
         ["Measure",    ["SPEM-"]],
         ["Dimmer",     ["SNDM-"]],
         ["BluGateway", ["SNGW-"]],

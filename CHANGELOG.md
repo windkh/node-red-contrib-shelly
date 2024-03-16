@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.19.0] - 2024-03-16
+###  support for gen 3 shelly 1PM Mini and H&T gen3
+
 ## [10.18.0] - 2024-03-12
 ###  improved msg.payload checking - [#143](https://github.com/windkh/node-red-contrib-shelly/issues/143)
 
