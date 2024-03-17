@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.21.0] - 2024-03-17
+###  added support for shelly wall display
+
 ## [10.20.0] - 2024-03-17
 ###  added support for shelly uni plus - [#144](https://github.com/windkh/node-red-contrib-shelly/issues/144)
 

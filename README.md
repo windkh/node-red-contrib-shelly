@@ -51,6 +51,7 @@ Generation 2 devices:
 - Shelly Plus Wall Dimmer
 - Shelly Plus UNI
 - Shelly Blu Gateway
+- Shelly Wall Display
 
 Generation 3 devices:
 - Shelly 1PM Mini
@@ -622,7 +623,7 @@ You must configure this network port, make sure that it is not already in use. I
 under that the shelly device can reach the node-red server (Leave this field empty if you run inside the same network segment).
 
 
-## Relay (Plus 1, Plus 1 PM, Plus 2 PM, Plus UNI, Pro 1, Pro 1 PM, Pro 2, Pro 2 PM, Pro 4 PM, Plug US, 1PM Mini)
+## Relay (Plus 1, Plus 1 PM, Plus 2 PM, Plus UNI, Pro 1, Pro 1 PM, Pro 2, Pro 2 PM, Pro 4 PM, Plug US, 1PM Mini, Shelly Wall Display)
 The node is able to turn on and turn off a shelly switch. It outputs the status after every interaction with the shelly device.
 Turning on is done by sending the following payload into the input. The relay number is optional and defaults to 0.
 
