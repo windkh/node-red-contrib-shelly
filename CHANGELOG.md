@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.20.0] - 2024-03-17
+###  added support for shelly uni plus - [#144](https://github.com/windkh/node-red-contrib-shelly/issues/144)
+
 ## [10.19.0] - 2024-03-16
 ###  support for gen 3 shelly 1PM Mini and H&T gen3
 
