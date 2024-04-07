@@ -2253,8 +2253,10 @@ module.exports = function (RED) {
         return result;
     }
 
+    // this list also contains the shelly gen3 devices
+    //  "S3PM-", "S3SW-", "S3SN-"
     let gen2DeviceTypes = new Map([
-        ["Relay",      ["SHSW-", "SNSW-", "SPSW-", "SNPL-", "SNPM-", , "S3SW-", "SNSN-", "SAWD-"]],
+        ["Relay",      ["SHSW-", "SNSW-", "SPSW-",  "SPSH-", "SNPL-", "SNPM-", "SNSN-", "SAWD-", "S3PM-", "S3SW-"]],
         ["Button",     ["SNSN-"]],
         ["Sensor",     ["SNSN-", "S3SN-"]], // Shelly Plus H&T / PLus Smoke only support Webhook, no scripting
         ["Measure",    ["SPEM-"]],
