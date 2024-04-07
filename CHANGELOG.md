@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.22.0] - 2024-04-07
+###  fixed dimmer problems when brightness is 0 - [#150](https://github.com/windkh/node-red-contrib-shelly/issues/150)
+
 ## [10.21.0] - 2024-03-17
 ###  added support for shelly wall display
 
