@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.23.0] - 2024-04-19
+###  fixed roller problems when position is 0 - [#153](https://github.com/windkh/node-red-contrib-shelly/issues/153)
+
 ## [10.22.0] - 2024-04-07
 ###  fixed dimmer problems when brightness is 0 - [#150](https://github.com/windkh/node-red-contrib-shelly/issues/150)
 

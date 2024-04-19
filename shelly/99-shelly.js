@@ -32,7 +32,7 @@ module.exports = function (RED) {
 
     function isMsgPayloadValid(msg) {
         let isValid = false;
-        if (msg && msg.payload && !Array.isArray(msg)) {
+        if (msg !== undefined && msg.payload !== undefined && !Array.isArray(msg)) {
             if (!Array.isArray(msg.payload) && !isEmpty(msg.payload)) {
                 isValid = true;
             }
@@ -43,7 +43,7 @@ module.exports = function (RED) {
 
     function trim(str) {
         let result;
-        if(str){
+        if (str){
             result = str.trim();
         }
 
@@ -52,7 +52,7 @@ module.exports = function (RED) {
     
     function replace(str, pattern, replacement) {
         let result;
-        if(str){
+        if (str){
             result = str.replace(pattern, replacement);
         }
 
@@ -62,7 +62,7 @@ module.exports = function (RED) {
     function combineUrl(path, parameters) {
         let route = path + '?';
 
-        if(parameters.charAt(0) === '&'){
+        if (parameters.charAt(0) === '&'){
             parameters = parameters.substring(1);
         }
 
@@ -97,15 +97,15 @@ module.exports = function (RED) {
     function getIPAddress(node) {
         let ipAddress;
         
-        if (node.server.hostip && node.server.hostip !== '' && node.server.hostip !== 'hostname') {
+        if (node.server.hostip !== undefined && node.server.hostip !== '' && node.server.hostip !== 'hostname') {
             ipAddress = node.server.hostip;
         }
-        else if (node.server.hostip === 'hostname' && node.server.hostname && node.server.hostname !== '') {
+        else if (node.server.hostip === 'hostname' && node.server.hostname !== undefined && node.server.hostname !== '') {
             ipAddress = node.server.hostname;
         }
         else {
             let ipAddresses = getIPAddresses();
-            if (ipAddresses && ipAddresses.length > 0) {
+            if (ipAddresses !== undefined && ipAddresses.length > 0) {
                 ipAddress =  ipAddresses[0];
             }
             else {
@@ -122,26 +122,26 @@ module.exports = function (RED) {
         let hostname;
         let username;
         let password;
-        if(isMsgPayloadValid(msg)){
+        if (isMsgPayloadValid(msg)){
             hostname = msg.payload.hostname; 
             username = msg.payload.username; 
             password = msg.payload.password; 
         }
 
-        if(hostname === undefined) {
+        if (hostname === undefined) {
             hostname = node.hostname;
         }
 
-        if(username === undefined) {
+        if (username === undefined) {
             username = node.credentials.username;
         }
 
-        if(password === undefined) {
+        if (password === undefined) {
             password = node.credentials.password;
         }
 
         let authType = node.authType;
-        if(authType === 'Digest') {
+        if (authType === 'Digest') {
             username = 'admin'; // see https://shelly-api-docs.shelly.cloud/gen2/General/Authentication
         }
 
@@ -205,9 +205,9 @@ module.exports = function (RED) {
     function getHeaders(credentials){
         let headers = {};
 
-        if(credentials) {
-            if(credentials.authType === 'Basic') {
-                if(credentials.username && credentials.password) {
+        if (credentials) {
+            if (credentials.authType === 'Basic') {
+                if (credentials.username && credentials.password) {
                     // Authorization is case sensitive for some devices like the TRV!
                     headers.Authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64");
                 };
@@ -227,13 +227,13 @@ module.exports = function (RED) {
     // Note that this function has a reduced timeout.
     function shellyTryRequest(method, route, params, data, node, credentials, timeout, callback, errorCallback){
     
-        if(timeout === undefined || timeout === null){
+        if (timeout === undefined || timeout === null){
             timeout = 5000;
         };
 
         // We avoid an invalid timeout by taking a default if 0.
         let requestTimeout = timeout;
-        if(requestTimeout <= 0){
+        if (requestTimeout <= 0){
             requestTimeout = 5000;
         }
 
@@ -256,17 +256,17 @@ module.exports = function (RED) {
             const request = axios.request(config);
 
             request.then(response => {
-                if(response.status == 200){
+                if (response.status == 200){
                     callback(response.data);
                 }
-                else if(response.status == 401){
+                else if (response.status == 401){
                     config.headers = {
                         'Authorization': getDigestAuthorization(response, credentials, config)
                     }
 
                     const digestRequest = axios.request(config);
                     digestRequest.then(response => {
-                        if(response.status == 200){
+                        if (response.status == 200){
                             callback(response.data);
                         }
                         else {
@@ -293,13 +293,13 @@ module.exports = function (RED) {
     function shellyRequestAsync(method, route, params, data, credentials, timeout){
         return new Promise(function (resolve, reject) {
 
-            if(timeout === undefined || timeout === null){
+            if (timeout === undefined || timeout === null){
                 timeout = 5000;
             };
 
             // We avoid an invalid timeout by taking a default if 0.
             let requestTimeout = timeout;
-            if(requestTimeout <= 0){
+            if (requestTimeout <= 0){
                 requestTimeout = 5000;
             }
 
@@ -322,16 +322,16 @@ module.exports = function (RED) {
                 const request = axios.request(config);
         
                 request.then(response => {
-                    if(response.status == 200){
+                    if (response.status == 200){
                         resolve(response.data)
-                    } else if(response.status == 401){
+                    } else if (response.status == 401){
                         config.headers = {
                             'Authorization': getDigestAuthorization(response, credentials, config)
                         }
         
                         const digestRequest = axios.request(config);
                         digestRequest.then(response => {
-                            if(response.status == 200){
+                            if (response.status == 200){
                                 resolve(response.data)
                             }
                             else {
@@ -363,16 +363,16 @@ module.exports = function (RED) {
             let requiredNodeType;
             let deviceType;
             // Generation 1 devices
-            if(node.shellyInfo.type){
+            if (node.shellyInfo.type){
                 deviceType = node.shellyInfo.type;
                 requiredNodeType = 'shelly-gen1';
             } // Generation 2 devices 
-            else if(node.shellyInfo.model && node.shellyInfo.gen === 2){
+            else if (node.shellyInfo.model && node.shellyInfo.gen === 2){
                 deviceType = node.shellyInfo.model;
                 requiredNodeType = 'shelly-gen2';
                 
             } // Generation 3 devices 
-            else if(node.shellyInfo.model && node.shellyInfo.gen === 3){
+            else if (node.shellyInfo.model && node.shellyInfo.gen === 3){
                 deviceType = node.shellyInfo.model;
                 requiredNodeType = 'shelly-gen2'; // right now the protocol is compatible to gen 2
             }
@@ -382,13 +382,13 @@ module.exports = function (RED) {
             }
 
 
-            if(requiredNodeType === node.type) {
+            if (requiredNodeType === node.type) {
                 let found = false;
                 for (let i = 0; i < types.length; i++) {
                     let type = types[i];
 
                     // Generation 1 devices
-                    if(deviceType){
+                    if (deviceType){
                         found  = deviceType.startsWith(type);
                         if (found) {
                             break;
@@ -396,7 +396,7 @@ module.exports = function (RED) {
                     }
                 }
                 
-                if(found){
+                if (found){
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
                 }
                 else{
@@ -417,16 +417,16 @@ module.exports = function (RED) {
 
     // Starts polling the status.
     function start(node, types){
-        if(node.hostname !== ''){    
+        if (node.hostname !== ''){    
 
             let credentials = getCredentials(node);
             shellyPing(node, credentials, types);
 
-            if(node.pollInterval > 0) {
+            if (node.pollInterval > 0) {
                 node.pollingTimer = setInterval(function() {
                     shellyPing(node, credentials, types);
 
-                    if(node.pollStatus){
+                    if (node.pollStatus){
                         node.emit("input", {});
                     }    
                 }, node.pollInterval);
@@ -452,29 +452,29 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserRelay1Async(msg){
         let route;
-        if(isMsgPayloadValid(msg)){
+        if (isMsgPayloadValid(msg)){
             let command = msg.payload;
 
             let relay = 0;
-            if(command.relay !== undefined){
+            if (command.relay !== undefined){
                 relay = command.relay;
             }
 
             let turn;
-            if(command.on !== undefined){
-                if(command.on == true){
+            if (command.on !== undefined){
+                if (command.on == true){
                     turn = "on";
                 }
                 else{
                     turn = "off"
                 }
             }
-            else if(command.turn !== undefined){
+            else if (command.turn !== undefined){
                 turn = command.turn;
             }
 
             let timerSeconds;
-            if(command.timer !== undefined){
+            if (command.timer !== undefined){
                 timerSeconds = command.timer;
             }
 
@@ -484,7 +484,7 @@ module.exports = function (RED) {
                 parameters += "&turn=" + turn;
             }
 
-            if(timerSeconds !== undefined){
+            if (timerSeconds !== undefined){
                 parameters += "&timer=" + timerSeconds;
             }
 
@@ -498,29 +498,29 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserMeasure1Async(msg, node, credentials){
         let route;
-        if(isMsgPayloadValid(msg)){
+        if (isMsgPayloadValid(msg)){
             let command = msg.payload;
 
             let relay = 0;
-            if(command.relay !== undefined){
+            if (command.relay !== undefined){
                 relay = command.relay;
             }
 
             let turn;
-            if(command.on !== undefined){
-                if(command.on == true){
+            if (command.on !== undefined){
+                if (command.on == true){
                     turn = "on";
                 }
                 else{
                     turn = "off"
                 }
             }
-            else if(command.turn !== undefined){
+            else if (command.turn !== undefined){
                 turn = command.turn;
             }
 
             let timerSeconds;
-            if(command.timer !== undefined){
+            if (command.timer !== undefined){
                 timerSeconds = command.timer;
             }
 
@@ -530,7 +530,7 @@ module.exports = function (RED) {
                 parameters += "&turn=" + turn;
             }
 
-            if(timerSeconds !== undefined){
+            if (timerSeconds !== undefined){
                 parameters += "&timer=" + timerSeconds;
             }
 
@@ -541,12 +541,12 @@ module.exports = function (RED) {
 
             // Download EM data if required.
             let emetersToDownload;
-            if(command.download !== undefined){
+            if (command.download !== undefined){
                 emetersToDownload = command.download;
             }
 
             // special download code for EM devices that can store historical data.
-            if(emetersToDownload){
+            if (emetersToDownload){
                 let data = [];
                 for (let i = 0; i < emetersToDownload.length; i++) {
                     let emeter = emetersToDownload[i];
@@ -579,49 +579,49 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserRoller1Async(msg){
         let route;
-        if(isMsgPayloadValid(msg)){
+        if (isMsgPayloadValid(msg)){
             let command = msg.payload;
 
             let roller = 0;
-            if(command.roller !== undefined){
+            if (command.roller !== undefined){
                 roller = command.roller;
             }
 
             let go;
-            if(command.go !== undefined){
+            if (command.go !== undefined){
                 go = command.go;
 
-                if (command.go == "to_pos" && command.roller_pos) {
+                if (command.go == "to_pos" && command.roller_pos !== undefined) {
                     go += "&roller_pos=" + command.roller_pos;
                 }
             }
 
-            if(go !== undefined){
+            if (go !== undefined){
                 route = "/roller/" + roller + "?go=" + go;
             }
 
             // we fall back to relay mode if no valid roller command is received.
-            if(route === undefined)
+            if (route === undefined)
             {
                 let relay = 0;
-                if(command.relay !== undefined){
+                if (command.relay !== undefined){
                     relay = command.relay;
                 }
 
                 let turn;
-                if(command.on !== undefined){
-                    if(command.on == true){
+                if (command.on !== undefined){
+                    if (command.on == true){
                         turn = "on";
                     }
                     else{
                         turn = "off"
                     }
                 }
-                else if(command.turn !== undefined){
+                else if (command.turn !== undefined){
                     turn = command.turn;
                 }
 
-                if(turn !== undefined){
+                if (turn !== undefined){
                     route = "/relay/" + relay + "?turn=" + turn;
                 }
             }
@@ -632,24 +632,24 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserDimmer1Async(msg){
         let route;
-        if(isMsgPayloadValid(msg)){
+        if (isMsgPayloadValid(msg)){
             let command = msg.payload;
 
             let light = 0;
-            if(command.light !== undefined){
+            if (command.light !== undefined){
                 light = command.light;
             }
 
             let turn;
-            if(command.on !== undefined){
-                if(command.on == true){
+            if (command.on !== undefined){
+                if (command.on == true){
                     turn = "on";
                 }
                 else{
                     turn = "off"
                 }
             }
-            else if(command.turn !== undefined){
+            else if (command.turn !== undefined){
                 turn = command.turn;
             }
             else{
@@ -657,8 +657,8 @@ module.exports = function (RED) {
             }
 
             let brightness;
-            if(command.brightness !== undefined){
-                if(command.brightness >=1 && command.brightness <= 100){
+            if (command.brightness !== undefined){
+                if (command.brightness >=1 && command.brightness <= 100){
                     brightness = command.brightness;
                 } else { 
                     brightness = 100;  // Default to full brightness
@@ -666,8 +666,8 @@ module.exports = function (RED) {
             }
 
             let white;
-            if(command.white !== undefined){
-                if(command.white >=1 && command.white <= 100){
+            if (command.white !== undefined){
+                if (command.white >=1 && command.white <= 100){
                     white = command.white;
                 } else { 
                     // Default is undefined
@@ -675,8 +675,8 @@ module.exports = function (RED) {
             }
 
             let temperature;
-            if(command.temp !== undefined){
-                if(command.temp >=2700 && command.temp <= 6500){
+            if (command.temp !== undefined){
+                if (command.temp >=2700 && command.temp <= 6500){
                     temperature = command.temp;
                 } else { 
                     // Default is undefined
@@ -684,8 +684,8 @@ module.exports = function (RED) {
             }
 
             let transition;
-            if(command.transition !== undefined){
-                if(command.transition >=0 && command.transition <= 5000){
+            if (command.transition !== undefined){
+                if (command.transition >=0 && command.transition <= 5000){
                     transition = command.transition;
                 } else { 
                     // Default is undefined
@@ -693,8 +693,8 @@ module.exports = function (RED) {
             }
 
             let timer;
-            if(command.timer !== undefined){
-                if(command.timer >=0){
+            if (command.timer !== undefined){
+                if (command.timer >=0){
                     timer = command.timer;
                 } else { 
                     // Default is undefined
@@ -702,12 +702,12 @@ module.exports = function (RED) {
             }
 
             let dim;
-            if(command.dim !== undefined){
+            if (command.dim !== undefined){
                 dim = command.dim;
             }
 
             let step;
-            if(command.step !== undefined){
+            if (command.step !== undefined){
                 step = command.step;
             }
 
@@ -720,27 +720,27 @@ module.exports = function (RED) {
                 parameters += "&brightness=" + brightness;
             }
 
-            if(white !== undefined) {
+            if (white !== undefined) {
                 parameters += "&white=" + white;
             }
 
-            if(temperature !== undefined) {
+            if (temperature !== undefined) {
                 parameters += "&temp=" + temperature;
             }
 
-            if(transition !== undefined) {
+            if (transition !== undefined) {
                 parameters += "&transition=" + transition;
             }
 
-            if(timer !== undefined) {
+            if (timer !== undefined) {
                 parameters += "&timer=" + timer;
             }
 
-            if(step !== undefined) {
+            if (step !== undefined) {
                 parameters += "&step=" + step;
             }
             
-            if(dim !== undefined) {
+            if (dim !== undefined) {
                 parameters += "&dim=" + dim;
             }
 
@@ -754,14 +754,14 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserThermostat1Async(msg){
         let route;
-        if(isMsgPayloadValid(msg)){
+        if (isMsgPayloadValid(msg)){
             let command = msg.payload;
 
             let thermostat = 0;
         
             let position;
-            if(command.position !== undefined){
-                if(command.position >=0 && command.position <= 100){
+            if (command.position !== undefined){
+                if (command.position >=0 && command.position <= 100){
                     position = command.position;
                 } else { 
                     // Default is undefined
@@ -769,8 +769,8 @@ module.exports = function (RED) {
             }
 
             let temperature;
-            if(command.temperature !== undefined){
-                if(command.temperature >=4 && command.temperature <= 31){
+            if (command.temperature !== undefined){
+                if (command.temperature >=4 && command.temperature <= 31){
                     temperature = command.temperature;
                 } else { 
                     // Default is undefined
@@ -778,22 +778,22 @@ module.exports = function (RED) {
             }
 
             let schedule;
-            if(command.schedule !== undefined){
-                if(command.schedule == true || command.schedule == false){
+            if (command.schedule !== undefined){
+                if (command.schedule == true || command.schedule == false){
                     schedule = command.schedule;
                 }
             }
 
             let scheduleProfile;
-            if(command.scheduleProfile !== undefined){
-                if(command.scheduleProfile >= 1 || command.scheduleProfile <= 5){
+            if (command.scheduleProfile !== undefined){
+                if (command.scheduleProfile >= 1 || command.scheduleProfile <= 5){
                     scheduleProfile = command.scheduleProfile;
                 }
             }
 
             let boostMinutes;
-            if(command.boostMinutes !== undefined){
-                if(command.boostMinutes >= 0){
+            if (command.boostMinutes !== undefined){
+                if (command.boostMinutes >= 0){
                     boostMinutes = command.boostMinutes;
                 }
             }
@@ -830,7 +830,7 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserSensor1Async(msg){
         let route;
-        if(isMsgPayloadValid(msg)){
+        if (isMsgPayloadValid(msg)){
             // right now sensors do not accept input commands.
         }
         return route;
@@ -839,21 +839,21 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserButton1Async(msg){
         let route;
-        if(isMsgPayloadValid(msg)){
+        if (isMsgPayloadValid(msg)){
             let command = msg.payload;
 
             let input = 0;
-            if(command.input !== undefined){
+            if (command.input !== undefined){
                 input = command.input;
             }
 
             let event = 'S';
-            if(command.event !== undefined){
+            if (command.event !== undefined){
                 event = command.event;
             }
 
             let eventCount;
-            if(command.eventCount !== undefined){
+            if (command.eventCount !== undefined){
                 eventCount = command.eventCount;
             }
 
@@ -877,15 +877,15 @@ module.exports = function (RED) {
     // Creates a route from the input.
     async function inputParserRGBW1Async(msg, node, credentials){
         let route;
-        if(isMsgPayloadValid(msg)){
+        if (isMsgPayloadValid(msg)){
             let command = msg.payload;
 
             let nodeMode = node.rgbwMode;
-            if(nodeMode === "color") {
+            if (nodeMode === "color") {
 
                 let red;
-                if(command.red !== undefined) {
-                    if(command.red >= 0 && command.red <= 255) {
+                if (command.red !== undefined) {
+                    if (command.red >= 0 && command.red <= 255) {
                         red = command.red;
                     } else {
                         red = 255;  // Default to full brightness
@@ -902,7 +902,7 @@ module.exports = function (RED) {
                 }
 
                 let blue ;
-                if(command.blue !== undefined){
+                if (command.blue !== undefined){
                     if (command.blue >= 0 && command.blue <= 255){
                         blue = command.blue;
                     } else {
@@ -911,7 +911,7 @@ module.exports = function (RED) {
                 }
 
                 let white;
-                if(command.white !== undefined) {
+                if (command.white !== undefined) {
                     if (command.white >= 0 && command.white <= 255) {
                         white = command.white;
                     } else {
@@ -920,7 +920,7 @@ module.exports = function (RED) {
                 }
 
                 let temperature;
-                if(command.temp !== undefined) {
+                if (command.temp !== undefined) {
                     if (command.temp >= 3000 && command.temp <= 6500) {
                         temperature = command.temp;
                     } else {
@@ -994,47 +994,47 @@ module.exports = function (RED) {
                 // create route
                 route = "/color/0?turn=" + turn;
 
-                if(gain !== undefined) {
+                if (gain !== undefined) {
                     route += "&gain=" + gain;
                 }
                 
-                if(red !== undefined) {
+                if (red !== undefined) {
                     route += "&red=" + red;
                 }
 
-                if(green !== undefined) {
+                if (green !== undefined) {
                     route += "&green=" + green;
                 }
 
-                if(blue !== undefined) {
+                if (blue !== undefined) {
                     route += "&blue=" + blue;
                 }
 
-                if(white !== undefined) {
+                if (white !== undefined) {
                     route += "&white=" + white;
                 }
 
-                if(temperature !== undefined) {
+                if (temperature !== undefined) {
                     route += "&temp=" + temperature;
                 }
 
-                if(brightness !== undefined) {
+                if (brightness !== undefined) {
                     route += "&brightness=" + brightness;
                 }
 
-                if(effect !== undefined) {
+                if (effect !== undefined) {
                     route += "&effect=" + effect;
                 }
 
-                if(transition !== undefined)  {
+                if (transition !== undefined)  {
                     route += "&transition=" + transition;
                 }
 
-                if(timer !== undefined && timer > 0) {
+                if (timer !== undefined && timer > 0) {
                     route += "&timer=" + timer;
                 }
             }
-            else if(nodeMode === "white") {
+            else if (nodeMode === "white") {
 
                 let light = 0;
                 if (command.light !== undefined) {
@@ -1055,7 +1055,7 @@ module.exports = function (RED) {
                 }
 
                 let temperature;
-                if(command.temp !== undefined) {
+                if (command.temp !== undefined) {
                     if (command.temp >= 3000 && command.temp <= 6500) {
                         temperature = command.temp;
                     } else {
@@ -1102,19 +1102,19 @@ module.exports = function (RED) {
                 // create route
                 route = "/white/" + light + "?turn=" + turn;
 
-                if(brightness !== undefined) {
+                if (brightness !== undefined) {
                     route += "&brightness=" + brightness;
                 }
 
-                if(temperature !== undefined) {
+                if (temperature !== undefined) {
                     route += "&temp=" + temperature;
                 }
 
-                if(transition !== undefined) {
+                if (transition !== undefined) {
                     route += "&transition=" + transition;
                 }
 
-                if(timer !== undefined && timer > 0) {
+                if (timer !== undefined && timer > 0) {
                     route += "&timer=" + timer;
                 }
             }
@@ -1189,11 +1189,11 @@ module.exports = function (RED) {
     function initializer1(node, types){
         let success = false;
         let mode = node.mode;
-        if(mode === 'polling'){
+        if (mode === 'polling'){
             start(node, types);
             success = true;
         }
-        else if(mode === 'callback'){
+        else if (mode === 'callback'){
             node.error("Callback not supported for this type of device.");
             node.status({ fill: "red", shape: "ring", text: "Callback not supported" });
         }
@@ -1212,11 +1212,11 @@ module.exports = function (RED) {
             
         let success = false;
         let mode = node.mode;
-        if(mode === 'polling'){
+        if (mode === 'polling'){
             await startAsync(node, types);
             success = true;
         }
-        else if(mode === 'callback'){
+        else if (mode === 'callback'){
             let ipAddress = getIPAddress(node);
             let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
             success = await tryInstallWebhook1Async(node, webhookUrl, sender);
@@ -1232,7 +1232,7 @@ module.exports = function (RED) {
     // Installs a webhook.
     async function tryInstallWebhook1Async(node, webhookUrl, sender){
         let success = false;
-        if(node.hostname !== ''){    
+        if (node.hostname !== ''){    
 
             node.status({ fill: "yellow", shape: "ring", text: "Installing webhook..." });
 
@@ -1248,7 +1248,7 @@ module.exports = function (RED) {
                     hookTypes = await getHookTypesFromDevice1(node);
                 }
 
-                if(hookTypes.length !== 0){
+                if (hookTypes.length !== 0){
                     for (let i = 0; i < hookTypes.length; i++) {
                         let hookType = hookTypes[i];
                         let name = hookType.action;
@@ -1260,13 +1260,13 @@ module.exports = function (RED) {
                             let timeout = node.pollInterval;
                             let deleteResult = await shellyRequestAsync('GET', deleteRoute, null, null, credentials, timeout);
                             let actionsAfterDelete = deleteResult.actions[name][0];
-                            if(actionsAfterDelete.enabled === false) {
+                            if (actionsAfterDelete.enabled === false) {
                                 // 1st try to set the action using the standard method
                                 let createRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=true&urls[]=' + url;
                                 let createResult = await shellyRequestAsync('GET', createRoute, null, null, credentials, timeout);
                                 let actionsAfterCreate = createResult.actions[name][0];
 
-                                if(actionsAfterCreate.enabled === true &&
+                                if (actionsAfterCreate.enabled === true &&
                                     actionsAfterCreate.urls.indexOf(url) > -1) {
                                     node.status({ fill: "green", shape: "ring", text: "Connected." });
                                     success = true;
@@ -1276,9 +1276,9 @@ module.exports = function (RED) {
                                     let createRoute2 = '/settings/actions?index=' + index + '&name=' + name + '&enabled=true&urls[0][url]=' + url + '&urls[0][int]=0000-0000';
                                     let createResult2 = await shellyRequestAsync('GET', createRoute2, null, null, credentials, timeout);
                                     let actionsAfterCreate2 = createResult2.actions[name][0];
-                                    if(actionsAfterCreate2.enabled === true) {
+                                    if (actionsAfterCreate2.enabled === true) {
 
-                                        if(actionsAfterCreate2.urls[0].url === url) {
+                                        if (actionsAfterCreate2.urls[0].url === url) {
                                             node.status({ fill: "green", shape: "ring", text: "Connected." });
                                             success = true;
                                         }
@@ -1327,7 +1327,7 @@ module.exports = function (RED) {
     // Uninstalls a webhook.
     async function tryUninstallWebhook1Async(node, sender){
         let success = false;
-        if(node.hostname !== ''){    
+        if (node.hostname !== ''){    
 
             // node.status({ fill: "yellow", shape: "ring", text: "Uninstalling webhook..." });
 
@@ -1342,7 +1342,7 @@ module.exports = function (RED) {
                     hookTypes = await getHookTypesFromDevice1(node);
                 }
 
-                if(hookTypes.length !== 0){
+                if (hookTypes.length !== 0){
                     for (let i = 0; i < hookTypes.length; i++) {
                         let hookType = hookTypes[i];
                         let name = hookType.action;
@@ -1354,13 +1354,13 @@ module.exports = function (RED) {
                             let url = urls[i];
 
                             // This is a vage assumption but it is the best we have at the moment to identify our hooks. 
-                            if(url.includes(sender)) {
+                            if (url.includes(sender)) {
                                 let deleteRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=false&urls[]=';
                                 try {
                                     let timeout = node.pollInterval;
                                     let deleteResult = await shellyRequestAsync('GET', deleteRoute, null, null, credentials, timeout);
                                     let actionsAfterDelete = deleteResult.actions[name][0];
-                                    if(actionsAfterDelete.enabled === false) {
+                                    if (actionsAfterDelete.enabled === false) {
                                         // failed
                                     }
                                     else {
@@ -1424,83 +1424,83 @@ module.exports = function (RED) {
         let result = {
         }
 
-        if(status.relays !== undefined){
+        if (status.relays !== undefined){
             result.relays = status.relays;
         }
 
-        if(status.rollers !== undefined){
+        if (status.rollers !== undefined){
             result.rollers = status.rollers;
         }
 
-        if(status.lights !== undefined){
+        if (status.lights !== undefined){
             result.lights = status.lights;
         }
 
-        if(status.thermostats !== undefined){
+        if (status.thermostats !== undefined){
             result.thermostats = status.thermostats;
         }
 
-        if(status.meters !== undefined){
+        if (status.meters !== undefined){
             result.meters = status.meters;
         }
 
-        if(status.emeters !== undefined){
+        if (status.emeters !== undefined){
             result.emeters = status.emeters;
         }
 
-        if(status.inputs !== undefined){
+        if (status.inputs !== undefined){
             result.inputs = status.inputs;
         }
 
-        if(status.adcs !== undefined){
+        if (status.adcs !== undefined){
             result.adcs = status.adcs;
         }
 
-        if(status.sensor !== undefined){
+        if (status.sensor !== undefined){
             result.sensor = status.sensor;
         }
 
-        if(status.lux !== undefined){
+        if (status.lux !== undefined){
             result.lux = status.lux;
         }
 
-        if(status.bat !== undefined){
+        if (status.bat !== undefined){
             result.bat = status.bat;
         }
 
-        if(status.tmp !== undefined){
+        if (status.tmp !== undefined){
             result.tmp = status.tmp;
         }
 
-        if(status.hum !== undefined){
+        if (status.hum !== undefined){
             result.hum = status.hum;
         }
 
-        if(status.smoke !== undefined){
+        if (status.smoke !== undefined){
             result.smoke = status.smoke;
         }
 
-        if(status.flood !== undefined){
+        if (status.flood !== undefined){
             result.flood = status.flood;
         }
 
-        if(status.accel !== undefined){
+        if (status.accel !== undefined){
             result.accel = status.accel;
         }
 
-        if(status.concentration !== undefined){
+        if (status.concentration !== undefined){
             result.concentration = status.concentration;
         }
 
-        if(status.ext_temperature !== undefined && !isEmpty(status.ext_temperature)){
-            if(result.ext === undefined) {
+        if (status.ext_temperature !== undefined && !isEmpty(status.ext_temperature)){
+            if (result.ext === undefined) {
                 result.ext = {};
             }
             result.ext.temperature = status.ext_temperature;
         }
 
-        if(status.ext_humidity !== undefined && !isEmpty(status.ext_humidity)){
-            if(result.ext === undefined) {
+        if (status.ext_humidity !== undefined && !isEmpty(status.ext_humidity)){
+            if (result.ext === undefined) {
                 result.ext = {};
             }
             result.ext.humidity = status.ext_humidity;
@@ -1509,6 +1509,7 @@ module.exports = function (RED) {
         return result;
     }
 
+    // see https://kb.shelly.cloud/knowledge-base/devices
     let gen1DeviceTypes = new Map([
         ["Relay",      ["SHSW-", "SHPLG-", "SHUNI-", "SHEM", "SHPLG2-"]],
         ["Measure",    ["SHEM"]], // here no - as the device is only SHEM
@@ -1522,7 +1523,7 @@ module.exports = function (RED) {
 
     function getDeviceTypes1(deviceType){
         let deviceTypes = gen1DeviceTypes.get(deviceType);
-        if(deviceTypes === undefined){
+        if (deviceTypes === undefined){
             deviceTypes = []; 
         }
 
@@ -1542,7 +1543,7 @@ module.exports = function (RED) {
 
     function getHookTypes1(deviceType){
         let hookTypes = gen1HookTypes.get(deviceType);
-        if(hookTypes === undefined){
+        if (hookTypes === undefined){
             hookTypes = []; 
         }
 
@@ -1630,7 +1631,7 @@ module.exports = function (RED) {
 
     async function applySettings1Async(settings, node, credentials){
         let success = false;
-        if(settings !== undefined && Array.isArray(settings)){
+        if (settings !== undefined && Array.isArray(settings)){
             for (let i = 0; i < settings.length; i++) {
                 let setting = settings[i];
 
@@ -1639,10 +1640,10 @@ module.exports = function (RED) {
                 let attribute = setting.attribute;
                 let value = setting.value;
 
-                if(device !== undefined && attribute !== undefined && value !== undefined){
+                if (device !== undefined && attribute !== undefined && value !== undefined){
                     let settingRoute;
                     
-                    if(index !== undefined) {
+                    if (index !== undefined) {
                         settingRoute = '/settings/' + device + '/' + index + '?' + attribute + '=' + value;
                     }
                     else {
@@ -1678,7 +1679,7 @@ module.exports = function (RED) {
         this.hostip = config.hostip;
         this.server = fastify();
         
-        if(node.port > 0){
+        if (node.port > 0){
             node.server.listen({port : node.port}, (err, address) => {
                 if (!err){
                     console.info("Shelly gen1 server is listening on port " + node.port);
@@ -1729,7 +1730,7 @@ module.exports = function (RED) {
         node.server = RED.nodes.getNode(config.server);
         node.outputMode = config.outputmode;
         
-        if(config.uploadretryinterval !== undefined && config.uploadretryinterval !== '') {
+        if (config.uploadretryinterval !== undefined && config.uploadretryinterval !== '') {
             node.initializeRetryInterval = parseInt(config.uploadretryinterval);
         }
         else {
@@ -1754,7 +1755,7 @@ module.exports = function (RED) {
 
         node.status({});
 
-        if(deviceType !== undefined && deviceType !== "") {
+        if (deviceType !== undefined && deviceType !== "") {
             node.initializer = getInitializer1(deviceType);
             node.inputParser = getInputParser1(deviceType);
             node.types = getDeviceTypes1(deviceType);
@@ -1763,11 +1764,11 @@ module.exports = function (RED) {
                 let initialized = await node.initializer(node, node.types);
 
                 // if the device is not online, then we wait until it is available and try again.
-                if(!initialized){
+                if (!initialized){
                     node.initializeTimer = setInterval(async function() {
 
                         let initialized = await node.initializer(node, node.types);
-                        if(initialized){
+                        if (initialized){
                             clearInterval(node.initializeTimer);
                         }
                     }, node.initializeRetryInterval);
@@ -1787,16 +1788,16 @@ module.exports = function (RED) {
 
             
             // Callback mode:
-            if(node.server !== null && node.server !== undefined && node.mode === 'callback') {
+            if (node.server !== null && node.server !== undefined && node.mode === 'callback') {
                 node.onCallback = function (data) {
-                    if(data.sender === node.hostname){
-                        if(node.outputMode === 'event'){
+                    if (data.sender === node.hostname){
+                        if (node.outputMode === 'event'){
                             let msg = {
                                 payload : data.event
                             };
                             node.send([msg]);
                         }
-                        else if(node.outputMode === 'status'){
+                        else if (node.outputMode === 'status'){
                             node.emit("input", {});
                         }
                         else {
@@ -1839,7 +1840,7 @@ module.exports = function (RED) {
     // Uploads and enables a skript.
     async function tryInstallScriptAsync(node, script, scriptName){
         let success = false;
-        if(node.hostname !== ''){    
+        if (node.hostname !== ''){    
 
             node.status({ fill: "yellow", shape: "ring", text: "Uploading script..." });
 
@@ -1849,7 +1850,7 @@ module.exports = function (RED) {
                 // Remove all old scripts first
                 let scriptListResponse = await shellyRequestAsync('GET', '/rpc/Script.List', null, null, credentials);
                 for (let scriptItem of scriptListResponse.scripts) {
-                    if(scriptItem.name == scriptName){
+                    if (scriptItem.name == scriptName){
                         let stopParams = { 'id' : scriptItem.id };
                         await shellyRequestAsync('POST', '/rpc/Script.Stop', null, stopParams, credentials);
 
@@ -1900,7 +1901,7 @@ module.exports = function (RED) {
                 };
                 let status = await shellyRequestAsync('POST', '/rpc/Script.GetStatus', null, statusParams, credentials);
 
-                if(status.running === true){
+                if (status.running === true){
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
                     success = true;
                 }
@@ -1911,7 +1912,7 @@ module.exports = function (RED) {
             }
             catch (error) {
                 node.error("Uploading script failed " + error);
-                if(error.request !== undefined){
+                if (error.request !== undefined){
                     node.error("Request: " + error.request.method + " " + error.request.path);
                 }
                 node.status({ fill: "red", shape: "ring", text: "Uploading script failed "});
@@ -1926,7 +1927,7 @@ module.exports = function (RED) {
     
     async function tryUninstallScriptAsync(node, scriptName){
         let success = false;
-        if(node.hostname !== ''){    
+        if (node.hostname !== ''){    
 
             let credentials = getCredentials(node);
 
@@ -1934,13 +1935,13 @@ module.exports = function (RED) {
                 let scriptListResponse = await shellyRequestAsync('GET', '/rpc/Script.List', null, null, credentials);
             
                 for (let scriptItem of scriptListResponse.scripts) {
-                    if(scriptItem.name == scriptName){
+                    if (scriptItem.name == scriptName){
                         let params = {  
                             'id' : scriptItem.id,
                         };
                         let status = await shellyRequestAsync('POST', '/rpc/Script.GetStatus', null, params, credentials);
                         
-                        if(status.running === true){
+                        if (status.running === true){
                             await shellyRequestAsync('POST', '/rpc/Script.Stop', null, params, credentials);
                         }
                         
@@ -1963,7 +1964,7 @@ module.exports = function (RED) {
     // Installs a webhook.
     async function tryInstallWebhook2Async(node, webhookUrl, webhookName){
         let success = false;
-        if(node.hostname !== ''){    
+        if (node.hostname !== ''){    
             node.status({ fill: "yellow", shape: "ring", text: "Installing webhook..." });
 
             let credentials = getCredentials(node);
@@ -1972,7 +1973,7 @@ module.exports = function (RED) {
                 // Remove all old webhooks async.
                 let webhookListResponse = await shellyRequestAsync('GET', '/rpc/Webhook.List', null, null, credentials);
                 for (let webhookItem of webhookListResponse.hooks) {
-                    if(webhookItem.name == webhookName){
+                    if (webhookItem.name == webhookName){
                         let deleteParams = { 'id' : webhookItem.id };
                         let deleteWebhookResonse = await shellyRequestAsync('POST', '/rpc/Webhook.Delete', null, deleteParams, credentials);
                     }
@@ -2038,7 +2039,7 @@ module.exports = function (RED) {
     // Uninstalls a webhook.
     async function tryUninstallWebhook2Async(node, webhookName){
         let success = false;
-        if(node.hostname !== ''){    
+        if (node.hostname !== ''){    
             // node.status({ fill: "yellow", shape: "ring", text: "Uninstalling webhook..." });
 
             let credentials = getCredentials(node);
@@ -2047,7 +2048,7 @@ module.exports = function (RED) {
                 let webhookListResponse = await shellyRequestAsync('GET', '/rpc/Webhook.List', null, null, credentials);
             
                 for (let webhookItem of webhookListResponse.hooks) {
-                    if(webhookItem.name == webhookName){
+                    if (webhookItem.name == webhookName){
                         let deleteParams = { 'id' : webhookItem.id };
                         let deleteWebhookResonse = await shellyRequestAsync('POST', '/rpc/Webhook.Delete', null, deleteParams, credentials);
                     }
@@ -2072,21 +2073,21 @@ module.exports = function (RED) {
         let data;
         let route;
 
-        if(isMsgPayloadValid(msg)){
+        if (isMsgPayloadValid(msg)){
             
             let command = msg.payload;
 
             let rpcMethod;
-            if(command.method !== undefined){
+            if (command.method !== undefined){
                 rpcMethod = command.method;
             }
 
             let parameters;
-            if(command.parameters !== undefined){
+            if (command.parameters !== undefined){
                 parameters = command.parameters;
             }
 
-            if(rpcMethod !== undefined){
+            if (rpcMethod !== undefined){
                 route = "/rpc/";
                 data = {
                     id : 1,
@@ -2127,11 +2128,11 @@ module.exports = function (RED) {
     function initializer2(node, types){
         let success = false;
         let mode = node.mode;
-        if(mode === 'polling'){
+        if (mode === 'polling'){
             start(node, types);
             success = true;
         }
-        else if(mode === 'callback'){
+        else if (mode === 'callback'){
             node.error("Callback not supported for this type of device.");
             node.status({ fill: "red", shape: "ring", text: "Callback not supported" });
         }
@@ -2150,11 +2151,11 @@ module.exports = function (RED) {
             
         let success = false;
         let mode = node.mode;
-        if(mode === 'polling'){
+        if (mode === 'polling'){
             await startAsync(node, types);
             success = true;
         }
-        else if(mode === 'callback'){
+        else if (mode === 'callback'){
             let scriptPath = path.resolve(__dirname, './scripts/callback.script');
             const buffer = fs.readFileSync(scriptPath);
             // const buffer = await readFile(scriptPath); #96 nodejs V19
@@ -2185,7 +2186,7 @@ module.exports = function (RED) {
             
         let success = false;
         let mode = node.mode;
-        if(mode === 'callback'){
+        if (mode === 'callback'){
             let scriptPath = path.resolve(__dirname, './scripts/blugateway.script');
             const buffer = fs.readFileSync(scriptPath);
             // const buffer = await readFile(scriptPath); #96 nodejs V19
@@ -2197,7 +2198,7 @@ module.exports = function (RED) {
             success = true;
         }
 
-        if(success){
+        if (success){
             success = await initializer2CallbackAsync(node, types);
         }
         
@@ -2212,11 +2213,11 @@ module.exports = function (RED) {
             
         let success = false;
         let mode = node.mode;
-        if(mode === 'polling'){
+        if (mode === 'polling'){
             await startAsync(node, types);
             success = true;
         }
-        else if(mode === 'callback'){
+        else if (mode === 'callback'){
             let ipAddress = getIPAddress(node);
             let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
             success = await tryInstallWebhook2Async(node, webhookUrl, webhookName);
@@ -2253,6 +2254,7 @@ module.exports = function (RED) {
         return result;
     }
 
+    // see https://kb.shelly.cloud/knowledge-base/devices
     // this list also contains the shelly gen3 devices
     //  "S3PM-", "S3SW-", "S3SN-"
     let gen2DeviceTypes = new Map([
@@ -2266,7 +2268,7 @@ module.exports = function (RED) {
 
     function getDeviceTypes2(deviceType){
         let deviceTypes = gen2DeviceTypes.get(deviceType);
-        if(deviceTypes === undefined){
+        if (deviceTypes === undefined){
             deviceTypes = []; 
         }
 
@@ -2279,9 +2281,9 @@ module.exports = function (RED) {
 
         Object.keys(status).forEach(key => {
             let statusValue = status[key];
-            if(statusValue !== undefined) {
+            if (statusValue !== undefined) {
                 // we only copy the key that contain a : like input:0...
-                if(key.indexOf(":") !== -1){
+                if (key.indexOf(":") !== -1){
                     let newKey = replace(key, ":", "");
                     result[newKey] = statusValue;
                 }
@@ -2363,7 +2365,7 @@ module.exports = function (RED) {
         this.hostip = config.hostip;
         this.server = fastify();
 
-        if(node.port > 0){
+        if (node.port > 0){
             node.server.listen({port : node.port}, (err, address) => {
                 if (!err){
                     console.info("Shelly gen2 server is listening on port " + node.port);
@@ -2417,7 +2419,7 @@ module.exports = function (RED) {
         node.server = RED.nodes.getNode(config.server);
         node.outputMode = config.outputmode;
         
-        if(config.uploadretryinterval !== undefined) {
+        if (config.uploadretryinterval !== undefined) {
             node.initializeRetryInterval = parseInt(config.uploadretryinterval);
         }
         else {
@@ -2440,7 +2442,7 @@ module.exports = function (RED) {
 
         node.status({});
 
-        if(deviceType !== undefined && deviceType !== "") {
+        if (deviceType !== undefined && deviceType !== "") {
             node.initializer = getInitializer2(deviceType);
             node.inputParser = getInputParser2(deviceType);
             node.types = getDeviceTypes2(deviceType);
@@ -2449,11 +2451,11 @@ module.exports = function (RED) {
                 let initialized = await node.initializer(node, node.types);
 
                 // if the device is not online, then we wait until it is available and try again.
-                if(!initialized){
+                if (!initialized){
                     node.initializeTimer = setInterval(async function() {
 
                         let initialized = await node.initializer(node, node.types);
-                        if(initialized){
+                        if (initialized){
                             clearInterval(node.initializeTimer);
                         }
                     }, node.initializeRetryInterval);
@@ -2467,16 +2469,16 @@ module.exports = function (RED) {
             });
 
             // Callback mode:
-            if(node.server !== null && node.server !== undefined && node.mode === 'callback') {
+            if (node.server !== null && node.server !== undefined && node.mode === 'callback') {
                 node.onCallback = function (data) {
-                    if(data.sender === node.hostname){
-                        if(node.outputMode === 'event'){
+                    if (data.sender === node.hostname){
+                        if (node.outputMode === 'event'){
                             let msg = {
                                 payload : data.event
                             };
                             node.send([msg]);
                         }
-                        else if(node.outputMode === 'status'){
+                        else if (node.outputMode === 'status'){
                             node.emit("input", {});
                         }
                         else {
@@ -2531,13 +2533,13 @@ module.exports = function (RED) {
     function shellyCloudRequestAsync(method, route, data, credentials, timeout){
         return new Promise(function (resolve, reject) {
 
-            if(timeout === undefined || timeout === null){
+            if (timeout === undefined || timeout === null){
                 timeout = 10000;
             };
 
             // We avoid an invalid timeout by taking a default if 0.
             let requestTimeout = timeout;
-            if(requestTimeout <= 0){
+            if (requestTimeout <= 0){
                 requestTimeout = 10000;
             }
 
@@ -2561,7 +2563,7 @@ module.exports = function (RED) {
                 const request = cloudAxios.request(config);
         
                 request.then(response => {
-                    if(response.status == 200){
+                    if (response.status == 200){
                         resolve(response.data)
                     } else {
                         reject(response.statusText);
