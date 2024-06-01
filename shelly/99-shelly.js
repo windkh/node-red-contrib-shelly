@@ -417,6 +417,73 @@ module.exports = function (RED) {
         });
     }
 
+      // checks if the device is the configured one.
+      async function tryCheckDeviceType(node, types){
+
+        let success = false;
+        let credentials = getCredentials(node);
+            
+        // (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
+        try {
+            let shellyInfo = await shellyRequestAsync('GET', '/shelly', null, null, credentials);;
+
+            let requiredNodeType;
+            let deviceType;
+            // Generation 1 devices
+            if (shellyInfo.type){
+                deviceType = shellyInfo.type;
+                requiredNodeType = 'shelly-gen1';
+            } // Generation 2 devices 
+            else if (shellyInfo.model && shellyInfo.gen === 2){
+                deviceType = shellyInfo.model;
+                requiredNodeType = 'shelly-gen2';
+                
+            } // Generation 3 devices 
+            else if (shellyInfo.model && shellyInfo.gen === 3){
+                deviceType = node.shellyInfo.model;
+                requiredNodeType = 'shelly-gen2'; // right now the protocol is compatible to gen 2
+            }
+            else {
+                // this can not happen right now.
+                requiredNodeType = 'shelly gen-type is not supported';
+            }
+
+
+            if (requiredNodeType === node.type) {
+                let found = false;
+                for (let i = 0; i < types.length; i++) {
+                    let type = types[i];
+
+                    if (deviceType){
+                        found  = deviceType.startsWith(type);
+                        if (found) {
+                            break;
+                        }    
+                    }
+                }
+                
+                if (found){
+                    success = true;
+                    node.status({ fill: "green", shape: "ring", text: "" + deviceType });
+                }
+                else{
+                    node.status({ fill: "red", shape: "ring", text: "Shelly type mismatch: " + deviceType});
+                    node.warn("Shelly type mismatch: " + deviceType + ". Choose correct type or if the device is not supported yet then report it here: https://github.com/windkh/node-red-contrib-shelly/issues" );
+                }
+            }
+            else {
+                node.status({ fill: "red", shape: "ring", text: "Wrong node type. Please use " + requiredNodeType });
+                node.warn("Wrong node type. Please use " + requiredNodeType);
+            }
+        }
+        catch (error) {
+            node.status({ fill: "yellow", shape: "ring", text: "Waiting for device..." });
+            // node.warn(error.message); Removed as this would flood the output.
+        }
+
+        return success;
+    }
+
     // Starts polling the status.
     function start(node, types){
         if (node.hostname !== ''){    
@@ -1170,64 +1237,75 @@ module.exports = function (RED) {
     async function initializerRGBW1Async(node, types){
 
         let success = false;
-        try {
-            let credentials = getCredentials(node);
-    
-            let settingsRoute = '/settings';   
-            let settings = await shellyRequestAsync('GET', settingsRoute, null, null, credentials);
-            
-            node.rgbwMode = settings.mode;
 
-            success = initializer1WebhookAsync(node, types);
-        }
-        catch (error) {
-            node.status({ fill: "red", shape: "ring", text: "Failed to get mode from settings."});
-            node.warn("Failed to get mode from settings.", error);
+        let checkOK = await tryCheckDeviceType(node, types);
+        if (checkOK === true){              
+            try {
+                let credentials = getCredentials(node);
+        
+                let settingsRoute = '/settings';   
+                let settings = await shellyRequestAsync('GET', settingsRoute, null, null, credentials);
+                
+                node.rgbwMode = settings.mode;
+
+                success = initializer1WebhookAsync(node, types);
+            }
+            catch (error) {
+                node.status({ fill: "red", shape: "ring", text: "Failed to get mode from settings."});
+                node.warn("Failed to get mode from settings.", error);
+            }
         }
 
         return success;
     }
 
-    function initializer1(node, types){
+    async function initializer1(node, types){
         let success = false;
-        let mode = node.mode;
-        if (mode === 'polling'){
-            start(node, types);
-            success = true;
-        }
-        else if (mode === 'callback'){
-            node.error("Callback not supported for this type of device.");
-            node.status({ fill: "red", shape: "ring", text: "Callback not supported" });
-        }
-        else{
-            // nothing to do.
-            success = true;
+
+        let checkOK = await tryCheckDeviceType(node, types);
+        if (checkOK === true){           
+            let mode = node.mode;
+            if (mode === 'polling'){
+                start(node, types);
+                success = true;
+            }
+            else if (mode === 'callback'){
+                node.error("Callback not supported for this type of device.");
+                node.status({ fill: "red", shape: "ring", text: "Callback not supported" });
+            }
+            else{
+                // nothing to do.
+                success = true;
+            }
         }
         return success;
     }
 
     // starts polling or installs a webhook that calls a REST callback.
     async function initializer1WebhookAsync(node, types){
-
-        const sender = node.hostname;
-        await tryUninstallWebhook1Async(node, sender); // we ignore if it failed
-            
         let success = false;
-        let mode = node.mode;
-        if (mode === 'polling'){
-            await startAsync(node, types);
-            success = true;
+        
+        let checkOK = await tryCheckDeviceType(node, types);
+        if (checkOK === true){              
+            const sender = node.hostname;
+            await tryUninstallWebhook1Async(node, sender); // we ignore if it failed
+                
+            let mode = node.mode;
+            if (mode === 'polling'){
+                await startAsync(node, types);
+                success = true;
+            }
+            else if (mode === 'callback'){
+                let ipAddress = getIPAddress(node);
+                let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
+                success = await tryInstallWebhook1Async(node, webhookUrl, sender);
+            }
+            else{
+                // nothing to do.
+                success = true;
+            }
         }
-        else if (mode === 'callback'){
-            let ipAddress = getIPAddress(node);
-            let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
-            success = await tryInstallWebhook1Async(node, webhookUrl, sender);
-        }
-        else{
-            // nothing to do.
-            success = true;
-        }
-
+        
         return success;
     }
 
@@ -1829,73 +1907,6 @@ module.exports = function (RED) {
 
 
     // GEN 2 --------------------------------------------------------------------------------------
-    
-    // checks if the device is the configured one.
-    async function tryCheckDeviceType(node, types){
-
-        let success = false;
-        let credentials = getCredentials(node);
-            
-        // (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
-        try {
-            let shellyInfo = await shellyRequestAsync('GET', '/shelly', null, null, credentials);;
-
-            let requiredNodeType;
-            let deviceType;
-            // Generation 1 devices
-            if (shellyInfo.type){
-                deviceType = shellyInfo.type;
-                requiredNodeType = 'shelly-gen1';
-            } // Generation 2 devices 
-            else if (shellyInfo.model && shellyInfo.gen === 2){
-                deviceType = shellyInfo.model;
-                requiredNodeType = 'shelly-gen2';
-                
-            } // Generation 3 devices 
-            else if (shellyInfo.model && shellyInfo.gen === 3){
-                deviceType = node.shellyInfo.model;
-                requiredNodeType = 'shelly-gen2'; // right now the protocol is compatible to gen 2
-            }
-            else {
-                // this can not happen right now.
-                requiredNodeType = 'shelly gen-type is not supported';
-            }
-
-
-            if (requiredNodeType === node.type) {
-                let found = false;
-                for (let i = 0; i < types.length; i++) {
-                    let type = types[i];
-
-                    if (deviceType){
-                        found  = deviceType.startsWith(type);
-                        if (found) {
-                            break;
-                        }    
-                    }
-                }
-                
-                if (found){
-                    success = true;
-                    node.status({ fill: "green", shape: "ring", text: "" + deviceType });
-                }
-                else{
-                    node.status({ fill: "red", shape: "ring", text: "Shelly type mismatch: " + deviceType});
-                    node.warn("Shelly type mismatch: " + deviceType + ". Choose correct type or if the device is not supported yet then report it here: https://github.com/windkh/node-red-contrib-shelly/issues" );
-                }
-            }
-            else {
-                node.status({ fill: "red", shape: "ring", text: "Wrong node type. Please use " + requiredNodeType });
-                node.warn("Wrong node type. Please use " + requiredNodeType);
-            }
-        }
-        catch (error) {
-            node.status({ fill: "yellow", shape: "ring", text: "Waiting for device..." });
-            // node.warn(error.message); Removed as this would flood the output.
-        }
-
-        return success;
-    }
         
     // Uploads and enables a skript.
     async function tryInstallScriptAsync(node, script, scriptName){

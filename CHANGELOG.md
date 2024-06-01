@@ -2,7 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [10.24.1] - 2024-06-01
-###  devices are checked in gen 2 mode during start up
+###  support for shelly wall display (relay) - [#155](https://github.com/windkh/node-red-contrib-shelly/issues/155)
+###  devices are checked for their type during start up
 
 ## [10.24.0] - 2024-06-01
 ###  added support for dimmer plus 0-10V - [#154](https://github.com/windkh/node-red-contrib-shelly/issues/154)
