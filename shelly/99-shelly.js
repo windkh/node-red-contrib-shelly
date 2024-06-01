@@ -5,6 +5,8 @@
 
 module.exports = function (RED) {
     "use strict";
+    let config = require('./config/config.json');
+
     const axios = require('axios').default;      
 
     const rateLimit = require("axios-rate-limit");
@@ -1510,16 +1512,7 @@ module.exports = function (RED) {
     }
 
     // see https://kb.shelly.cloud/knowledge-base/devices
-    let gen1DeviceTypes = new Map([
-        ["Relay",      ["SHSW-", "SHPLG-", "SHUNI-", "SHEM", "SHPLG2-"]],
-        ["Measure",    ["SHEM"]], // here no - as the device is only SHEM
-        ["Roller",     ["SHSW-L", "SHSW-25", "SHSW-21"]],
-        ["Dimmer",     ["SHDM-", "SHBDUO-", "SHVIN-"]],
-        ["Thermostat", ["SHTRV-"]],
-        ["Sensor",     ["SHDW-", "SHGS-", "SHWT-", "SHSM-", "SHHT-", "SHMOS-"]],
-        ["Button",     ["SHBTN-", "SHIX3-"]],
-        ["RGBW",       ["SHRGBW2", "SHCB-"]],
-    ]);
+    let gen1DeviceTypes = new Map(config.gen1DeviceTypes);
 
     function getDeviceTypes1(deviceType){
         let deviceTypes = gen1DeviceTypes.get(deviceType);
@@ -2256,15 +2249,7 @@ module.exports = function (RED) {
 
     // see https://kb.shelly.cloud/knowledge-base/devices
     // this list also contains the shelly gen3 devices
-    //  "S3PM-", "S3SW-", "S3SN-"
-    let gen2DeviceTypes = new Map([
-        ["Relay",      ["SHSW-", "SNSW-", "SPSW-",  "SPSH-", "SNPL-", "SNPM-", "SNSN-", "SAWD-", "S3PM-", "S3SW-"]],
-        ["Button",     ["SNSN-"]],
-        ["Sensor",     ["SNSN-", "S3SN-"]], // Shelly Plus H&T / PLus Smoke only support Webhook, no scripting
-        ["Measure",    ["SPEM-"]],
-        ["Dimmer",     ["SNDM-"]],
-        ["BluGateway", ["SNGW-"]],
-    ]);
+    let gen2DeviceTypes = new Map(config.gen2DeviceTypes);
 
     function getDeviceTypes2(deviceType){
         let deviceTypes = gen2DeviceTypes.get(deviceType);

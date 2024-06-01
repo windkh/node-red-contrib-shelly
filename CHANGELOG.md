@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.24.0] - 2024-06-01
+###  added support for dimmer plus 0-10V - [#154](https://github.com/windkh/node-red-contrib-shelly/issues/154)
+###  added configuration file for all known shelly types
+
 ## [10.23.0] - 2024-04-19
 ###  fixed roller problems when position is 0 - [#153](https://github.com/windkh/node-red-contrib-shelly/issues/153)
 
