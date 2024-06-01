@@ -1830,6 +1830,73 @@ module.exports = function (RED) {
 
     // GEN 2 --------------------------------------------------------------------------------------
     
+    // checks if the device is the configured one.
+    async function tryCheckDeviceType(node, types){
+
+        let success = false;
+        let credentials = getCredentials(node);
+            
+        // (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
+        try {
+            let shellyInfo = await shellyRequestAsync('GET', '/shelly', null, null, credentials);;
+
+            let requiredNodeType;
+            let deviceType;
+            // Generation 1 devices
+            if (shellyInfo.type){
+                deviceType = shellyInfo.type;
+                requiredNodeType = 'shelly-gen1';
+            } // Generation 2 devices 
+            else if (shellyInfo.model && shellyInfo.gen === 2){
+                deviceType = shellyInfo.model;
+                requiredNodeType = 'shelly-gen2';
+                
+            } // Generation 3 devices 
+            else if (shellyInfo.model && shellyInfo.gen === 3){
+                deviceType = node.shellyInfo.model;
+                requiredNodeType = 'shelly-gen2'; // right now the protocol is compatible to gen 2
+            }
+            else {
+                // this can not happen right now.
+                requiredNodeType = 'shelly gen-type is not supported';
+            }
+
+
+            if (requiredNodeType === node.type) {
+                let found = false;
+                for (let i = 0; i < types.length; i++) {
+                    let type = types[i];
+
+                    if (deviceType){
+                        found  = deviceType.startsWith(type);
+                        if (found) {
+                            break;
+                        }    
+                    }
+                }
+                
+                if (found){
+                    success = true;
+                    node.status({ fill: "green", shape: "ring", text: "" + deviceType });
+                }
+                else{
+                    node.status({ fill: "red", shape: "ring", text: "Shelly type mismatch: " + deviceType});
+                    node.warn("Shelly type mismatch: " + deviceType + ". Choose correct type or if the device is not supported yet then report it here: https://github.com/windkh/node-red-contrib-shelly/issues" );
+                }
+            }
+            else {
+                node.status({ fill: "red", shape: "ring", text: "Wrong node type. Please use " + requiredNodeType });
+                node.warn("Wrong node type. Please use " + requiredNodeType);
+            }
+        }
+        catch (error) {
+            node.status({ fill: "yellow", shape: "ring", text: "Waiting for device..." });
+            // node.warn(error.message); Removed as this would flood the output.
+        }
+
+        return success;
+    }
+        
     // Uploads and enables a skript.
     async function tryInstallScriptAsync(node, script, scriptName){
         let success = false;
@@ -2118,53 +2185,61 @@ module.exports = function (RED) {
     }
 
     // starts the polling mode.
-    function initializer2(node, types){
+    async function initializer2(node, types){
         let success = false;
-        let mode = node.mode;
-        if (mode === 'polling'){
-            start(node, types);
-            success = true;
+        
+        let checkOK = await tryCheckDeviceType(node, types);
+        if (checkOK === true){        
+            let mode = node.mode;
+            if (mode === 'polling'){
+                start(node, types);
+                success = true;
+            }
+            else if (mode === 'callback'){
+                node.error("Callback not supported for this type of device.");
+                node.status({ fill: "red", shape: "ring", text: "Callback not supported" });
+            }
+            else{
+                // nothing to do.
+                success = true;
+            }
         }
-        else if (mode === 'callback'){
-            node.error("Callback not supported for this type of device.");
-            node.status({ fill: "red", shape: "ring", text: "Callback not supported" });
-        }
-        else{
-            // nothing to do.
-            success = true;
-        }
+
         return success;
     }
 
     // starts polling or uploads a skript that calls a REST callback.
     async function initializer2CallbackAsync(node, types){
-
-        const scriptName = 'node-red-contrib-shelly';
-        await tryUninstallScriptAsync(node, scriptName); // we ignore if it failed.
-            
         let success = false;
-        let mode = node.mode;
-        if (mode === 'polling'){
-            await startAsync(node, types);
-            success = true;
-        }
-        else if (mode === 'callback'){
-            let scriptPath = path.resolve(__dirname, './scripts/callback.script');
-            const buffer = fs.readFileSync(scriptPath);
-            // const buffer = await readFile(scriptPath); #96 nodejs V19
-            let script = buffer.toString();
+        
+        let checkOK = await tryCheckDeviceType(node, types);
+        if (checkOK === true){        
+            const scriptName = 'node-red-contrib-shelly';
+            await tryUninstallScriptAsync(node, scriptName); // we ignore if it failed.
+                
+            let mode = node.mode;
+            if (mode === 'polling'){
+                await startAsync(node, types);
+                success = true;
+            }
+            else if (mode === 'callback'){
+                let scriptPath = path.resolve(__dirname, './scripts/callback.script');
+                const buffer = fs.readFileSync(scriptPath);
+                // const buffer = await readFile(scriptPath); #96 nodejs V19
+                let script = buffer.toString();
 
-            let ipAddress = getIPAddress(node);
-            let url = 'http://' + ipAddress +  ':' + node.server.port + '/callback';
-            script = replace(script, '%URL%', url);
-            let sender = node.hostname;
-            script = replace(script, '%SENDER%', sender);
+                let ipAddress = getIPAddress(node);
+                let url = 'http://' + ipAddress +  ':' + node.server.port + '/callback';
+                script = replace(script, '%URL%', url);
+                let sender = node.hostname;
+                script = replace(script, '%SENDER%', sender);
 
-            success = await tryInstallScriptAsync(node, script, scriptName);
-        }
-        else{
-            // nothing to do.
-            success = true;
+                success = await tryInstallScriptAsync(node, script, scriptName);
+            }
+            else{
+                // nothing to do.
+                success = true;
+            }
         }
 
         return success;
@@ -2173,51 +2248,57 @@ module.exports = function (RED) {
     // like initializer2CallbackAsync it installs a callback script 
     // and in addition to that it installs a BLU scanner that emits catured bluetooth messages.
     async function initializer2BluCallbackAsync(node, types){
-  
-        const scriptName = 'node-red-contrib-shelly-blu';
-        await tryUninstallScriptAsync(node, scriptName); // we ignore if it failed.
-            
         let success = false;
-        let mode = node.mode;
-        if (mode === 'callback'){
-            let scriptPath = path.resolve(__dirname, './scripts/blugateway.script');
-            const buffer = fs.readFileSync(scriptPath);
-            // const buffer = await readFile(scriptPath); #96 nodejs V19
-            let script = buffer.toString();
-            success = await tryInstallScriptAsync(node, script, scriptName);
-        }
-        else{
-            // nothing to do.
-            success = true;
+        
+        let checkOK = await tryCheckDeviceType(node, types);
+        if (checkOK === true){        
+            const scriptName = 'node-red-contrib-shelly-blu';
+            await tryUninstallScriptAsync(node, scriptName); // we ignore if it failed.
+                
+            let mode = node.mode;
+            if (mode === 'callback'){
+                let scriptPath = path.resolve(__dirname, './scripts/blugateway.script');
+                const buffer = fs.readFileSync(scriptPath);
+                // const buffer = await readFile(scriptPath); #96 nodejs V19
+                let script = buffer.toString();
+                success = await tryInstallScriptAsync(node, script, scriptName);
+            }
+            else{
+                // nothing to do.
+                success = true;
+            }
+
+            if (success){
+                success = await initializer2CallbackAsync(node, types);
+            }
         }
 
-        if (success){
-            success = await initializer2CallbackAsync(node, types);
-        }
-        
         return success;
     }
 
     // starts polling or installs a webhook that calls a REST callback.
     async function initializer2WebhookAsync(node, types){
-
-        const webhookName = 'node-red-contrib-shelly';
-        await tryUninstallWebhook2Async(node, webhookName); // we ignore if it failed.
-            
         let success = false;
-        let mode = node.mode;
-        if (mode === 'polling'){
-            await startAsync(node, types);
-            success = true;
-        }
-        else if (mode === 'callback'){
-            let ipAddress = getIPAddress(node);
-            let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
-            success = await tryInstallWebhook2Async(node, webhookUrl, webhookName);
-        }
-        else{
-            // nothing to do.
-            success = true;
+        
+        let checkOK = await tryCheckDeviceType(node, types);
+        if (checkOK === true){        
+            const webhookName = 'node-red-contrib-shelly';
+            await tryUninstallWebhook2Async(node, webhookName); // we ignore if it failed.
+                
+            let mode = node.mode;
+            if (mode === 'polling'){
+                await startAsync(node, types);
+                success = true;
+            }
+            else if (mode === 'callback'){
+                let ipAddress = getIPAddress(node);
+                let webhookUrl = 'http://' + ipAddress +  ':' + node.server.port + '/webhook';
+                success = await tryInstallWebhook2Async(node, webhookUrl, webhookName);
+            }
+            else{
+                // nothing to do.
+                success = true;
+            }
         }
 
         return success;
