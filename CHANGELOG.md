@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.25.0] - 2024-06-02
+###  added strict mode for device mode detection.
+
 ## [10.24.1] - 2024-06-01
 ###  support for shelly wall display (relay) - [#155](https://github.com/windkh/node-red-contrib-shelly/issues/155)
 ###  devices are checked for their type during start up

@@ -109,6 +109,8 @@
             getstatusoncommand: { value: true },
 
             devicetype: { value: "", required: true},
+            devicetypemustmatchexactly : { value: true, required: false },
+
             outputs: {value: 1},
         },
         credentials: {
@@ -189,6 +191,14 @@
         </div>
     </div>
 
+    <div class="form-row" style="margin-left: 20px">
+        <div class="form-row">
+            <label for="node-input-devicetypemustmatchexactly"><i class="fa fa-exclamation"></i> Strict Mode</label>
+            <input type="checkbox" id="node-input-devicetypemustmatchexactly" style="display: inline-block; width: auto; vertical-align: top;">
+        </div>
+        <div class="form-tips" style="width: auto"><b>Tip:</b> If checked an error is created if the shelly is not yet supported. If you want that a new device is supported then create a new issue here: <a href="https://github.com/windkh/node-red-contrib-shelly/issues">Github</a></div>
+    </div>
+	    	
     <hr align="middle"/>
 
     <div class="form-row">
@@ -401,6 +411,8 @@
             getstatusoncommand: { value: true },
         
             devicetype: { value: "", required: true},
+            devicetypemustmatchexactly : { value: true, required: false },
+
             outputs: {value: 1},
         },
         credentials: {
@@ -465,7 +477,14 @@
     </div>
     <div class="form-tips" style="width: auto"><b>Tip:</b> For BluGateway please choose callback with event as output!</div>
 
-
+    <div class="form-row" style="margin-left: 20px">
+        <div class="form-row">
+            <label for="node-input-devicetypemustmatchexactly"><i class="fa fa-exclamation"></i> Strict Mode</label>
+            <input type="checkbox" id="node-input-devicetypemustmatchexactly" style="display: inline-block; width: auto; vertical-align: top;">
+        </div>
+        <div class="form-tips" style="width: auto"><b>Tip:</b> If checked an error is created if the shelly is not yet supported. If you want that a new device is supported then create a new issue here: <a href="https://github.com/windkh/node-red-contrib-shelly/issues">Github</a></div>
+    </div>
+	    	
     <hr align="middle"/>
 
     <div class="form-row">

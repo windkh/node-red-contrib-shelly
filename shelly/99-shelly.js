@@ -219,6 +219,28 @@ module.exports = function (RED) {
         return headers;
     }
 
+    function distinct(value, index, array) {
+        return array.indexOf(value) === index;
+    }
+
+    // Gets the distinct models from the configuration.
+    function getDeviceModels(gen, type){
+        let foundModels = [];
+
+        let keys = Object.keys(config.devices);
+        for (let i = 0; i < keys.length; i++) {
+            let device = config.devices[i];
+            if (device.gen === gen) {
+                if (device.type === type) {
+                    foundModels.push(device.model);
+                }
+            }
+        };
+
+        let models = foundModels.filter(distinct);
+        return models;
+    }
+
     // Note that this function has a reduced timeout.
     function shellyTryGet(route, node, credentials, timeout, callback, errorCallback){
         let data;
@@ -1305,7 +1327,7 @@ module.exports = function (RED) {
                 success = true;
             }
         }
-        
+
         return success;
     }
 
@@ -1592,8 +1614,15 @@ module.exports = function (RED) {
     // see https://kb.shelly.cloud/knowledge-base/devices
     let gen1DeviceTypes = new Map(config.gen1DeviceTypes);
 
-    function getDeviceTypes1(deviceType){
-        let deviceTypes = gen1DeviceTypes.get(deviceType);
+    function getDeviceTypes1(deviceType, exactMatch){
+        let deviceTypes; 
+        if (exactMatch === true){
+            deviceTypes = getDeviceModels("1", deviceType);
+        }
+        else{
+            deviceTypes = gen1DeviceTypes.get(deviceType);
+        }
+
         if (deviceTypes === undefined){
             deviceTypes = []; 
         }
@@ -1818,6 +1847,7 @@ module.exports = function (RED) {
 
         let deviceType = config.devicetype;
         node.deviceType = deviceType;
+        node.deviceTypeMustMatchExactly = config.devicetypemustmatchexactly || false;
 
         node.mode = config.mode;
         if (!node.mode || node.server === undefined || node.server === null) {
@@ -1829,7 +1859,7 @@ module.exports = function (RED) {
         if (deviceType !== undefined && deviceType !== "") {
             node.initializer = getInitializer1(deviceType);
             node.inputParser = getInputParser1(deviceType);
-            node.types = getDeviceTypes1(deviceType);
+            node.types = getDeviceTypes1(deviceType, node.deviceTypeMustMatchExactly);
             
             (async () => {
                 let initialized = await node.initializer(node, node.types);
@@ -2343,8 +2373,17 @@ module.exports = function (RED) {
     // this list also contains the shelly gen3 devices
     let gen2DeviceTypes = new Map(config.gen2DeviceTypes);
 
-    function getDeviceTypes2(deviceType){
-        let deviceTypes = gen2DeviceTypes.get(deviceType);
+    function getDeviceTypes2(deviceType, exactMatch){
+        let deviceTypes = [];
+        if (exactMatch === true){
+            let deviceTypes2 = getDeviceModels("2", deviceType);
+            let deviceTypes3 = getDeviceModels("3", deviceType);
+            deviceTypes = deviceTypes2.concat(deviceTypes3);
+        }
+        else{
+            deviceTypes = gen2DeviceTypes.get(deviceType);
+        }
+
         if (deviceTypes === undefined){
             deviceTypes = []; 
         }
@@ -2511,7 +2550,8 @@ module.exports = function (RED) {
 
         let deviceType = config.devicetype;
         node.deviceType = deviceType;
-        
+        node.deviceTypeMustMatchExactly = config.devicetypemustmatchexactly || false;
+
         node.mode = config.mode;
         if (!node.mode) {
             node.mode = 'polling';
@@ -2522,7 +2562,7 @@ module.exports = function (RED) {
         if (deviceType !== undefined && deviceType !== "") {
             node.initializer = getInitializer2(deviceType);
             node.inputParser = getInputParser2(deviceType);
-            node.types = getDeviceTypes2(deviceType);
+            node.types = getDeviceTypes2(deviceType, node.deviceTypeMustMatchExactly);
             
             (async () => {
                 let initialized = await node.initializer(node, node.types);
