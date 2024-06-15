@@ -223,6 +223,27 @@ module.exports = function (RED) {
         return array.indexOf(value) === index;
     }
 
+    // Gets all device type infos for the config editor
+    function getDeviceTypeInfos(gen){
+        let deviceTypeInfos = [];
+
+        let keys = Object.keys(config.devices);
+        for (let i = 0; i < keys.length; i++) {
+            let device = config.devices[i];
+            if (device.gen === gen) {
+                let deviceTypeInfo = 
+                {
+                    deviceType : device.model,
+                    description : device.name + ' - (' + device.type + ' ' + device.model + ')' 
+                }
+                
+                deviceTypeInfos.push(deviceTypeInfo);
+            }
+        };
+
+        return deviceTypeInfos;
+    }
+
     // Gets the distinct models from the configuration.
     function getDeviceModels(gen, type){
         let foundModels = [];
@@ -252,13 +273,13 @@ module.exports = function (RED) {
     function shellyTryRequest(method, route, params, data, node, credentials, timeout, callback, errorCallback){
     
         if (timeout === undefined || timeout === null){
-            timeout = 5000;
+            timeout = 5001;
         };
 
         // We avoid an invalid timeout by taking a default if 0.
         let requestTimeout = timeout;
         if (requestTimeout <= 0){
-            requestTimeout = 5000;
+            requestTimeout =  5002;
         }
 
         let headers = getHeaders(credentials);
@@ -318,13 +339,13 @@ module.exports = function (RED) {
         return new Promise(function (resolve, reject) {
 
             if (timeout === undefined || timeout === null){
-                timeout = 5000;
+                timeout = 5003;
             };
 
             // We avoid an invalid timeout by taking a default if 0.
             let requestTimeout = timeout;
             if (requestTimeout <= 0){
-                requestTimeout = 5000;
+                requestTimeout = 5004;
             }
 
             let headers = getHeaders(credentials);
@@ -405,7 +426,6 @@ module.exports = function (RED) {
                 requiredNodeType = 'shelly gen-type is not supported';
             }
 
-
             if (requiredNodeType === node.type) {
                 let found = false;
                 for (let i = 0; i < types.length; i++) {
@@ -447,7 +467,7 @@ module.exports = function (RED) {
             
         // (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
         try {
-            let shellyInfo = await shellyRequestAsync('GET', '/shelly', null, null, credentials);;
+            let shellyInfo = await shellyRequestAsync('GET', '/shelly', null, null, credentials);
 
             let requiredNodeType;
             let deviceType;
@@ -1681,9 +1701,9 @@ module.exports = function (RED) {
         let getStatusRoute = '/status';
         if (route && route !== ''){
 
-            shellyTryGet(route, node, credentials, null, function(body) {
+            shellyTryGet(route, node, credentials, 5010, function(body) {
                 if (node.getStatusOnCommand) {
-                    shellyTryGet(getStatusRoute, node, credentials, null, function(body) {
+                    shellyTryGet(getStatusRoute, node, credentials, 5011, function(body) {
                         
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -1711,7 +1731,7 @@ module.exports = function (RED) {
             });
         }
         else {
-            shellyTryGet(getStatusRoute, node, credentials, null, function(body) {
+            shellyTryGet(getStatusRoute, node, credentials, 5012, function(body) {
                     
                 node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -1834,7 +1854,7 @@ module.exports = function (RED) {
             node.initializeRetryInterval = parseInt(config.uploadretryinterval);
         }
         else {
-            node.initializeRetryInterval = 5000;
+            node.initializeRetryInterval = 5005;
         }
       
         node.hostname = trim(config.hostname);
@@ -1938,6 +1958,15 @@ module.exports = function (RED) {
 
     // GEN 2 --------------------------------------------------------------------------------------
         
+    // gets all device type infos for the editor dialog
+    RED.httpAdmin.get("/node-red-contrib-shelly-getidevicetypesgen2", function(req, res) {
+        let deviceTypeInfos2 = getDeviceTypeInfos("2");
+        let deviceTypeInfos3 = getDeviceTypeInfos("3");
+        let deviceTypeInfos = deviceTypeInfos2.concat(deviceTypeInfos3);
+        res.json(deviceTypeInfos);
+    });
+
+
     // Uploads and enables a skript.
     async function tryInstallScriptAsync(node, script, scriptName){
         let success = false;
@@ -2369,6 +2398,25 @@ module.exports = function (RED) {
         return result;
     }
 
+    function isExactTypeGen2(deviceType){
+        let result;
+
+        switch(deviceType) {
+            case 'Button':
+            case 'Relay':
+            case 'Measure':
+            case 'Dimmer':
+            case 'BluGateway':
+            case 'Sensor':
+                result = false;
+                break;
+            default:
+                result = true;
+                break;
+        }
+        return result;
+    }
+
     // see https://kb.shelly.cloud/knowledge-base/devices
     // this list also contains the shelly gen3 devices
     let gen2DeviceTypes = new Map(config.gen2DeviceTypes);
@@ -2419,10 +2467,10 @@ module.exports = function (RED) {
             let data = request.data;
             let params = request.params;
     
-            shellyTryRequest(method, route, params, data, node, credentials, null, function(body) {
+            shellyTryRequest(method, route, params, data, node, credentials, 5020, function(body) {
 
                 if (node.getStatusOnCommand) {
-                    shellyTryGet(getStatusRoute, node, credentials, null, function(body) {
+                    shellyTryGet(getStatusRoute, node, credentials, 5021, function(body) {
                         
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -2451,7 +2499,7 @@ module.exports = function (RED) {
             });
         }
         else {
-            shellyTryGet(getStatusRoute, node, credentials, null, function(body) {
+            shellyTryGet(getStatusRoute, node, credentials, 5022, function(body) {
                     
                 node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -2539,7 +2587,7 @@ module.exports = function (RED) {
             node.initializeRetryInterval = parseInt(config.uploadretryinterval);
         }
         else {
-            node.initializeRetryInterval = 5000;
+            node.initializeRetryInterval = 5006;
         }
         
         node.hostname = trim(config.hostname);
@@ -2562,7 +2610,13 @@ module.exports = function (RED) {
         if (deviceType !== undefined && deviceType !== "") {
             node.initializer = getInitializer2(deviceType);
             node.inputParser = getInputParser2(deviceType);
-            node.types = getDeviceTypes2(deviceType, node.deviceTypeMustMatchExactly);
+
+            if (isExactTypeGen2(deviceType)){
+                node.types = [deviceType];
+            }
+            else {
+                node.types = getDeviceTypes2(deviceType, node.deviceTypeMustMatchExactly);
+            }
             
             (async () => {
                 let initialized = await node.initializer(node, node.types);
