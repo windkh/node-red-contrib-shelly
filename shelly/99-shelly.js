@@ -263,74 +263,18 @@ module.exports = function (RED) {
     }
 
     // Note that this function has a reduced timeout.
-    function shellyTryGet(route, node, credentials, timeout, callback, errorCallback){
-        let data;
-        let params;
-        return shellyTryRequest('GET', route, params, data, node, credentials, timeout, callback, errorCallback);
-    }
-
-    // Note that this function has a reduced timeout.
-    function shellyTryRequest(method, route, params, data, node, credentials, timeout, callback, errorCallback){
+    async function shellyTryGet(route, node, credentials, timeout, callback, errorCallback){
+        try {
+            let data;
+            let params;
     
-        if (timeout === undefined || timeout === null){
-            timeout = 5001;
-        };
-
-        // We avoid an invalid timeout by taking a default if 0.
-        let requestTimeout = timeout;
-        if (requestTimeout <= 0){
-            requestTimeout =  5002;
+            let result = await shellyRequestAsync('GET', route, params, data, credentials, timeout);
+            callback(result);
         }
-
-        let headers = getHeaders(credentials);
-
-        let baseUrl = 'http://' + credentials.hostname;
-        let config = {
-            baseURL :  baseUrl,
-            url : route,
-            method : method,
-            params : params,
-            data : data,
-            headers : headers,
-            timeout: requestTimeout,
-            validateStatus : (status) => status === 200 || status === 401
-        };
-
-        try
-        {
-            const request = axios.request(config);
-
-            request.then(response => {
-                if (response.status == 200){
-                    callback(response.data);
-                }
-                else if (response.status == 401){
-                    config.headers = {
-                        'Authorization': getDigestAuthorization(response, credentials, config)
-                    }
-
-                    const digestRequest = axios.request(config);
-                    digestRequest.then(response => {
-                        if (response.status == 200){
-                            callback(response.data);
-                        }
-                        else {
-                            node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusText });
-                            node.warn("Error: " + response.statusText  + ' ' + config.url);
-                        }
-                    })
-                }
-                else {
-                    node.status({ fill: "red", shape: "ring", text: "Error: " + response.statusText });
-                    node.warn("Error: " + response.statusText );
-                }
-            })
-            .catch(error => {
-                errorCallback(error);
-            });
-        }
-        catch(error2) {
-            errorCallback(error2);
+        catch (error) {
+            node.status({ fill: "red", shape: "ring", text: "Error: " + error });
+            node.warn("Error: " + error );
+            errorCallback(error);
         }
     }
 
@@ -362,8 +306,7 @@ module.exports = function (RED) {
                 validateStatus : (status) => status === 200 || status === 401
             };
 
-            try
-            {
+            try {
                 const request = axios.request(config);
         
                 request.then(response => {
@@ -444,7 +387,7 @@ module.exports = function (RED) {
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
                 }
                 else{
-                    node.status({ fill: "red", shape: "ring", text: "Shelly type mismatch: " + deviceType });
+                    node.status({ fill: "red", shape: "ring", text: "Shelly type mismatch: " + deviceType + " not found in [" + types.join(",") + "]"});
                     node.warn("Shelly type mismatch: " + deviceType);
                 }
             }
@@ -482,7 +425,7 @@ module.exports = function (RED) {
                 
             } // Generation 3 devices 
             else if (shellyInfo.model && shellyInfo.gen === 3){
-                deviceType = node.shellyInfo.model;
+                deviceType = shellyInfo.model;
                 requiredNodeType = 'shelly-gen2'; // right now the protocol is compatible to gen 2
             }
             else {
@@ -2124,7 +2067,7 @@ module.exports = function (RED) {
                             'enable' : true,
                             "urls": [url]
                         };
-                        let createWebhookResonse = await shellyRequestAsync('POST', '/rpc/Webhook.Create', null, createParams, credentials);
+                        let createWebhookResponse = await shellyRequestAsync('POST', '/rpc/Webhook.Create', null, createParams, credentials);
     
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
                         success = true;
@@ -2457,7 +2400,7 @@ module.exports = function (RED) {
         return result;
     }
 
-    function executeCommand2(msg, request, node, credentials){
+    async function executeCommand2(msg, request, node, credentials){
 
         let getStatusRoute = '/rpc/Shelly.GetStatus';
         if (request !== undefined && request.route !== undefined && request.route !== ''){
@@ -2467,8 +2410,9 @@ module.exports = function (RED) {
             let data = request.data;
             let params = request.params;
     
-            shellyTryRequest(method, route, params, data, node, credentials, 5020, function(body) {
-
+            try {
+                let body = await shellyRequestAsync(method, route, params, data, credentials, 5020);
+                
                 if (node.getStatusOnCommand) {
                     shellyTryGet(getStatusRoute, node, credentials, 5021, function(body) {
                         
@@ -2492,11 +2436,11 @@ module.exports = function (RED) {
                     msg.payload = body;
                     node.send([msg]);
                 }
-            },
-            function(error){
-                node.status({ fill: "yellow", shape: "ring", text: error.message });
+            }
+            catch (error) {
+                node.status({ fill: "yellow", shape: "ring", text: error });
                 node.warn(error);
-            });
+            }
         }
         else {
             shellyTryGet(getStatusRoute, node, credentials, 5022, function(body) {
@@ -2729,8 +2673,7 @@ module.exports = function (RED) {
                 validateStatus : (status) => status === 200
             };
 
-            try
-            {
+            try {
                 const request = cloudAxios.request(config);
         
                 request.then(response => {

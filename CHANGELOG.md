@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.25.2] - 2024-06-24
+###  fixed gen 3 problems: device was not detected correctly - [#159](https://github.com/windkh/node-red-contrib-shelly/issues/159)
+
 ## [10.25.1] - 2024-06-15
 ###  added unique timeouts to hunt down issue 157 - [#157](https://github.com/windkh/node-red-contrib-shelly/issues/157)
 
