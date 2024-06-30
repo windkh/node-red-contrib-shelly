@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.26.0] - 2024-06-30
+###  added verbose logging - [#130](https://github.com/windkh/node-red-contrib-shelly/issues/130)
+###  every node has an own axios instance now to fix #157
+
 ## [10.25.2] - 2024-06-24
 ###  fixed gen 3 problems: device was not detected correctly - [#159](https://github.com/windkh/node-red-contrib-shelly/issues/159)
 

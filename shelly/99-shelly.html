@@ -86,7 +86,8 @@
             hostname: { value:"" },
             description: { value:"" },
             mode: { value: "polling", required: true },
-        
+            verbose: { value: false, required: true },
+
             // callback
             server: { value:"", type: "shelly-gen1-server", validate:function(v) {
                 let mode = $("#node-input-mode").val();
@@ -279,6 +280,14 @@
         <label for="node-input-outputs"><i class="fa fa-envelope"></i> Output Count</label>
         <input type="text" id="node-input-outputs">
     </div>
+
+    <hr align="middle"/>
+
+    <div class="form-row">
+        <label for="node-input-verbose"><i class="fa fa-pencil"></i> Verbose Logging</label>
+        <input type="checkbox" id="node-input-verbose" style="display: inline-block; width: auto; vertical-align: top;">
+    </div>
+
 </script>
 
 <script type="text/x-red" data-help-name="shelly-gen1">
@@ -390,7 +399,8 @@
             hostname: { value:"" },
             description: { value:"" },
             mode: { value: "polling", required: true },
-        
+            verbose: { value: false, required: true },
+
             // callback
             server: { value:"", type: "shelly-gen2-server", validate:function(v) {
                 let mode = $("#node-input-mode").val();
@@ -429,14 +439,29 @@
             return this.description?"node_label_italic":"";
         },
         oneditprepare: function() {
+            let populateDeviceTypes = function() {
+                $.getJSON('node-red-contrib-shelly-getidevicetypesgen2', function(deviceTypeInfos) {
+                    for (let i = 0; i <= deviceTypeInfos.length; i++) {
+                        let deviceTypeInfo = deviceTypeInfos[i];
+                        if (deviceTypeInfo !== undefined) {
+                            $('#node-input-devicetype').append('<option value="' + deviceTypeInfo.deviceType + '">' + deviceTypeInfo.description + '</option>');
+                        }
+                    }
+                }); 
+            };
+            populateDeviceTypes();
+            debugger;
+            $('#node-input-devicetype').val(this.devicetype); // TODO: hier richtigen wert setzen bei start
+
+
             let updateDeviceType = function() {
                 let devicetype = $("#node-input-devicetype").val();
                 // TODO: for future usage
+                debugger;
             };
             updateDeviceType();
             $("#node-input-devicetype").change(updateDeviceType);
-
-
+            
             // polling or callback
             var updateMode = function() {
                 var mode = $("#node-input-mode").val();
@@ -475,7 +500,6 @@
             </div>
         </div>
     </div>
-    <div class="form-tips" style="width: auto"><b>Tip:</b> For BluGateway please choose callback with event as output!</div>
 
     <div class="form-row" style="margin-left: 20px">
         <div class="form-row">
@@ -501,6 +525,8 @@
     </div>
 
     <hr align="middle"/>
+
+    <div class="form-tips" style="width: auto"><b>Tip:</b> For BluGateway please choose callback with event as output!</div>
 
     <div class="form-row">
         <label for="node-input-mode"><i class="fa fa-link"></i> Mode</label>
@@ -553,6 +579,13 @@
     <div class="form-row">
         <label for="node-input-getstatusoncommand"><i class="fa fa-share"></i> Status</label>
         <input type="checkbox" id="node-input-getstatusoncommand" style="display: inline-block; width: auto; vertical-align: top"> Enable status output after each command
+    </div>
+
+    <hr align="middle"/>
+
+    <div class="form-row">
+        <label for="node-input-verbose"><i class="fa fa-pencil"></i> Verbose Logging</label>
+        <input type="checkbox" id="node-input-verbose" style="display: inline-block; width: auto; vertical-align: top;">
     </div>
 
 </script>
