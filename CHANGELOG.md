@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.26.01] - 2024-07-07
+###  added SPSW-201PE16EU - [#162](https://github.com/windkh/node-red-contrib-shelly/issues/162)
+###  added SNSW-102P16EU  - [#161](https://github.com/windkh/node-red-contrib-shelly/issues/161)
+
 ## [10.26.0] - 2024-06-30
 ###  added verbose logging - [#130](https://github.com/windkh/node-red-contrib-shelly/issues/130)
 ###  every node has an own axios instance now to fix #157
