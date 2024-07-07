@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.27.0] - 2024-07-07
+###  refactored requests to avoid unhandled exceptions 
+###  added auto detect feature in the configuration dialog
+
 ## [10.26.2] - 2024-07-07
 ###  added SPSW-201PE16EU - [#162](https://github.com/windkh/node-red-contrib-shelly/issues/162)
 ###  added SNSW-102P16EU  - [#161](https://github.com/windkh/node-red-contrib-shelly/issues/161)

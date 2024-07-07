@@ -129,6 +129,19 @@
             return this.description?"node_label_italic":"";
         },
         oneditprepare: function() {
+            let populateDeviceTypes = function() {
+                $.getJSON('node-red-contrib-shelly-getidevicetypesgen1', function(deviceTypeInfos) {
+                    for (let i = 0; i <= deviceTypeInfos.length; i++) {
+                        let deviceTypeInfo = deviceTypeInfos[i];
+                        if (deviceTypeInfo !== undefined) {
+                            $('#node-input-devicetype').append('<option value="' + deviceTypeInfo.deviceType + '">' + deviceTypeInfo.description + '</option>');
+                        }
+                    }
+                }); 
+            };
+            populateDeviceTypes();
+            $('#node-input-devicetype').val(this.devicetype);
+
 
             // the inputs edit field is always hidden.
             $("#hiddeninputs").hide();
@@ -167,40 +180,51 @@
             };
             updateMode();
             $("#node-input-mode").change(updateMode);
+
+            let getdevicetype = function() { 
+                let hostname = $("#node-input-hostname").val();
+                if (hostname !== '') {
+                    let parameters = {
+                        hostname : hostname
+                    }
+
+                    $.getJSON('node-red-contrib-shelly-getshellyinfo', parameters, function(data) {
+                        debugger;
+                        if(data.gen !== undefined){
+                            if(data.gen == 1) {
+                                $("#getdevicetypebuttonresult").text("Detected shelly " + data.model + "");
+                                   
+                                if(data.device !== undefined) {
+                                    $('#node-input-devicetype').val(data.device.model);
+                                    // gen 1 devices do not offer name nor id.
+                                }
+                                else {
+                                    $("#getdevicetypebuttonresult").text("Device could not be found in config. Please report device type in github.");
+                                }
+                            }
+                            else {
+                                $("#getdevicetypebuttonresult").text("Shelly gen " + data.gen + " is not supported by this node.");
+                            }
+                        }
+                        else {
+                            $("#getdevicetypebuttonresult").text("Shelly did not respond: " +  hostname);
+                        } 
+                    });
+                }
+                else{
+                    $("#getdevicetypebuttonresult").text("Please enter a valid hostname first.");
+                }
+            }
+
+            $( '#getdevicetypebutton' ).click( function() {
+                getdevicetype();    
+            });
         }
     });
 
 </script>
 
 <script type="text/x-red" data-template-name="shelly-gen1">
-
-    <div class="form-row">
-        <label for="node-input-devicetype"><i class="fa fa-pencil"></i> Device Type</label>
-        <div style="display: inline-block; position: relative; width: 70%; height: 19.1333px;">
-        <div style="position: absolute; left: 0; right: 0;">
-          <select id="node-input-devicetype" style="width:100%">
-            <option value="Relay">Relay - Shelly1, 1PM, 1L, 2, 2.5, Plug(S/E/US), Uni</option>
-            <option value="Measure">Measure - Shelly EM, EM3</option>
-            <option value="Roller">Roller - Shelly 2, 2.5</option>  
-            <option value="Dimmer">Dimmer - Shelly Dimmer 1/2, Duo, Vintage</option>  
-            <option value="RGBW">RGBW - Shelly RGBW2, Bulb RGBW</option>  
-            <option value="Thermostat">Thermostat - Shelly TRV</option>  
-            <option value="Sensor">Sensor - Shelly Motion, Door, Window, H&T, Smoke, Flood, Gas</option>  
-            <option value="Button">Button - Shelly Button, I3</option>  
-          </select>
-        </div>
-        </div>
-    </div>
-
-    <div class="form-row" style="margin-left: 20px">
-        <div class="form-row">
-            <label for="node-input-devicetypemustmatchexactly"><i class="fa fa-exclamation"></i> Strict Mode</label>
-            <input type="checkbox" id="node-input-devicetypemustmatchexactly" style="display: inline-block; width: auto; vertical-align: top;">
-        </div>
-        <div class="form-tips" style="width: auto"><b>Tip:</b> If checked an error is created if the shelly is not yet supported. If you want that a new device is supported then create a new issue here: <a href="https://github.com/windkh/node-red-contrib-shelly/issues">Github</a></div>
-    </div>
-	    	
-    <hr align="middle"/>
 
     <div class="form-row">
         <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
@@ -219,6 +243,47 @@
         <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
     </div>
 
+    <hr align="middle"/>
+
+    <div class="form-row">
+        <div class="form-row">
+            <label for="node-input-devicetype"><i class="fa fa-pencil"></i> Device Type</label>
+        
+            <button id="getdevicetypebutton" type="button" class="red-ui-button" style="margin-left: 10px;">
+                <i class="fa fa-search"></i>
+            </button>
+            
+            <div style="display: inline-block; position: relative; width: calc(80% - 105px); height: 19.1333px;">
+                <div style="position: absolute; left: 0; right: 0;">
+                    <select id="node-input-devicetype" style="width: 100%">
+                        <option value="Relay">Relay - Shelly1, 1PM, 1L, 2, 2.5, Plug(S/E/US), Uni</option>
+                        <option value="Measure">Measure - Shelly EM, EM3</option>
+                        <option value="Roller">Roller - Shelly 2, 2.5</option>  
+                        <option value="Dimmer">Dimmer - Shelly Dimmer 1/2, Duo, Vintage</option>  
+                        <option value="RGBW">RGBW - Shelly RGBW2, Bulb RGBW</option>  
+                        <option value="Thermostat">Thermostat - Shelly TRV</option>  
+                        <option value="Sensor">Sensor - Shelly Motion, Door, Window, H&T, Smoke, Flood, Gas</option>  
+                        <option value="Button">Button - Shelly Button, I3</option>  
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">    
+            <div class="form-tips" id='getdevicetypebuttonresult' style="width: auto"></div>
+             <div class="form-tips" id='getdevicetypebuttontip' style="width: auto">
+                <b>Tip:</b> You can auto detect the device type. Enter a valid IP address above and make sure the shelly is reachable and not sleeping. Press the search button next to the device type box.</div>
+       </div>
+    </div>
+
+    <div class="form-row" style="margin-left: 20px">
+        <div class="form-row">
+            <label for="node-input-devicetypemustmatchexactly"><i class="fa fa-exclamation"></i> Strict Mode</label>
+            <input type="checkbox" id="node-input-devicetypemustmatchexactly" style="display: inline-block; width: auto; vertical-align: top;">
+        </div>
+        <div class="form-tips" style="width: auto"><b>Tip:</b> If checked an error is created if the shelly is not yet supported. If you want that a new device is supported then create a new issue here: <a href="https://github.com/windkh/node-red-contrib-shelly/issues">Github</a></div>
+    </div>
+	    	
     <hr align="middle"/>
 
     <div class="form-row">
@@ -450,14 +515,12 @@
                 }); 
             };
             populateDeviceTypes();
-            debugger;
-            $('#node-input-devicetype').val(this.devicetype); // TODO: hier richtigen wert setzen bei start
+            $('#node-input-devicetype').val(this.devicetype);
 
 
             let updateDeviceType = function() {
                 let devicetype = $("#node-input-devicetype").val();
                 // TODO: for future usage
-                debugger;
             };
             updateDeviceType();
             $("#node-input-devicetype").change(updateDeviceType);
@@ -478,38 +541,58 @@
             };
             updateMode();
             $("#node-input-mode").change(updateMode);
+
+            let getdevicetype = function() { 
+                let hostname = $("#node-input-hostname").val();
+                if (hostname !== '') {
+                    let parameters = {
+                        hostname : hostname
+                    }
+
+                    $.getJSON('node-red-contrib-shelly-getshellyinfo', parameters, function(data) {
+                        if(data.gen !== undefined){
+                            if(data.gen >= 2) {
+                                $("#getdevicetypebuttonresult").text("Detected shelly " + data.model + "");
+                                   
+                                if(data.device !== undefined) {
+                                    $('#node-input-devicetype').val(data.device.model);
+                                    
+                                    if(data.name) {
+                                        $('#node-input-description').val(data.name);
+                                    }else if(data.id) {
+                                        $('#node-input-description').val(data.id);
+                                    }
+                                    else{
+                                        // gen 1 devices do not offer name nor id.
+                                    }
+                                }
+                                else {
+                                    $("#getdevicetypebuttonresult").text("Device could not be found in config. Please report device type in github.");
+                                }
+                            }
+                            else {
+                                $("#getdevicetypebuttonresult").text("Shelly gen " + data.gen + " is not supported by this node.");
+                            }
+                        }
+                        else {
+                            $("#getdevicetypebuttonresult").text("Shelly did not respond: " +  hostname);
+                        } 
+                    });
+                }
+                else{
+                    $("#getdevicetypebuttonresult").text("Please enter a valid hostname first.");
+                }
+            }
+
+            $( '#getdevicetypebutton' ).click( function() {
+                getdevicetype();    
+            });
         }
     });
 
 </script>
 
 <script type="text/x-red" data-template-name="shelly-gen2">
-
-    <div class="form-row">
-        <label for="node-input-devicetype"><i class="fa fa-pencil"></i> Device Type</label>
-        <div style="display: inline-block; position: relative; width: 70%; height: 19.1333px;">
-            <div style="position: absolute; left: 0; right: 0;">
-            <select id="node-input-devicetype" style="width:100%">
-                <option value="Relay">Relay - Shelly Plus 1, Plus 1 PM, Plus 2 PM, UNI Plus, Pro 2, Pro 2 PM, Pro 4 PM, Plug US, Plus Plug S, 1PM Mini, Walldisplay</option>
-                <option value="Button">Button - Shelly Plus I4</option>
-                <option value="Sensor">Sensor - Shelly Plus H&T, Plus Smoke</option>
-                <option value="Measure">Measure - Shelly Pro 3EM</option>
-                <option value="Dimmer">Dimmer - Shelly Plus Walldimmer, Plus 0-10V Dimmer.</option>
-                <option value="BluGateway">BLU-Gateway - Shelly Bluetooth Low Energy Gateway</option>
-            </select>
-            </div>
-        </div>
-    </div>
-
-    <div class="form-row" style="margin-left: 20px">
-        <div class="form-row">
-            <label for="node-input-devicetypemustmatchexactly"><i class="fa fa-exclamation"></i> Strict Mode</label>
-            <input type="checkbox" id="node-input-devicetypemustmatchexactly" style="display: inline-block; width: auto; vertical-align: top;">
-        </div>
-        <div class="form-tips" style="width: auto"><b>Tip:</b> If checked an error is created if the shelly is not yet supported. If you want that a new device is supported then create a new issue here: <a href="https://github.com/windkh/node-red-contrib-shelly/issues">Github</a></div>
-    </div>
-	    	
-    <hr align="middle"/>
 
     <div class="form-row">
         <label for="node-input-hostname"><i class="fa fa-tag"></i> Hostname</label>
@@ -526,7 +609,44 @@
 
     <hr align="middle"/>
 
-    <div class="form-tips" style="width: auto"><b>Tip:</b> For BluGateway please choose callback with event as output!</div>
+    <div class="form-row">
+        <div class="form-row">
+            <label for="node-input-devicetype"><i class="fa fa-pencil"></i> Device Type</label>
+        
+            <button id="getdevicetypebutton" type="button" class="red-ui-button" style="margin-left: 10px;">
+                <i class="fa fa-search"></i>
+            </button>
+            
+            <div style="display: inline-block; position: relative; width: calc(80% - 105px); height: 19.1333px;">
+                <div style="position: absolute; left: 0; right: 0;">
+                    <select id="node-input-devicetype" style="width: 100%">
+                        <option value="Relay">Relay - Shelly Plus 1, Plus 1 PM, Plus 2 PM, UNI Plus, Pro 2, Pro 2 PM, Pro 4 PM, Plug US, Plus Plug S, 1PM Mini, Walldisplay</option>
+                        <option value="Button">Button - Shelly Plus I4</option>
+                        <option value="Sensor">Sensor - Shelly Plus H&T, Plus Smoke</option>
+                        <option value="Measure">Measure - Shelly Pro 3EM</option>
+                        <option value="Dimmer">Dimmer - Shelly Plus Walldimmer, Plus 0-10V Dimmer.</option>
+                        <option value="BluGateway">BLU-Gateway - Shelly Bluetooth Low Energy Gateway</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">    
+            <div class="form-tips" id='getdevicetypebuttonresult' style="width: auto"></div>
+             <div class="form-tips" id='getdevicetypebuttontip' style="width: auto">
+                <b>Tip:</b> You can auto detect the device type. Enter a valid IP address above and make sure the shelly is reachable and not sleeping. Press the search button next to the device type box.</div>
+       </div>
+    </div>
+
+    <div class="form-row" style="margin-left: 20px">
+        <div class="form-row">
+            <label for="node-input-devicetypemustmatchexactly"><i class="fa fa-exclamation"></i> Strict Mode</label>
+            <input type="checkbox" id="node-input-devicetypemustmatchexactly" style="display: inline-block; width: auto; vertical-align: top;">
+        </div>
+        <div class="form-tips" style="width: auto"><b>Tip:</b> If checked an error is created if the shelly is not yet supported. If you want that a new device is supported then create a new issue here: <a href="https://github.com/windkh/node-red-contrib-shelly/issues">Github</a></div>
+    </div>
+	    	
+    <hr align="middle"/>
 
     <div class="form-row">
         <label for="node-input-mode"><i class="fa fa-link"></i> Mode</label>
@@ -536,6 +656,8 @@
             <option value="none">None</option>
         </select>
     </div>
+    <div class="form-tips" style="width: auto"><b>Tip:</b> For BluGateway please choose callback with event as output!</div>
+
 
     <div class="form-row hidden" id="polling" style="background: #fbfbfb">
         <label style="width: auto"><i class="fa fa-cogs"></i> Polling Options:</label>

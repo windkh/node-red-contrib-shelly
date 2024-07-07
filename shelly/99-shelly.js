@@ -95,6 +95,36 @@ module.exports = function (RED) {
         res.json(ipAddresses);
     });
 
+    
+    RED.httpAdmin.get("/node-red-contrib-shelly-getshellyinfo", async function(req, res) {
+        let shellyInfo;
+        try {
+            let hostname = trim(req.query.hostname);
+            shellyInfo = await getShellyInfo(hostname);
+
+            let deviceType;
+            // Generation 1 devices are mapped to gen2+ schema
+            if (shellyInfo.type){
+                shellyInfo.gen = 1;
+                shellyInfo.model = shellyInfo.type;
+            }
+
+            let keys = Object.keys(config.devices);
+            for (let i = 0; i < keys.length; i++) {
+                let device = config.devices[i];
+                if (device.model === shellyInfo.model) {
+                    shellyInfo.device = device;
+                    break;
+                }
+            };
+        }
+        catch(error){
+            shellyInfo = {};
+        }
+
+        res.json(shellyInfo);
+    });
+
     // Gets the local IP address from the node or using auto detection.
     function getIPAddress(node) {
         let ipAddress;
@@ -262,22 +292,6 @@ module.exports = function (RED) {
         return models;
     }
 
-    // Note that this function has a reduced timeout.
-    async function shellyTryGet(route, node, credentials, timeout, callback, errorCallback){
-        try {
-            let data;
-            let params;
-    
-            let result = await shellyRequestAsync(node.axiosInstance, 'GET', route, params, data, credentials, timeout);
-            callback(result);
-        }
-        catch (error) {
-            node.status({ fill: "red", shape: "ring", text: "Error: " + error });
-            node.warn("Error: " + error );
-            errorCallback(error);
-        }
-    }
-
     // generic REST request wrapper with promise
     function shellyRequestAsync(axiosInstance, method, route, params, data, credentials, timeout){
         return new Promise(function (resolve, reject) {
@@ -342,10 +356,14 @@ module.exports = function (RED) {
 
 
     // Hint: the /shelly route can be accessed without authorization
-    function shellyPing(node, credentials, types){
+    async function shellyPing(node, credentials, types){
 
         // gen 1 and gen 2 devices support this endpoint (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
-        shellyTryGet('/shelly', node, credentials, node.pollInterval, function(body) {
+        try {
+            let data;
+            let params;
+            let body = await shellyRequestAsync(node.axiosInstance, 'GET', '/shelly', params, data, credentials, node.pollInterval);
+            
             node.shellyInfo = body;
 
             let requiredNodeType;
@@ -395,17 +413,37 @@ module.exports = function (RED) {
                 node.status({ fill: "red", shape: "ring", text: "Wrong node type. Please use " + requiredNodeType });
                 node.warn("Wrong node type. Please use " + requiredNodeType);
             }
-        },
-        function(error){
+        }
+        catch (error) {
             node.status({ fill: "red", shape: "ring", text: "Ping: " + error.message });
             if (node.verbose) {
                 node.warn(error.message);
             }
-        });
+        }
     }
 
-      // checks if the device is the configured one.
-      async function tryCheckDeviceType(node, types){
+    
+    // checks if the device is reachable and returns the shelly info. Note that /shelly does not require any credentials.
+    async function getShellyInfo(hostname){
+        let shellyInfo;
+
+        // (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
+        try {
+            let credentials = {
+                hostname : hostname
+            }
+            shellyInfo = await shellyRequestAsync(axios, 'GET', '/shelly', null, null, credentials);
+        }
+        catch (error) {
+            shellyInfo = {};
+        }
+
+        return shellyInfo;
+    }
+
+
+    // checks if the device is the configured one.
+    async function tryCheckDeviceType(node, types){
 
         let success = false;
         let credentials = getCredentials(node);
@@ -1650,55 +1688,76 @@ module.exports = function (RED) {
         return hookTypes;
     }
 
-    function executeCommand1(msg, route, node, credentials){
+    async function executeCommand1(msg, route, node, credentials){
         let getStatusRoute = '/status';
         if (route && route !== ''){
 
-            shellyTryGet(route, node, credentials, 5010, function(body) {
+            try {
+                let data;
+                let params;
+                let body = await shellyRequestAsync(node.axiosInstance, 'GET', route, params, data, credentials, 5010);
+                
                 if (node.getStatusOnCommand) {
-                    shellyTryGet(getStatusRoute, node, credentials, 5011, function(body) {
-                        
+                    try {
+                        let data;
+                        let params;
+                
+                        let body = await shellyRequestAsync(node.axiosInstance, 'GET', getStatusRoute, params, data, credentials, 5011);
                         node.status({ fill: "green", shape: "ring", text: "Connected." });
 
                         let status = body;
                         msg.status = status;
                         msg.payload = convertStatus1(status);
                         node.send([msg]);
-                    },
-                    function(error){
+                    }
+                    catch (error) {
                         if (msg.payload){
                             node.status({ fill: "yellow", shape: "ring", text: error.message });
                             node.warn(error.message);
                         }
-                    });
+                        else{
+                            node.status({ fill: "red", shape: "ring", text: "Error: " + error });
+                            node.warn("Error: " + error );
+                        }
+                    }
                 } else {
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
 
                     msg.payload = body;
                     node.send([msg]);
                 }
-            },
-            function(error){
-                node.status({ fill: "yellow", shape: "ring", text: error.message });
-                node.warn(error.message);
-            });
+            }
+            catch (error) {
+                node.status({ fill: "red", shape: "ring", text: "Error: " + error });
+                node.warn("Error: " + error );
+                
+                // node.status({ fill: "yellow", shape: "ring", text: error.message });
+                // node.warn(error.message);
+            }
         }
         else {
-            shellyTryGet(getStatusRoute, node, credentials, 5012, function(body) {
-                    
+            try {
+                let data;
+                let params;
+                let body = await shellyRequestAsync(node.axiosInstance, 'GET', getStatusRoute, params, data, node.credentials, 5012);
+                
                 node.status({ fill: "green", shape: "ring", text: "Connected." });
 
                 let status = body;
                 msg.status = status;
                 msg.payload = convertStatus1(status);
                 node.send([msg]);
-            },
-            function(error){
-                if (msg.payload){
+            }
+            catch (error) {
+                if (msg.payload) {
                     node.status({ fill: "yellow", shape: "ring", text: error.message });
                     node.warn(error.message);
                 }
-            });
+                else {
+                    node.status({ fill: "red", shape: "ring", text: "Error: " + error });
+                    node.warn("Error: " + error );
+                }
+            }
         }
     }
 
@@ -1924,6 +1983,10 @@ module.exports = function (RED) {
         res.json(deviceTypeInfos);
     });
 
+    RED.httpAdmin.get("/node-red-contrib-shelly-getidevicetypesgen1", function(req, res) {
+        let deviceTypeInfos = getDeviceTypeInfos("1");
+        res.json(deviceTypeInfos);
+    });
 
     // Uploads and enables a skript.
     async function tryInstallScriptAsync(node, script, scriptName){
@@ -2435,21 +2498,13 @@ module.exports = function (RED) {
                 let body = await shellyRequestAsync(node.axiosInstance, method, route, params, data, credentials, 5020);
                 
                 if (node.getStatusOnCommand) {
-                    shellyTryGet(getStatusRoute, node, credentials, 5021, function(body) {
-                        
-                        node.status({ fill: "green", shape: "ring", text: "Connected." });
+                    let body = await shellyRequestAsync(node.axiosInstance, 'GET', getStatusRoute, params, data, credentials, 5021);
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                        let status = body;
-                        msg.status = status;
-                        msg.payload = convertStatus2(status);
-                        node.send([msg]);
-                    },
-                    function(error){
-                        if (msg.payload){
-                            node.status({ fill: "yellow", shape: "ring", text: error.message });
-                            node.warn(error);
-                        }
-                    });
+                    let status = body;
+                    msg.status = status;
+                    msg.payload = convertStatus2(status);
+                    node.send([msg]);
                 }
                 else {
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
@@ -2459,26 +2514,41 @@ module.exports = function (RED) {
                 }
             }
             catch (error) {
-                node.status({ fill: "yellow", shape: "ring", text: error });
-                node.warn(error);
+                if (msg.payload){
+                    node.status({ fill: "yellow", shape: "ring", text: error.message });
+                    node.warn(error);
+                }
+                else
+                {
+                    node.status({ fill: "red", shape: "ring", text: "Error: " + error });
+                    node.warn("Error: " + error );
+                }
             }
         }
         else {
-            shellyTryGet(getStatusRoute, node, credentials, 5022, function(body) {
-                    
+            try {
+                let data;
+                let params;
+        
+                let body = await shellyRequestAsync(node.axiosInstance, 'GET', getStatusRoute, params, data, credentials, 5022);
+
                 node.status({ fill: "green", shape: "ring", text: "Connected." });
 
                 let status = body;
                 msg.status = status;
                 msg.payload = convertStatus2(status);
                 node.send([msg]);
-            },
-            function(error){
+            }
+            catch (error) {
                 if (msg.payload){
                     node.status({ fill: "yellow", shape: "ring", text: error.message });
                     node.warn(error);
                 }
-            });
+                else{
+                    node.status({ fill: "red", shape: "ring", text: "Error: " + error });
+                    node.warn("Error: " + error );
+                }
+            }
         }
     }
 
