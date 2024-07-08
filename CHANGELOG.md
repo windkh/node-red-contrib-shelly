@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.27.1] - 2024-07-08
+###  Fixed gen 1 strict mode - [#163](https://github.com/windkh/node-red-contrib-shelly/issues/163)
+
 ## [10.27.0] - 2024-07-07
 ###  refactored requests to avoid unhandled exceptions 
 ###  added auto detect feature in the configuration dialog

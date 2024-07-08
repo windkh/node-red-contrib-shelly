@@ -1531,6 +1531,27 @@ module.exports = function (RED) {
         }
         return result;
     }
+
+    function isExactTypeGen1(deviceType){
+        let result;
+
+        switch(deviceType) {
+            case 'Button':
+            case 'Relay':
+            case 'Measure':
+            case 'Dimmer':
+            case 'Roller':
+            case 'Sensor':
+            case 'Thermostat':
+            case 'RGBW':
+                result = false;
+                break;
+            default:
+                result = true;
+                break;
+        }
+        return result;
+    }
    
     // Returns a status object with filtered properties.
     function convertStatus1(status){
@@ -1896,7 +1917,13 @@ module.exports = function (RED) {
 
             node.initializer = getInitializer1(deviceType);
             node.inputParser = getInputParser1(deviceType);
-            node.types = getDeviceTypes1(deviceType, node.deviceTypeMustMatchExactly);
+
+            if (isExactTypeGen1(deviceType)){
+                node.types = [deviceType];
+            }
+            else {
+                node.types = getDeviceTypes1(deviceType, node.deviceTypeMustMatchExactly);
+            }
             
             (async () => {
                 let initialized = await node.initializer(node, node.types);
