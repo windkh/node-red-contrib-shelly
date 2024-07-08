@@ -129,40 +129,10 @@
             return this.description?"node_label_italic":"";
         },
         oneditprepare: function() {
-            let populateDeviceTypes = function() {
-                $.getJSON('node-red-contrib-shelly-getidevicetypesgen1', function(deviceTypeInfos) {
-                    for (let i = 0; i <= deviceTypeInfos.length; i++) {
-                        let deviceTypeInfo = deviceTypeInfos[i];
-                        if (deviceTypeInfo !== undefined) {
-                            $('#node-input-devicetype').append('<option value="' + deviceTypeInfo.deviceType + '">' + deviceTypeInfo.description + '</option>');
-                        }
-                    }
-                }); 
-            };
-            populateDeviceTypes();
-            $('#node-input-devicetype').val(this.devicetype);
-
-
+            debugger;
+               
             // the inputs edit field is always hidden.
             $("#hiddeninputs").hide();
-
-            // enable 2nd output when measure device is selected
-            var updateDeviceType = function() {
-                var devicetype = $("#node-input-devicetype").val();
-                if (devicetype == 'Measure') {
-                    $("#node-input-outputs").val(2);
-                } else {
-                    $("#node-input-outputs").val(1);
-                }
-
-                if (devicetype == 'RGBW') {
-                    $("#rgbw").show();
-                } else {
-                    $("#rgbw").hide();
-                }
-            };
-            updateDeviceType();
-            $("#node-input-devicetype").change(updateDeviceType);
 
             // polling or callback
             var updateMode = function() {
@@ -181,6 +151,41 @@
             updateMode();
             $("#node-input-mode").change(updateMode);
 
+
+            let populateDeviceTypes = function(devicetype) {
+                $.getJSON('node-red-contrib-shelly-getidevicetypesgen1', function(deviceTypeInfos) {
+                    for (let i = 0; i <= deviceTypeInfos.length; i++) {
+                        let deviceTypeInfo = deviceTypeInfos[i];
+                        if (deviceTypeInfo !== undefined) {
+                            $('#node-input-devicetype').append('<option value="' + deviceTypeInfo.deviceType + '">' + deviceTypeInfo.description + '</option>');
+                        }
+                    }
+
+                    $('#node-input-devicetype').val(devicetype);
+                }); 
+            };
+            populateDeviceTypes(this.devicetype);
+
+          
+            // enable 2nd output when measure device is selected
+            var updateDeviceType = function() {
+                var devicetype = $("#node-input-devicetype").val();
+                if (devicetype == 'Measure') {
+                    $("#node-input-outputs").val(2);
+                } else {
+                    $("#node-input-outputs").val(1);
+                }
+
+                if (devicetype == 'RGBW') {
+                    $("#rgbw").show();
+                } else {
+                    $("#rgbw").hide();
+                }
+            };
+            updateDeviceType();
+            $("#node-input-devicetype").change(updateDeviceType);
+
+
             let getdevicetype = function() { 
                 let hostname = $("#node-input-hostname").val();
                 if (hostname !== '') {
@@ -189,7 +194,6 @@
                     }
 
                     $.getJSON('node-red-contrib-shelly-getshellyinfo', parameters, function(data) {
-                        debugger;
                         if(data.gen !== undefined){
                             if(data.gen == 1) {
                                 $("#getdevicetypebuttonresult").text("Detected shelly " + data.model + "");
@@ -504,27 +508,8 @@
             return this.description?"node_label_italic":"";
         },
         oneditprepare: function() {
-            let populateDeviceTypes = function() {
-                $.getJSON('node-red-contrib-shelly-getidevicetypesgen2', function(deviceTypeInfos) {
-                    for (let i = 0; i <= deviceTypeInfos.length; i++) {
-                        let deviceTypeInfo = deviceTypeInfos[i];
-                        if (deviceTypeInfo !== undefined) {
-                            $('#node-input-devicetype').append('<option value="' + deviceTypeInfo.deviceType + '">' + deviceTypeInfo.description + '</option>');
-                        }
-                    }
-                }); 
-            };
-            populateDeviceTypes();
-            $('#node-input-devicetype').val(this.devicetype);
+            debugger;
 
-
-            let updateDeviceType = function() {
-                let devicetype = $("#node-input-devicetype").val();
-                // TODO: for future usage
-            };
-            updateDeviceType();
-            $("#node-input-devicetype").change(updateDeviceType);
-            
             // polling or callback
             var updateMode = function() {
                 var mode = $("#node-input-mode").val();
@@ -541,6 +526,30 @@
             };
             updateMode();
             $("#node-input-mode").change(updateMode);
+
+
+            let populateDeviceTypes = function(devicetype) {
+                $.getJSON('node-red-contrib-shelly-getidevicetypesgen2', function(deviceTypeInfos) {
+                    for (let i = 0; i <= deviceTypeInfos.length; i++) {
+                        let deviceTypeInfo = deviceTypeInfos[i];
+                        if (deviceTypeInfo !== undefined) {
+                            $('#node-input-devicetype').append('<option value="' + deviceTypeInfo.deviceType + '">' + deviceTypeInfo.description + '</option>');
+                        }
+                    }
+
+                    $('#node-input-devicetype').val(devicetype);
+                }); 
+            };
+            populateDeviceTypes(this.devicetype);
+            
+
+            let updateDeviceType = function() {
+                let devicetype = $("#node-input-devicetype").val();
+                // TODO: for future usage. e.g. give a measure node 2 outputs
+            };
+            updateDeviceType();
+            $("#node-input-devicetype").change(updateDeviceType);
+            
 
             let getdevicetype = function() { 
                 let hostname = $("#node-input-hostname").val();

@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.27.2] - 2024-07-08
+###  fixed combobox in config dialog
+
 ## [10.27.1] - 2024-07-08
 ###  Fixed gen 1 strict mode - [#163](https://github.com/windkh/node-red-contrib-shelly/issues/163)
 
