@@ -1710,6 +1710,7 @@ module.exports = function (RED) {
     }
 
     async function executeCommand1(msg, route, node, credentials){
+
         let getStatusRoute = '/status';
         if (route && route !== ''){
 
@@ -1738,7 +1739,7 @@ module.exports = function (RED) {
                         }
                         else{
                             node.status({ fill: "red", shape: "ring", text: "Error: " + error });
-                            node.warn("Error: " + error );
+                            node.warn("Error in executeCommand1: " + route + "  --> " + error );
                         }
                     }
                 } else {
@@ -1750,7 +1751,7 @@ module.exports = function (RED) {
             }
             catch (error) {
                 node.status({ fill: "red", shape: "ring", text: "Error: " + error });
-                node.warn("Error: " + error );
+                node.warn("Error in executeCommand1: " + route + "  --> " + error );
                 
                 // node.status({ fill: "yellow", shape: "ring", text: error.message });
                 // node.warn(error.message);
@@ -1760,7 +1761,7 @@ module.exports = function (RED) {
             try {
                 let data;
                 let params;
-                let body = await shellyRequestAsync(node.axiosInstance, 'GET', getStatusRoute, params, data, node.credentials, 5012);
+                let body = await shellyRequestAsync(node.axiosInstance, 'GET', getStatusRoute, params, data, credentials, 5012);
                 
                 node.status({ fill: "green", shape: "ring", text: "Connected." });
 
@@ -1776,7 +1777,7 @@ module.exports = function (RED) {
                 }
                 else {
                     node.status({ fill: "red", shape: "ring", text: "Error: " + error });
-                    node.warn("Error: " + error );
+                    node.warn("Error in executeCommand1: " + getStatusRoute + "  --> " + error );
                 }
             }
         }
@@ -2201,8 +2202,6 @@ module.exports = function (RED) {
                         }
                     }
                 }
-
-                
             }
             catch (error) {
                 if (node.verbose) {
@@ -2548,7 +2547,7 @@ module.exports = function (RED) {
                 else
                 {
                     node.status({ fill: "red", shape: "ring", text: "Error: " + error });
-                    node.warn("Error: " + error );
+                    node.warn("Error in executeCommand2: " + route + "  --> " + error );
                 }
             }
         }
@@ -2556,7 +2555,6 @@ module.exports = function (RED) {
             try {
                 let data;
                 let params;
-        
                 let body = await shellyRequestAsync(node.axiosInstance, 'GET', getStatusRoute, params, data, credentials, 5022);
 
                 node.status({ fill: "green", shape: "ring", text: "Connected." });
@@ -2573,7 +2571,7 @@ module.exports = function (RED) {
                 }
                 else{
                     node.status({ fill: "red", shape: "ring", text: "Error: " + error });
-                    node.warn("Error: " + error );
+                    node.warn("Error in executeCommand2: " + getStatusRoute + "  --> "+ error );
                 }
             }
         }
