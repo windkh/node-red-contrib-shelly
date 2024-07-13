@@ -292,6 +292,27 @@ module.exports = function (RED) {
         return models;
     }
 
+
+        // Gets the type from the model.
+        function getDeviceType(model){
+            let deviceType;
+    
+            let keys = Object.keys(config.devices);
+            for (let i = 0; i < keys.length; i++) {
+                let device = config.devices[i];
+                if (device.model === model) {
+                    deviceType = device.type;
+                    break;
+                }
+            
+            };
+    
+            return deviceType;
+        }
+
+        
+    
+
     // generic REST request wrapper with promise
     function shellyRequestAsync(axiosInstance, method, route, params, data, credentials, timeout){
         return new Promise(function (resolve, reject) {
@@ -1901,7 +1922,6 @@ module.exports = function (RED) {
         node.rgbwMode = 'color';
 
         let deviceType = config.devicetype;
-        node.deviceType = deviceType;
         node.deviceTypeMustMatchExactly = config.devicetypemustmatchexactly || false;
 
         node.mode = config.mode;
@@ -1916,15 +1936,19 @@ module.exports = function (RED) {
                 baseURL: 'http://' + node.hostname +'/',
                 timeout: 5000});
 
-            node.initializer = getInitializer1(deviceType);
-            node.inputParser = getInputParser1(deviceType);
-
             if (isExactTypeGen1(deviceType)){
+                node.model = deviceType; // device type is a specific model here
+                node.deviceType = getDeviceType(node.model);
                 node.types = [deviceType];
             }
             else {
+                node.model = "";
+                node.deviceType = deviceType;
                 node.types = getDeviceTypes1(deviceType, node.deviceTypeMustMatchExactly);
             }
+
+            node.initializer = getInitializer1(node.deviceType);
+            node.inputParser = getInputParser1(node.deviceType);
             
             (async () => {
                 let initialized = await node.initializer(node, node.types);
@@ -2658,7 +2682,6 @@ module.exports = function (RED) {
         node.getStatusOnCommand = config.getstatusoncommand;
 
         let deviceType = config.devicetype;
-        node.deviceType = deviceType;
         node.deviceTypeMustMatchExactly = config.devicetypemustmatchexactly || false;
 
         node.mode = config.mode;
@@ -2673,16 +2696,20 @@ module.exports = function (RED) {
                 baseURL: 'http://' + node.hostname +'/',
                 timeout: 5000});
 
-            node.initializer = getInitializer2(deviceType);
-            node.inputParser = getInputParser2(deviceType);
-
             if (isExactTypeGen2(deviceType)){
+                node.model = deviceType; // device type is a specific model here
+                node.deviceType = getDeviceType(node.model);
                 node.types = [deviceType];
             }
             else {
-                node.types = getDeviceTypes2(deviceType, node.deviceTypeMustMatchExactly);
+                node.model = "";
+                node.deviceType = deviceType;
+                node.types = getDeviceTypes2(node.deviceType, node.deviceTypeMustMatchExactly);
             }
-            
+
+            node.initializer = getInitializer2(node.deviceType);
+            node.inputParser = getInputParser2(node.deviceType);
+  
             (async () => {
                 let initialized = await node.initializer(node, node.types);
 
