@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.28.1] - 2024-07-12
+###  fixed initializers - [#165](https://github.com/windkh/node-red-contrib-shelly/issues/165)
+
 ## [10.27.3] - 2024-07-08
 ###  2nd attempt to fix - [#163](https://github.com/windkh/node-red-contrib-shelly/issues/163)
 
