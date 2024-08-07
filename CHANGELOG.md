@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.28.3] - 2024-08-07
+###  added new device type SPSW-201PE15UL - [#173](https://github.com/windkh/node-red-contrib-shelly/issues/173)
+
 ## [10.28.2] - 2024-08-07
 ###  fixed Error Connection reset when status is sent after a command - [#172](https://github.com/windkh/node-red-contrib-shelly/issues/172)
 
