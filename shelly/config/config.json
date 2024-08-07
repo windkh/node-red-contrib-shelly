@@ -86,6 +86,7 @@
         { "gen" : "2", "name" : "Shelly Pro 1PM",       "model" : "SPSW-001PE16EU","type" : "Relay",      "helpLink" : "",                                                             "supported" : "not tested" },
         { "gen" : "2", "name" : "Shelly Pro 1PM v.0",   "model" : "SPSW-101PE16EU","type" : "Relay",      "helpLink" : "",                                                             "supported" : "not tested" },
         { "gen" : "2", "name" : "Shelly Pro 1PM v.1",   "model" : "SPSW-201PE16EU","type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-pro-1pm-v1",     "supported" : "not tested" },
+        { "gen" : "2", "name" : "Shelly Pro 1PM v.1 UL","model" : "SPSW-201PE15UL","type" : "Relay",      "helpLink" : "",                                                             "supported" : "not tested" },
         { "gen" : "2", "name" : "Shelly Pro 2 v.1",     "model" : "SPSW-202XE16EU","type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-pro-2-v1",       "supported" : "not tested" },
         { "gen" : "2", "name" : "Shelly Pro 2PM",       "model" : "SPSW-002PE16EU","type" : "Relay",      "helpLink" : "",                                                             "supported" : "not tested" },
         { "gen" : "2", "name" : "Shelly Pro 2PM v.0",   "model" : "SPSW-102PE16EU","type" : "Relay",      "helpLink" : "",                                                             "supported" : "not tested" },
