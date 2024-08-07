@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.28.2] - 2024-08-07
+###  fixed Error Connection reset when status is sent after a command - [#172](https://github.com/windkh/node-red-contrib-shelly/issues/172)
+
 ## [10.28.1] - 2024-07-12
 ###  fixed initializers - [#165](https://github.com/windkh/node-red-contrib-shelly/issues/165)
 

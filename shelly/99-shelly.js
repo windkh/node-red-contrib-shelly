@@ -2548,13 +2548,28 @@ module.exports = function (RED) {
                 let body = await shellyRequestAsync(node.axiosInstance, method, route, params, data, credentials, 5020);
                 
                 if (node.getStatusOnCommand) {
-                    let body = await shellyRequestAsync(node.axiosInstance, 'GET', getStatusRoute, params, data, credentials, 5021);
-                    node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    let status = body;
-                    msg.status = status;
-                    msg.payload = convertStatus2(status);
-                    node.send([msg]);
+                    try {
+                        let data;
+                        let params;
+                        let body = await shellyRequestAsync(node.axiosInstance, 'GET', getStatusRoute, params, data, credentials, 5021);
+                        node.status({ fill: "green", shape: "ring", text: "Connected." });
+
+                        let status = body;
+                        msg.status = status;
+                        msg.payload = convertStatus2(status);
+                        node.send([msg]);
+                    }
+                    catch (error) {
+                        if (msg.payload){
+                            node.status({ fill: "yellow", shape: "ring", text: error.message });
+                            node.warn(error.message);
+                        }
+                        else{
+                            node.status({ fill: "red", shape: "ring", text: "Error: " + error });
+                            node.warn("Error in executeCommand1: " + route + "  --> " + error );
+                        }
+                    }
                 }
                 else {
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
