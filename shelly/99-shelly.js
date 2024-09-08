@@ -1854,7 +1854,7 @@ module.exports = function (RED) {
         this.hostip = config.hostip;
         this.server = fastify();
         
-        if (node.port > 0){
+        if (node.port > 0 && node.port <= 65535){
             node.server.listen({port : node.port}, (err, address) => {
                 if (!err){
                     console.info("Shelly gen1 server is listening on port " + node.port);
@@ -1881,6 +1881,9 @@ module.exports = function (RED) {
                 reply.code(200);
                 reply.send();
             });
+        }
+        else {
+            node.error("Shelly gen1 server failed to start: port number is not betwee 0 and 65535: " + node.port);
         }
             
         this.on('close', function (removed, done) {
@@ -2628,7 +2631,7 @@ module.exports = function (RED) {
         this.hostip = config.hostip;
         this.server = fastify();
 
-        if (node.port > 0){
+        if (node.port > 0 && node.port <= 65535){
             node.server.listen({port : node.port}, (err, address) => {
                 if (!err){
                     console.info("Shelly gen2 server is listening on port " + node.port);
@@ -2659,7 +2662,10 @@ module.exports = function (RED) {
                 reply.send();
             });
         }
-            
+        else {
+            node.error("Shelly gen1 server failed to start: port number is not betwee 0 and 65535: " + node.port);
+        }
+
         this.on('close', function (removed, done) {
             node.server.close().then(() => {
                 done();
