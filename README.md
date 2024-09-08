@@ -54,6 +54,7 @@ Generation 2 devices:
 - Shelly Wall Display
 - Shelly Plus Dimmer 0-10V
 - Shelly Wall Display 
+- Shelly Plus RGBW PM
 
 Generation 3 devices:
 - Shelly 1 Mini, 1PM Mini, PM Mini 
@@ -708,6 +709,49 @@ For further rpc commands see the shelly documentation.
 
 ### Examples:  
 [**shelly dimmer gen 2 flow**](examples/dimmerplus.json) 
+
+
+## RGBW PM (Plus RGBWr 12/24V)
+The node is able to turn on and turn off a shelly RGBW PM Plus. It outputs the status after every interaction with the shelly device.
+Turning on is done by sending the following payload into the input. The light number is optional and defaults to 0.
+
+
+```
+{
+    method : 'RGBW.Set'
+	parameters : {
+        id : 0,
+        on : true,
+		brightness : 100,
+		transition_duration : 1, // optional transition time in seconds
+        toggle_after : 2 // optional flip back time in seconds
+    }
+}
+```
+
+or you can make use of the alternative toggle command:
+
+
+```
+{
+    method : 'RGBW.Toggle'
+	...
+}
+```
+
+Note that toggle_after is optional. The unit is seconds.
+Right after having sent the request to the shelly device a status request is done.
+
+If you only want to get the current status of the light without turning on or off you should leave the msg.payload blank.
+This is useful, when you want to poll for the status cyclically.
+
+The output of the node is the full status object of the device.
+See https://shelly-api-docs.shelly.cloud/gen2/Overview/CommonServices/Shelly
+
+For further rpc commands see the shelly documentation.
+
+### Examples:  
+[**shelly RGBW plus PM gen 2 flow**](examples/rgbwpmplus.json) 
 
 
 ## Button (Shelly Plus I4)

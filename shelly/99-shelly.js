@@ -2325,6 +2325,9 @@ module.exports = function (RED) {
             case 'Button':
             case 'Measure':
             case 'Dimmer':
+            case 'RGBW':
+            case 'Thermostat':
+            case 'BluGateway':
                 result = inputParserGeneric2Async;
                 break;
             default:
@@ -2463,6 +2466,7 @@ module.exports = function (RED) {
             case 'Relay':
             case 'Measure':
             case 'Dimmer':
+            case 'RGBW':
                 result = initializer2CallbackAsync;
                 break;
             case 'BluGateway':
@@ -2488,6 +2492,8 @@ module.exports = function (RED) {
             case 'Dimmer':
             case 'BluGateway':
             case 'Sensor':
+            case 'RGBW':
+            case 'Thermostat':
                 result = false;
                 break;
             default:

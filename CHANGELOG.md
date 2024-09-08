@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [10.29.0] - 2024-09-08
+###  added suport for shelly plus RGBW PM - [#167](https://github.com/windkh/node-red-contrib-shelly/issues/167)
+
 ## [10.28.4] - 2024-09-08
 ###  fixed port number validation - [#170](https://github.com/windkh/node-red-contrib-shelly/issues/170)
 
