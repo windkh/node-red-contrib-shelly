@@ -5,6 +5,7 @@
 
 module.exports = function (RED) {
     "use strict";
+
     let config = require('./config/config.json');
 
     const axios = require('axios').default;      
@@ -22,6 +23,9 @@ module.exports = function (RED) {
     // const path = require('node:path'); see #99 nodejs V19
     
     const fastify = require('fastify');
+
+    const pkg = require('./../package.json');
+    RED.log.info('node-red-contrib-shelly version: v' + pkg.version);
 
     let nonceCount = 1;
 
