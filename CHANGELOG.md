@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [10.30.0] - 2024-09-16
+## [11.0.0] - 2024-09-16
 ###  updated dependencies - [#176](https://github.com/windkh/node-red-contrib-shelly/issues/176)
 
 ## [10.29.0] - 2024-09-08
