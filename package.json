@@ -3,13 +3,13 @@
     "version": "10.26.0",
     "description": "Shelly nodes.",
     "node-red": {
-        "version": ">=0.1.0",
+        "version": ">=3.0.0",
         "nodes": {
             "shelly": "shelly/99-shelly.js"
         }
     },
     "engines": {
-        "node": ">=7.6.0"
+		"node": ">=16.0.0"
     },
     "keywords": [
         "node-red",
