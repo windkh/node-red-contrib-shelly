@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.1.1] - 2024-09-19
+###  added Shelly Pro 2 UL - [#179](https://github.com/windkh/node-red-contrib-shelly/issues/179)
+
 ## [11.1.0] - 2024-09-19
 ###  fixed callback - [#178](https://github.com/windkh/node-red-contrib-shelly/issues/178)
 
