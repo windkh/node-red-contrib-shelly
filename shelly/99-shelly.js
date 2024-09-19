@@ -498,7 +498,6 @@ module.exports = function (RED) {
                 requiredNodeType = 'shelly gen-type is not supported';
             }
 
-
             if (requiredNodeType === node.type) {
                 let found = false;
                 for (let i = 0; i < types.length; i++) {
@@ -1853,13 +1852,15 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
 
         let node = this;
-        this.port = config.port;
+        this.port = parseInt(config.port);
         this.hostname = config.hostname;
         this.hostip = config.hostip;
-        this.server = fastify();
-        
+        this.server = fastify({
+            logger: false // set to true when debugging.
+          });
+
         if (node.port > 0 && node.port <= 65535){
-            node.server.listen({port : node.port}, (err, address) => {
+            node.server.listen({port : node.port, host: '::'}, (err, address) => {
                 if (!err){
                     console.info("Shelly gen1 server is listening on port " + node.port);
                 }
@@ -2472,6 +2473,7 @@ module.exports = function (RED) {
             case 'Dimmer':
             case 'RGBW':
                 result = initializer2CallbackAsync;
+                // result = initializer2BluCallbackAsync; // TODO: 
                 break;
             case 'BluGateway':
                 result = initializer2BluCallbackAsync;
@@ -2537,10 +2539,15 @@ module.exports = function (RED) {
             let statusValue = status[key];
             if (statusValue !== undefined) {
                 // we only copy the key that contain a : like input:0...
+                let newKey;
                 if (key.indexOf(":") !== -1){
-                    let newKey = replace(key, ":", "");
+                    newKey = replace(key, ":", "");
                     result[newKey] = statusValue;
                 }
+                else {
+                    newKey = key;
+                }
+                result[newKey] = statusValue;
             }
         });
 
@@ -2636,21 +2643,14 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
 
         let node = this;
-        this.port = config.port;
+        this.port = parseInt(config.port);
         this.hostname = config.hostname;
         this.hostip = config.hostip;
-        this.server = fastify();
+        this.server = fastify({
+            logger: false // set to true when debugging.
+          });
 
         if (node.port > 0 && node.port <= 65535){
-            node.server.listen({port : node.port}, (err, address) => {
-                if (!err){
-                    console.info("Shelly gen2 server is listening on port " + node.port);
-                }
-                else{
-                    node.error("Shelly gen2 server failed to listen on port " + node.port);
-                }
-            })
-    
             node.server.put("/callback", (request, reply) => {
                 let data = {
                     sender : request.body.sender,
@@ -2671,6 +2671,15 @@ module.exports = function (RED) {
                 reply.code(200);
                 reply.send();
             });
+
+            node.server.listen({port : node.port, host: '::'}, (err, address) => {
+                if (!err){
+                    console.info("Shelly gen2 server is listening on port " + node.port);
+                }
+                else{
+                    node.error("Shelly gen2 server failed to listen on port " + node.port);
+                }
+            })
         }
         else {
             node.error("Shelly gen1 server failed to start: port number is not betwee 0 and 65535: " + node.port);

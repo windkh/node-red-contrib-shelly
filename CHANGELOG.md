@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.1.0] - 2024-09-19
+###  fixed callback - [#178](https://github.com/windkh/node-red-contrib-shelly/issues/178)
+
 ## [11.0.0] - 2024-09-16
 ###  updated dependencies - [#176](https://github.com/windkh/node-red-contrib-shelly/issues/176)
 
