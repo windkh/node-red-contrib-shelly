@@ -491,6 +491,7 @@
         
             devicetype: { value: "", required: true},
             devicetypemustmatchexactly : { value: true, required: false },
+            captureblutooth : { value: false, required: false },
 
             outputs: {value: 1},
         },
@@ -701,7 +702,12 @@
             <div class="form-row">
                 <label for="node-input-uploadretryinterval"><i class="fa fa-clock-o"></i> Upload Retry Interval (ms)</label>
                 <input type="text" id="node-input-uploadretryinterval" placeholder="(Time in milliseconds. 0=off)">
-            </div> 
+            </div>
+            <div class="form-row">
+                <label for="node-input-captureblutooth"><i class="fa fa-bluetooth"></i> Blutooth</label>
+                <input type="checkbox" id="node-input-captureblutooth" style="display: inline-block; width: auto; vertical-align: top;"> Install blutooth gateway script
+            </div>
+            <div class="form-tips" style="width: auto"><b>Tip:</b> If checked a blutooth gateway script is installed. Is automatically activated for BLU gateway.</div>    
         </div>
     </div>
 

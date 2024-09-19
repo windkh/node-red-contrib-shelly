@@ -2463,7 +2463,9 @@ module.exports = function (RED) {
     }
 
     // Gets a function that initialize the device.
-    function getInitializer2(deviceType){
+    function getInitializer2(node){
+
+        let deviceType = node.deviceType;
         let result;
 
         switch(deviceType) {
@@ -2472,10 +2474,16 @@ module.exports = function (RED) {
             case 'Measure':
             case 'Dimmer':
             case 'RGBW':
-                result = initializer2CallbackAsync;
-                // result = initializer2BluCallbackAsync; // TODO: 
+                if(node.captureBlutooth) {
+                    result = initializer2BluCallbackAsync;
+                }
+                else {
+                    result = initializer2CallbackAsync;
+                }
                 break;
             case 'BluGateway':
+                // Here we force the capturing f blutooth messages for this specific device.
+                node.captureBlutooth = true;
                 result = initializer2BluCallbackAsync;
                 break;
             case 'Sensor':
@@ -2723,6 +2731,7 @@ module.exports = function (RED) {
 
         let deviceType = config.devicetype;
         node.deviceTypeMustMatchExactly = config.devicetypemustmatchexactly || false;
+        node.captureBlutooth = config.captureblutooth || false;
 
         node.mode = config.mode;
         if (!node.mode) {
@@ -2747,7 +2756,7 @@ module.exports = function (RED) {
                 node.types = getDeviceTypes2(node.deviceType, node.deviceTypeMustMatchExactly);
             }
 
-            node.initializer = getInitializer2(node.deviceType);
+            node.initializer = getInitializer2(node);
             node.inputParser = getInputParser2(node.deviceType);
   
             (async () => {

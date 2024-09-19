@@ -117,6 +117,7 @@ In callback mode a webhook is configured to the shelly which notifies to the nod
 You must configure this network port, make sure that it is not already in use. If node-red runs inside a docker container or any other bridged network then you should also configure the hostname
 under that the shelly device can reach the node-red server (Leave this field empty if you run inside the same network segment).
 The node retries to set the webhook if the device is sleeping as long as it succeeds. As soon as the status shows "Connected" the webhook is set.
+Note that gen2+ devices that have bluetooth support can act as a bluetooth gateway for shelly BLU devices. To activate that feature you must use callback node and check the bluetooth checkbox.
 
 
 # Shelly Node (Generation 1)
