@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.3.0] - 2024-09-27
+###  removed all promises 
+
 ## [11.2.0] - 2024-09-19
 ###  all gen2+ devices can act as blu gateway - [#164](https://github.com/windkh/node-red-contrib-shelly/issues/164)
 

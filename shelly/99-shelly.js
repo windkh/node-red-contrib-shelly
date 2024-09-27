@@ -297,86 +297,73 @@ module.exports = function (RED) {
     }
 
 
-        // Gets the type from the model.
-        function getDeviceType(model){
-            let deviceType;
-    
-            let keys = Object.keys(config.devices);
-            for (let i = 0; i < keys.length; i++) {
-                let device = config.devices[i];
-                if (device.model === model) {
-                    deviceType = device.type;
-                    break;
-                }
-            
-            };
-    
-            return deviceType;
+    // Gets the type from the model.
+    function getDeviceType(model){
+        let deviceType;
+
+        let keys = Object.keys(config.devices);
+        for (let i = 0; i < keys.length; i++) {
+            let device = config.devices[i];
+            if (device.model === model) {
+                deviceType = device.type;
+                break;
+            }
+        
+        };
+
+        return deviceType;
+    }
+
+
+    // generic REST request wrapper.
+    async function shellyRequestAsync(axiosInstance, method, route, params, data, credentials, timeout){
+       
+        if (timeout === undefined || timeout === null){
+            timeout = 5003;
+        };
+
+        // We avoid an invalid timeout by taking a default if 0.
+        let requestTimeout = timeout;
+        if (requestTimeout <= 0){
+            requestTimeout = 5004;
         }
 
-        
-    
+        let headers = getHeaders(credentials);
 
-    // generic REST request wrapper with promise
-    function shellyRequestAsync(axiosInstance, method, route, params, data, credentials, timeout){
-        return new Promise(function (resolve, reject) {
+        let baseUrl = 'http://' + credentials.hostname;
+        let config = {
+            baseURL :  baseUrl,
+            url : route,
+            method : method,
+            params : params,
+            data : data,
+            headers : headers,
+            timeout: requestTimeout,
+            validateStatus : (status) => status === 200 || status === 401
+        };
 
-            if (timeout === undefined || timeout === null){
-                timeout = 5003;
-            };
-
-            // We avoid an invalid timeout by taking a default if 0.
-            let requestTimeout = timeout;
-            if (requestTimeout <= 0){
-                requestTimeout = 5004;
+        let result;
+        const response = await axiosInstance.request(config);
+        if (response.status == 200){
+            result = response.data;
+        } else if (response.status == 401){
+            config.headers = {
+                'Authorization': getDigestAuthorization(response, credentials, config)
             }
 
-            let headers = getHeaders(credentials);
-
-            let baseUrl = 'http://' + credentials.hostname;
-            let config = {
-                baseURL :  baseUrl,
-                url : route,
-                method : method,
-                params : params,
-                data : data,
-                headers : headers,
-                timeout: requestTimeout,
-                validateStatus : (status) => status === 200 || status === 401
-            };
-
-            try {
-                const request = axiosInstance.request(config);
-        
-                request.then(response => {
-                    if (response.status == 200){
-                        resolve(response.data)
-                    } else if (response.status == 401){
-                        config.headers = {
-                            'Authorization': getDigestAuthorization(response, credentials, config)
-                        }
-        
-                        const digestRequest = axiosInstance.request(config);
-                        digestRequest.then(response => {
-                            if (response.status == 200){
-                                resolve(response.data)
-                            }
-                            else {
-                                reject(response.statusText + ' ' + config.url);
-                            }
-                        })
-                    } else {
-                        reject(response.statusText);
-                    }
-                })
-                .catch(error => {
-                    reject(error);
-                });
+            const digestResponse = await axiosInstance.request(config);
+            if (digestResponse.status == 200){
+                result = digestResponse.data;
             }
-            catch(error2) {
-                reject(error2);
+            else {
+                throw new Error(digestResponse.statusText + ' ' + config.url);
             }
-        });
+        
+        } else {
+            throw new Error(response.statusText + ' ' + config.url);
+        }
+
+        return result;
     }
 
 
@@ -560,11 +547,8 @@ module.exports = function (RED) {
         }
     }
 
-    function startAsync(node, types){
-        return new Promise(function (resolve, reject) {
-            start(node, types);
-            resolve();
-        });
+    async function startAsync(node, types){
+        start(node, types);
     }
 
     // GEN 1 --------------------------------------------------------------------------------------
@@ -2841,53 +2825,43 @@ module.exports = function (RED) {
         return params;
     };
 
-    // generic REST cloud request wrapper with promise
-    function shellyCloudRequestAsync(method, route, data, credentials, timeout){
-        return new Promise(function (resolve, reject) {
+    // generic REST cloud request wrapper
+    async function shellyCloudRequestAsync(method, route, data, credentials, timeout){
+       
+        if (timeout === undefined || timeout === null){
+            timeout = 10000;
+        };
 
-            if (timeout === undefined || timeout === null){
-                timeout = 10000;
-            };
+        // We avoid an invalid timeout by taking a default if 0.
+        let requestTimeout = timeout;
+        if (requestTimeout <= 0){
+            requestTimeout = 10000;
+        }
 
-            // We avoid an invalid timeout by taking a default if 0.
-            let requestTimeout = timeout;
-            if (requestTimeout <= 0){
-                requestTimeout = 10000;
-            }
+        let encodedData = 'auth_key=' + credentials.authKey;
+        if (data !== undefined && data !== null) {
+            encodedData += '&' + data;
+        }
 
-            let encodedData = 'auth_key=' + credentials.authKey;
-            if (data !== undefined && data !== null) {
-                encodedData += '&' + data;
-            }
+        let baseUrl = credentials.serverUri;
+        let config = {
+            baseURL :  baseUrl,
+            url : route,
+            method : method,
+            data : encodedData,
+            timeout: requestTimeout,
+            validateStatus : (status) => status === 200
+        };
 
-            let baseUrl = credentials.serverUri;
-            let config = {
-                baseURL :  baseUrl,
-                url : route,
-                method : method,
-                data : encodedData,
-                timeout: requestTimeout,
-                validateStatus : (status) => status === 200
-            };
+        let result;
+        const response = await cloudAxios.request(config);
+        if (response.status == 200){
+            result = response.data;
+        } else {
+            throw new Error(response.statusText + ' ' + config.url);
+        }
 
-            try {
-                const request = cloudAxios.request(config);
-        
-                request.then(response => {
-                    if (response.status == 200){
-                        resolve(response.data)
-                    } else {
-                        reject(response.statusText);
-                    }
-                })
-                .catch(error => {
-                    reject(error);
-                });
-            }
-            catch(error2) {
-                reject(error2);
-            }
-        });
+        return result;
     }
 
     // --------------------------------------------------------------------------------------------
