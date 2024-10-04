@@ -2365,7 +2365,7 @@ module.exports = function (RED) {
                 success = true;
             }
             else if (mode === 'callback'){
-                let scriptPath = path.resolve(__dirname, './scripts/callback.script');
+                let scriptPath = path.resolve(__dirname, './scripts/callback.js');
                 const buffer = fs.readFileSync(scriptPath);
                 // const buffer = await readFile(scriptPath); #96 nodejs V19
                 let script = buffer.toString();
@@ -2399,7 +2399,7 @@ module.exports = function (RED) {
                 
             let mode = node.mode;
             if (mode === 'callback'){
-                let scriptPath = path.resolve(__dirname, './scripts/blugateway.script');
+                let scriptPath = path.resolve(__dirname, './scripts/ble-shelly-blu.js');
                 const buffer = fs.readFileSync(scriptPath);
                 // const buffer = await readFile(scriptPath); #96 nodejs V19
                 let script = buffer.toString();

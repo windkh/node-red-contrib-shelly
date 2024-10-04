@@ -60,6 +60,8 @@ Generation 3 devices:
 - Shelly 1 Mini, 1PM Mini, PM Mini 
 - Shelly Plus H&T
 
+BLU Devices
+- Shelly RC Button 4
 
 Others may work but are not really tested so far.
 
@@ -786,6 +788,8 @@ pane telling you that installation of the webhook failed.
 ## BLU Gateway (Shelly BLU Gateway)
 The node is able to control a shelly BLU gateway. This node should be only used with callback mode and event output.
 It uploads two scripts: one for the callback like in all other gen 2 devices and one that scans for bluetooth signals.
+This script was taken from https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble-shelly-blu.js and is licensed 
+under the apache 2.0 license!
 
 The output of the node is an event object. Bluetooth event objects have the event name "shelly-blu".
 
@@ -805,6 +809,51 @@ msg.payload.info.data.address
 
 ### Examples:  
 [**shelly BLU gateways flow**](examples/blugateway.json) 
+
+
+
+## Some notes about BLU Support 
+Almost all gen2+ device support bluetooth and can be used as blu gateway by using callback mode and activating
+the gateway support in the config node. Messages from the BLU devices are in BTHomeV2 format: https://bthome.io/format/
+
+
+
+## BLU RC Button 4
+The node is able to control a shelly RC button 4. This device communicates via bluetooth. You must use at least one shelly as bluetooth
+gateway to be able to receive message in node-red from that device.
+This gateway node should be only used with callback mode and event output.
+It uploads two scripts: one for the callback like in all other gen 2 devices and one that scans for bluetooth signals.
+This script was taken from https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble-shelly-blu.js and is licensed 
+under the apache 2.0 license!
+
+The output of the node is an event object. Bluetooth event objects have the event name "shelly-blu".
+
+BLU devices contain a detailed description about the types that are used: E.g. the documenation for the shelly RC button 4
+can be found here: https://shelly-api-docs.shelly.cloud/docs-ble/Devices/wall_us/
+Type 0x3A is tranmitted if a button is pressed. The value can be on of the following: 
+0x00 - none (button not pressed)
+0x01 - press
+0x02 - double press
+0x03 - triple press
+0x04 - long press
+0xFE - hold
+The buttons are transmitted as an array with the values mentioned above.
+
+```
+msg.payload.info.event === "shelly-blu"
+```
+
+
+You can take the mac-address to find out what BLU device sent the messages:
+
+
+```
+msg.payload.info.data.address
+```
+
+
+### Examples:  
+[**shelly BLU RC button 4 flow**](examples/blubutton4.json) 
 
 
 
