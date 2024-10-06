@@ -40,6 +40,8 @@ const CONFIG = {
 
   // When set to true, debug messages will be logged to the console
   debug: false,
+  
+  includeRawData: false,
 };
 /******************* STOP CHANGE HERE *******************/
 
@@ -190,9 +192,8 @@ function BLEScanCallback(event, result) {
     return;
   }
 
-  let unpackedData = BTHomeDecoder.unpack(
-    result.service_data[BTHOME_SVC_ID_STR]
-  );
+  let packedData = result.service_data[BTHOME_SVC_ID_STR];
+  let unpackedData = BTHomeDecoder.unpack(packedData);
 
   //exit if unpacked data is null or the device is encrypted
   if (
@@ -214,7 +215,15 @@ function BLEScanCallback(event, result) {
   unpackedData.rssi = result.rssi;
   unpackedData.address = result.addr;
   unpackedData.model = result.local_name;
-
+  
+  if (CONFIG.includeRawData) {
+    let rawData = [];
+    for (let i = 0; i < packedData.length; i++){  
+      rawData .push(packedData.at(i));
+    }
+    unpackedData.rawData = rawData ;
+  }
+  
   emitData(unpackedData);
 }
 
