@@ -41,7 +41,7 @@ const CONFIG = {
   // When set to true, debug messages will be logged to the console
   debug: false,
   
-  includeRawData: false,
+  includeRawData: true,
 };
 /******************* STOP CHANGE HERE *******************/
 
@@ -131,9 +131,10 @@ const BTHomeDecoder = {
     let _bth;
     let _value;
     while (buffer.length > 0) {
-      _bth = BTH[buffer.at(0)];
+	   let objectId = buffer.at(0);
+      _bth = BTH[objectId];
       if (typeof _bth === "undefined") {
-        console.log("BTH: Unknown type");
+        console.log("BTH: Unknown type: " + objectId);
         break;
       }
       buffer = buffer.slice(1);
@@ -158,6 +159,17 @@ const BTHomeDecoder = {
 
       buffer = buffer.slice(getByteSize(_bth.t));
     }
+    return result;
+  },
+  
+  // converts the service data buffer to a byte array
+  toByteArray: function (buffer) {
+	if (typeof buffer !== "string" || buffer.length === 0) return null;
+	let result = [];
+    for (let i = 0; i < buffer.length; i++){  
+      result.push(buffer.at(i));
+    }
+    
     return result;
   },
 };
@@ -217,10 +229,7 @@ function BLEScanCallback(event, result) {
   unpackedData.model = result.local_name;
   
   if (CONFIG.includeRawData) {
-    let rawData = [];
-    for (let i = 0; i < packedData.length; i++){  
-      rawData .push(packedData.at(i));
-    }
+    let rawData = BTHomeDecoder.toByteArray(packedData);
     unpackedData.rawData = rawData ;
   }
   
