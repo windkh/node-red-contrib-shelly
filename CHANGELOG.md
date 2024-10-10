@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.4.1] - 2024-10-10
+###  support for shelly plugs mtr gen 3 - [#182](https://github.com/windkh/node-red-contrib-shelly/issues/182)
+
 ## [11.4.0] - 2024-10-04
 ###  support for shelly RC button 4 - [#181](https://github.com/windkh/node-red-contrib-shelly/issues/181)
 

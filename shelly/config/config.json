@@ -114,6 +114,7 @@
         { "gen" : "3", "name" : "Shelly 1 Mini Gen3",   "model" : "S3SW-001X8EU",  "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1-mini-gen3",    "supported" : "not tested" },
         { "gen" : "3", "name" : "Shelly 1PM Mini Gen3", "model" : "S3SW-001P8EU",  "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1pm-mini-gen3",  "supported" : "true" },
         { "gen" : "3", "name" : "Shelly PM Mini Gen3",  "model" : "S3PM-001PCEU16","type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-pm-mini-gen3",   "supported" : "not tested" },
-        { "gen" : "3", "name" : "Shelly PM Mini Gen3",  "model" : "S3PM-001PCEU16","type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-pm-mini-gen3",   "supported" : "not tested" }
+        { "gen" : "3", "name" : "Shelly PM Mini Gen3",  "model" : "S3PM-001PCEU16","type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-pm-mini-gen3",   "supported" : "not tested" },
+        { "gen" : "3", "name" : "Shelly Plug S MTR Gen3","model" : "S3PL-00112EU", "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-plug-s-mtr-gen3",   "supported" : "not tested" }
     ]
 }
