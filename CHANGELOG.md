@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.5.0] - 2024-10-20
+###  msg.payload can be an array of commands (gen2 only) - [#184](https://github.com/windkh/node-red-contrib-shelly/issues/184)
+
 ## [11.4.2] - 2024-10-20
 ###  support for shelly bulb rgbw - [#185](https://github.com/windkh/node-red-contrib-shelly/issues/185)
 

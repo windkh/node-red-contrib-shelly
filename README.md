@@ -621,6 +621,7 @@ Note that the button is not always reachable as it falls to sleep. This is not t
 See also https://shelly-api-docs.shelly.cloud/gen2/
 See also https://shelly-api-docs.shelly.cloud/gen2/Devices/ShellyPlus1PM
 The node can communicate with several shelly types. You must select the correct device type from the combobox when configuring the node.
+The msg.payload property can be used to issue commands (see examples below). Note that you can send multiple commands at once by creating an array in msg.payload.
 
 ## callback mode vs polling mode
 Unlike generation 1 devices the new generation supports the usage of scripts. In polling mode the node just behaves like the generation 1 node.

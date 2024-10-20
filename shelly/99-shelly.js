@@ -47,6 +47,17 @@ module.exports = function (RED) {
         return isValid;
     }
 
+    function isMsgPayloadValidOrArray(msg) {
+        let isValid = false;
+        if (msg !== undefined && msg.payload !== undefined && !Array.isArray(msg)) {
+            if (!isEmpty(msg.payload)) {
+                isValid = true;
+            }
+        }
+
+        return isValid;
+    }
+
     function trim(str) {
         let result;
         if (str){
@@ -2265,35 +2276,29 @@ module.exports = function (RED) {
         return success;
     }
 
-    // Creates a route from the input.
-    async function inputParserGeneric2Async(msg){
-        
+    // Converts a payload to one single request
+    function inputParserGeneric2(command){
         let method = 'POST';
         let data;
         let route;
 
-        if (isMsgPayloadValid(msg)){
-            
-            let command = msg.payload;
+        let rpcMethod;
+        if (command.method !== undefined){
+            rpcMethod = command.method;
+        }
 
-            let rpcMethod;
-            if (command.method !== undefined){
-                rpcMethod = command.method;
-            }
+        let parameters;
+        if (command.parameters !== undefined){
+            parameters = command.parameters;
+        }
 
-            let parameters;
-            if (command.parameters !== undefined){
-                parameters = command.parameters;
-            }
-
-            if (rpcMethod !== undefined){
-                route = "/rpc/";
-                data = {
-                    id : 1,
-                    method : rpcMethod,
-                    params : parameters
-                };
-            }
+        if (rpcMethod !== undefined){
+            route = "/rpc/";
+            data = {
+                id : 1,
+                method : rpcMethod,
+                params : parameters
+            };
         }
 
         let request = {
@@ -2301,7 +2306,29 @@ module.exports = function (RED) {
             method : method,
             data : data
         };
+
         return request;
+    }
+
+    // Creates request(s) from the input or input arrays.
+    function inputParserGeneric2Array(msg){
+        
+        let requests = [];
+
+        if (isMsgPayloadValidOrArray(msg)){
+            if(!Array.isArray(msg.payload)){
+                let request = inputParserGeneric2(msg.payload);
+                requests.push(request);
+            }
+            else {
+                msg.payload.forEach(payload => {
+                    let request = inputParserGeneric2(payload);
+                    requests.push(request);
+                });
+            }           
+        }
+
+        return requests;
     }
 
     // Returns the input parser for the device type.
@@ -2317,7 +2344,7 @@ module.exports = function (RED) {
             case 'RGBW':
             case 'Thermostat':
             case 'BluGateway':
-                result = inputParserGeneric2Async;
+                result = inputParserGeneric2Array;
                 break;
             default:
                 result = noop;
@@ -2549,39 +2576,28 @@ module.exports = function (RED) {
     async function executeCommand2(msg, request, node, credentials){
 
         let getStatusRoute = '/rpc/Shelly.GetStatus';
-        if (request !== undefined && request.route !== undefined && request.route !== ''){
-
-            let route = request.route;
-            let method = request.method;
-            let data = request.data;
-            let params = request.params;
+        let route = getStatusRoute;
     
-            try {
+        try {
+            if (request !== undefined && request.route !== undefined && request.route !== ''){
+
+                route = request.route;
+                let method = request.method;
+                let data = request.data;
+                let params = request.params;
                 let body = await shellyRequestAsync(node.axiosInstance, method, route, params, data, credentials, 5020);
                 
                 if (node.getStatusOnCommand) {
+                    route = getStatusRoute;
+                    let data;
+                    let params;
+                    let body = await shellyRequestAsync(node.axiosInstance, 'GET', route, params, data, credentials, 5021);
+                    node.status({ fill: "green", shape: "ring", text: "Connected." });
 
-                    try {
-                        let data;
-                        let params;
-                        let body = await shellyRequestAsync(node.axiosInstance, 'GET', getStatusRoute, params, data, credentials, 5021);
-                        node.status({ fill: "green", shape: "ring", text: "Connected." });
-
-                        let status = body;
-                        msg.status = status;
-                        msg.payload = convertStatus2(status);
-                        node.send([msg]);
-                    }
-                    catch (error) {
-                        if (msg.payload){
-                            node.status({ fill: "yellow", shape: "ring", text: error.message });
-                            node.warn(error.message);
-                        }
-                        else{
-                            node.status({ fill: "red", shape: "ring", text: "Error: " + error });
-                            node.warn("Error in executeCommand1: " + route + "  --> " + error );
-                        }
-                    }
+                    let status = body;
+                    msg.status = status;
+                    msg.payload = convertStatus2(status);
+                    node.send([msg]);
                 }
                 else {
                     node.status({ fill: "green", shape: "ring", text: "Connected." });
@@ -2590,24 +2606,11 @@ module.exports = function (RED) {
                     node.send([msg]);
                 }
             }
-            catch (error) {
-                if (msg.payload){
-                    node.status({ fill: "yellow", shape: "ring", text: error.message });
-                    node.warn(error);
-                }
-                else
-                {
-                    node.status({ fill: "red", shape: "ring", text: "Error: " + error });
-                    node.warn("Error in executeCommand2: " + route + "  --> " + error );
-                }
-            }
-        }
-        else {
-            try {
+            else {
+                route = getStatusRoute;
                 let data;
                 let params;
-                let body = await shellyRequestAsync(node.axiosInstance, 'GET', getStatusRoute, params, data, credentials, 5022);
-
+                let body = await shellyRequestAsync(node.axiosInstance, 'GET', route, params, data, credentials, 5022);
                 node.status({ fill: "green", shape: "ring", text: "Connected." });
 
                 let status = body;
@@ -2615,15 +2618,19 @@ module.exports = function (RED) {
                 msg.payload = convertStatus2(status);
                 node.send([msg]);
             }
-            catch (error) {
-                if (msg.payload){
-                    node.status({ fill: "yellow", shape: "ring", text: error.message });
-                    node.warn(error);
-                }
-                else{
-                    node.status({ fill: "red", shape: "ring", text: "Error: " + error });
-                    node.warn("Error in executeCommand2: " + getStatusRoute + "  --> "+ error );
-                }
+        }
+        catch (error) {
+            if (msg.payload){
+                node.status({ fill: "yellow", shape: "ring", text: error.message });
+                // if (node.verbose) {
+                    node.warn(error.message);
+                // }
+            }
+            else{
+                node.status({ fill: "red", shape: "ring", text: "Error: " + error });
+                // if (node.verbose) {
+                    node.warn("Error in executeCommand2: " + route + "  --> "+ error );
+                // }
             }
         }
     }
@@ -2760,8 +2767,17 @@ module.exports = function (RED) {
 
             this.on('input', async function (msg) {
                 let credentials = getCredentials(node, msg);
-                let request = await node.inputParser(msg, node, credentials);
-                executeCommand2(msg, request, node, credentials);
+                let requests = await node.inputParser(msg, node, credentials);
+
+                if(requests.length == 0){
+                    let request; // here the request is undefined to trigger a simple get status.
+                    executeCommand2(msg, request, node, credentials);          
+                }
+                else {
+                    requests.forEach(request => {
+                        executeCommand2(msg, request, node, credentials);          
+                    });
+                }
             });
 
             // Callback mode:
