@@ -46,6 +46,7 @@
         { "gen" : "1", "name" : "Shelly DUO",           "model" : "SHBDUO-1", "type" : "Dimmer",          "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-duo-duo-gu10",   "supported" : "true" },
         { "gen" : "1", "name" : "Shelly Vintage",       "model" : "SHVIN-1",  "type" : "Dimmer",          "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-vintage",        "supported" : "true" },
         { "gen" : "1", "name" : "Shelly Duo RGBW",      "model" : "SHCB-1",   "type" : "RGBW",            "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-bulb-duo-rgbw",  "supported" : "true" },
+        { "gen" : "1", "name" : "Shelly Bulb RGBW",     "model" : "SHBLB-1",  "type" : "RGBW",            "helpLink" : "",                                                             "supported" : "true" },
         { "gen" : "1", "name" : "Shelly H&T",           "model" : "SHHT-1",   "type" : "Sensor",          "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-h-t",            "supported" : "true" },
         { "gen" : "1", "name" : "Shelly Flood",         "model" : "SHWT-1",   "type" : "Sensor",          "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-flood",          "supported" : "true" },
         { "gen" : "1", "name" : "Shelly Door/Window 1", "model" : "SHDW-1",   "type" : "Sensor",          "helpLink" : "",                                                             "supported" : "true" },
