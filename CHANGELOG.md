@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.5.1] - 2024-11-04
+###  added Shelly Pro 1 UL - [#188](https://github.com/windkh/node-red-contrib-shelly/issues/188)
+
 ## [11.5.0] - 2024-10-20
 ###  msg.payload can be an array of commands (gen2 only) - [#184](https://github.com/windkh/node-red-contrib-shelly/issues/184)
 
