@@ -110,13 +110,15 @@
     
         { "gen" : "3", "name" : "Shelly 1 Gen3",        "model" : "S3SW-001X16EU", "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1-gen3",         "supported" : "not tested" },
         { "gen" : "3", "name" : "Shelly 1PM Gen3",      "model" : "S3SW-001P16EU", "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1pm-gen3",       "supported" : "not tested" },
+        { "gen" : "3", "name" : "Shelly 2PM Gen3",      "model" : "S3SW-002P16EU", "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-2pm-gen3",       "supported" : "not tested" },
         { "gen" : "3", "name" : "Shelly i4 Gen3",       "model" : "S3SN-0024X",    "type" : "Button",     "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-i4-gen3",        "supported" : "not tested" },
         { "gen" : "3", "name" : "Shelly H&T Gen3",      "model" : "S3SN-0U12A",    "type" : "Sensor",     "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-h-t-gen3",       "supported" : "true" },
         { "gen" : "3", "name" : "Shelly Dimmer 0/1-10V PM Gen3","model" : "S3DM-0010WW","type" : "Dimmer","helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-dimmer-0-1-10v-pm-gen3", "supported" : "true" },
-        { "gen" : "3", "name" : "Shelly 1 Mini Gen3",   "model" : "S3SW-001X8EU",  "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1-mini-gen3",    "supported" : "not tested" },
-        { "gen" : "3", "name" : "Shelly 1PM Mini Gen3", "model" : "S3SW-001P8EU",  "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1pm-mini-gen3",  "supported" : "true" },
-        { "gen" : "3", "name" : "Shelly PM Mini Gen3",  "model" : "S3PM-001PCEU16","type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-pm-mini-gen3",   "supported" : "not tested" },
-        { "gen" : "3", "name" : "Shelly PM Mini Gen3",  "model" : "S3PM-001PCEU16","type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-pm-mini-gen3",   "supported" : "not tested" },
-        { "gen" : "3", "name" : "Shelly Plug S MTR Gen3","model" : "S3PL-00112EU", "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-plug-s-mtr-gen3",   "supported" : "not tested" }
+        { "gen" : "3", "name" : "Shelly Plug S MTR Gen3","model" : "S3PL-00112EU", "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-plug-s-mtr-gen3", "supported" : "not tested" },
+        { "gen" : "3", "name" : "Shelly 1 Mini Gen3",   "model" : "S3SW-001X8EU",  "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1-mini-gen3",     "supported" : "not tested" },
+        { "gen" : "3", "name" : "Shelly 1PM Mini Gen3", "model" : "S3SW-001P8EU",  "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1pm-mini-gen3",   "supported" : "true" },
+        { "gen" : "3", "name" : "Shelly PM Mini Gen3",  "model" : "S3PM-001PCEU16","type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-pm-mini-gen3",    "supported" : "not tested" },
+        { "gen" : "3", "name" : "Shelly DALI Dimmer Gen3",  "model" : "S3DM-0A1WW","type" : "Dimmer",     "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-dali-dimmer-gen3","supported" : "not tested" },
+        { "gen" : "3", "name" : "Shelly EM Gen3",       "model" : " 3EM-002CXCEU", "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-em-gen3",         "supported" : "not tested" }
     ]
 }

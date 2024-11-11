@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.5.2] - 2024-11-11
+###  added Shelly 2PM Gen3 - [#190](https://github.com/windkh/node-red-contrib-shelly/issues/190)
+###  improved readme for RGBW - [#189](https://github.com/windkh/node-red-contrib-shelly/issues/189)
+
 ## [11.5.1] - 2024-11-04
 ###  added Shelly Pro 1 UL - [#188](https://github.com/windkh/node-red-contrib-shelly/issues/188)
 

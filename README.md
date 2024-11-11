@@ -718,7 +718,8 @@ For further rpc commands see the shelly documentation.
 ## RGBW PM (Plus RGBWr 12/24V)
 The node is able to turn on and turn off a shelly RGBW PM Plus. It outputs the status after every interaction with the shelly device.
 Turning on is done by sending the following payload into the input. The light number is optional and defaults to 0.
-
+The device can be operated in color and white mode. 
+For color mode you can use the following example:
 
 ```
 {
@@ -742,6 +743,22 @@ or you can make use of the alternative toggle command:
 	...
 }
 ```
+
+For white mode you can use the following example:
+
+```
+{
+    method : 'Light.Set'
+	parameters : {
+        id : 0,
+        on : true,
+		brightness : 100,
+		transition_duration : 1, // optional transition time in seconds
+        toggle_after : 2 // optional flip back time in seconds
+    }
+}
+```
+
 
 Note that toggle_after is optional. The unit is seconds.
 Right after having sent the request to the shelly device a status request is done.
