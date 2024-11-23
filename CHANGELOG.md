@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.5.3] - 2024-11-23
+###  added Shelly Blu Gateways Gen3 - [#191](https://github.com/windkh/node-red-contrib-shelly/issues/191)
+
 ## [11.5.2] - 2024-11-11
 ###  added Shelly 2PM Gen3 - [#190](https://github.com/windkh/node-red-contrib-shelly/issues/190)
 ###  improved readme for RGBW - [#189](https://github.com/windkh/node-red-contrib-shelly/issues/189)

@@ -59,11 +59,13 @@ Generation 2 devices:
 Generation 3 devices:
 - Shelly 1 Mini, 1PM Mini, PM Mini 
 - Shelly Plus H&T
+- ...
 
 BLU Devices
 - Shelly RC Button 4
 
-Others may work but are not really tested so far.
+Others may work but are not really tested so far. If you discover a new device then please create an issue in github
+with the info returned from the /shelly endpoint of the device.
 
 
 # Thanks for your donation
