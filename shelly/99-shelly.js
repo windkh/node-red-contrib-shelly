@@ -29,9 +29,6 @@ module.exports = function (RED) {
 
     let nonceCount = 1;
 
-    //  no operation function
-    function noop(){}
-
     function isEmpty(obj) {
         return Object.keys(obj).length === 0;
     }
@@ -1241,6 +1238,11 @@ module.exports = function (RED) {
         return route;
     }
 
+    //  no operation function
+    function inputParserEmpty1(){
+    }
+
+
     // Returns the input parser for the device type.
     function getInputParser1(deviceType){
         
@@ -1273,7 +1275,7 @@ module.exports = function (RED) {
                 result = inputParserRGBW1Async;
                 break;
             default:
-                result = noop;
+                result = inputParserEmpty1;
                 break;
         }
         return result;
@@ -2331,6 +2333,12 @@ module.exports = function (RED) {
         return requests;
     }
 
+    // returns an empty array.
+    function inputParserEmptyArray2(msg){
+        let requests = [];
+        return requests;
+    }
+
     // Returns the input parser for the device type.
     function getInputParser2(deviceType){
         
@@ -2347,7 +2355,7 @@ module.exports = function (RED) {
                 result = inputParserGeneric2Array;
                 break;
             default:
-                result = noop;
+                result = inputParserEmptyArray2;
                 break;
         }
         return result;
@@ -2766,6 +2774,7 @@ module.exports = function (RED) {
             })();
 
             this.on('input', async function (msg) {
+                
                 let credentials = getCredentials(node, msg);
                 let requests = await node.inputParser(msg, node, credentials);
 

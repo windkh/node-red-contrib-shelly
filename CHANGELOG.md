@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.5.4] - 2024-11-23
+###  tried to fix crash with gen2 empty input - [#194](https://github.com/windkh/node-red-contrib-shelly/issues/194)
+
 ## [11.5.3] - 2024-11-23
 ###  added Shelly Blu Gateways Gen3 - [#191](https://github.com/windkh/node-red-contrib-shelly/issues/191)
 
