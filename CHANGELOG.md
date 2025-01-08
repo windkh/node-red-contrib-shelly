@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.5.5] - 2025-01-25
+###  added Shelly EM Gen3 - [#196](https://github.com/windkh/node-red-contrib-shelly/issues/196)
+
 ## [11.5.4] - 2024-11-23
 ###  tried to fix crash with gen2 empty input - [#194](https://github.com/windkh/node-red-contrib-shelly/issues/194)
 
