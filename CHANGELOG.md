@@ -1,7 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [11.5.5] - 2025-01-25
+## [11.5.6] - 2025-01-10
+###  fixed config - [#198](https://github.com/windkh/node-red-contrib-shelly/issues/198)
+###  fixed config - [#199](https://github.com/windkh/node-red-contrib-shelly/issues/199)
+
+## [11.5.5] - 2025-01-05
 ###  added Shelly EM Gen3 - [#196](https://github.com/windkh/node-red-contrib-shelly/issues/196)
 
 ## [11.5.4] - 2024-11-23
