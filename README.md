@@ -57,7 +57,8 @@ Generation 2 devices:
 - Shelly Plus RGBW PM
 
 Generation 3 devices:
-- Shelly 1 Mini, 1PM Mini, PM Mini 
+- Shelly 1 Mini, 1PM Mini, PM Mini
+- Shelly Dimmer 
 - Shelly Plus H&T
 - ...
 
