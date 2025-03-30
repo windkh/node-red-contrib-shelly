@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.5.7] - 2025-03-30
+###  added Shelly 3EM-63 Gen3 - [#203](https://github.com/windkh/node-red-contrib-shelly/issues/203)
+
 ## [11.5.6] - 2025-01-10
 ###  fixed config - [#198](https://github.com/windkh/node-red-contrib-shelly/issues/198)
 ###  fixed config - [#199](https://github.com/windkh/node-red-contrib-shelly/issues/199)
