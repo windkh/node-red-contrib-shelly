@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.5.8] - 2025-04-17
+###  added Shelly Pro Dimmer 0/1-10V PM - [#207](https://github.com/windkh/node-red-contrib-shelly/issues/207)
+
 ## [11.5.7] - 2025-03-30
 ###  added Shelly 3EM-63 Gen3 - [#203](https://github.com/windkh/node-red-contrib-shelly/issues/203)
 
