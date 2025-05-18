@@ -2036,7 +2036,10 @@ module.exports = function (RED) {
     RED.httpAdmin.get("/node-red-contrib-shelly-getidevicetypesgen2", function(req, res) {
         let deviceTypeInfos2 = getDeviceTypeInfos("2");
         let deviceTypeInfos3 = getDeviceTypeInfos("3");
-        let deviceTypeInfos = deviceTypeInfos2.concat(deviceTypeInfos3);
+        let deviceTypeInfos4 = getDeviceTypeInfos("4");
+        let deviceTypeInfos = deviceTypeInfos2;
+        deviceTypeInfos = deviceTypeInfos.concat(deviceTypeInfos3);
+        deviceTypeInfos = deviceTypeInfos.concat(deviceTypeInfos4);
         res.json(deviceTypeInfos);
     });
 
@@ -2537,7 +2540,7 @@ module.exports = function (RED) {
     }
 
     // see https://kb.shelly.cloud/knowledge-base/devices
-    // this list also contains the shelly gen3 devices
+    // this list also contains the shelly gen3 and gen4 devices
     let gen2DeviceTypes = new Map(config.gen2DeviceTypes);
 
     function getDeviceTypes2(deviceType, exactMatch){
@@ -2545,7 +2548,10 @@ module.exports = function (RED) {
         if (exactMatch === true){
             let deviceTypes2 = getDeviceModels("2", deviceType);
             let deviceTypes3 = getDeviceModels("3", deviceType);
-            deviceTypes = deviceTypes2.concat(deviceTypes3);
+            let deviceTypes4 = getDeviceModels("4", deviceType);
+            deviceTypes = deviceTypes2;
+            deviceTypes = deviceTypes.concat(deviceTypes3)
+            deviceTypes = deviceTypes.concat(deviceTypes4)
         }
         else{
             deviceTypes = gen2DeviceTypes.get(deviceType);

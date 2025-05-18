@@ -62,6 +62,9 @@ Generation 3 devices:
 - Shelly Plus H&T
 - ...
 
+Generation 4 devices:
+...
+
 BLU Devices
 - Shelly RC Button 4
 
@@ -620,7 +623,7 @@ Note that the button is not always reachable as it falls to sleep. This is not t
 
 
 
-# Shelly Node (Generation 2 and Generation 3) 
+# Shelly Node (Generation 2, Generation 3, Generation 4) 
 See also https://shelly-api-docs.shelly.cloud/gen2/
 See also https://shelly-api-docs.shelly.cloud/gen2/Devices/ShellyPlus1PM
 The node can communicate with several shelly types. You must select the correct device type from the combobox when configuring the node.

@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.6.0] - 2025-05-18
+###  added Shelly Gen4 devices - [#211](https://github.com/windkh/node-red-contrib-shelly/issues/211)
+
 ## [11.5.10] - 2025-05-01
 ###  added Shelly Outdoor Plug S Gen3 - [#208](https://github.com/windkh/node-red-contrib-shelly/issues/208)
 
