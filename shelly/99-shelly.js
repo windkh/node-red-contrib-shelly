@@ -395,10 +395,13 @@ module.exports = function (RED) {
             } // Generation 2 devices 
             else if (node.shellyInfo.model && node.shellyInfo.gen === 2){
                 deviceType = node.shellyInfo.model;
-                requiredNodeType = 'shelly-gen2';
-                
+                requiredNodeType = 'shelly-gen2';   
             } // Generation 3 devices 
             else if (node.shellyInfo.model && node.shellyInfo.gen === 3){
+                deviceType = node.shellyInfo.model;
+                requiredNodeType = 'shelly-gen2'; // right now the protocol is compatible to gen 2
+            } // Generation 4 devices 
+            else if (node.shellyInfo.model && node.shellyInfo.gen === 4){
                 deviceType = node.shellyInfo.model;
                 requiredNodeType = 'shelly-gen2'; // right now the protocol is compatible to gen 2
             }
@@ -482,9 +485,12 @@ module.exports = function (RED) {
             else if (shellyInfo.model && shellyInfo.gen === 2){
                 deviceType = shellyInfo.model;
                 requiredNodeType = 'shelly-gen2';
-                
             } // Generation 3 devices 
             else if (shellyInfo.model && shellyInfo.gen === 3){
+                deviceType = shellyInfo.model;
+                requiredNodeType = 'shelly-gen2'; // right now the protocol is compatible to gen 2
+            } // Generation 4 devices 
+            else if (shellyInfo.model && shellyInfo.gen === 4){
                 deviceType = shellyInfo.model;
                 requiredNodeType = 'shelly-gen2'; // right now the protocol is compatible to gen 2
             }

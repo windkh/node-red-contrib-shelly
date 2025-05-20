@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.6.1] - 2025-05-20
+###  fixed Shelly Gen4 devices - [#211](https://github.com/windkh/node-red-contrib-shelly/issues/211)
+
 ## [11.6.0] - 2025-05-18
 ###  added Shelly Gen4 devices - [#211](https://github.com/windkh/node-red-contrib-shelly/issues/211)
 
