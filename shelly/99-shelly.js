@@ -2533,6 +2533,7 @@ module.exports = function (RED) {
             case 'Measure':
             case 'Dimmer':
             case 'BluGateway':
+            case 'Roller':
             case 'Sensor':
             case 'RGBW':
             case 'Thermostat':
