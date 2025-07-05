@@ -128,6 +128,7 @@
         { "gen" : "3", "name" : "Shelly Outdoor Plug S Gen3",       "model" : "S3PL-20112EU",    "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/outdoor-plug-s-gen3",   "supported" : "not tested" },
         { "gen" : "3", "name" : "Shelly AZ Plug Gen3",              "model" : "S3PL-10112EU",    "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-az-plug",         "supported" : "not tested" },
         { "gen" : "3", "name" : "Shelly Shutter Gen3",              "model" : "S3SH-0A2P4EU",    "type" : "Roller",          "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-shutter",         "supported" : "true" },
+        { "gen" : "3", "name" : "Shelly 2L Gen3",                   "model" : "S3SW-0A2X4EUL",   "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-2l-gen3",         "supported" : "not tested" },
         
         { "gen" : "4", "name" : "Shelly 1 Gen4",                    "model" : "S4SW-001X16EU",   "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1-gen4",          "supported" : "not tested" },
         { "gen" : "4", "name" : "Shelly 1PM Gen4",                  "model" : "S4SW-001P16EU",   "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1pm-gen4",        "supported" : "not tested" },

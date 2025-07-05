@@ -1,7 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [11.6.2] - 2025-07-02
+## [11.6.4] - 2025-07-06
+###  added Shelly 2L Gen3 - [#215](https://github.com/windkh/node-red-contrib-shelly/issues/215)
+
+## [11.6.3] - 2025-07-02
 ###  added Shelly Gen3 shutter
 
 ## [11.6.2] - 2025-06-27
