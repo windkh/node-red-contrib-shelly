@@ -131,11 +131,13 @@
         { "gen" : "3", "name" : "Shelly Shutter Gen3",              "model" : "S3SH-0A2P4EU",    "type" : "Roller",          "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-shutter",         "supported" : "true" },
         { "gen" : "3", "name" : "Shelly 2L Gen3",                   "model" : "S3SW-0A2X4EUL",   "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-2l-gen3",         "supported" : "not tested" },
         
+        { "gen" : "3", "name" : "Shelly Ogemray Smart Relay 25A",   "model" : "S3PB-O3AR000001", "type" : "Relay",           "helpLink" : "",         "supported" : "not tested" },
+        
         { "gen" : "4", "name" : "Shelly 1 Gen4",                    "model" : "S4SW-001X16EU",   "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1-gen4",          "supported" : "not tested" },
         { "gen" : "4", "name" : "Shelly 1PM Gen4",                  "model" : "S4SW-001P16EU",   "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1pm-gen4",        "supported" : "not tested" },
+        { "gen" : "4", "name" : "Shelly 2PM Gen4",                  "model" : "S4SW-002P16EU",   "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-2pm-gen4",        "supported" : "not tested" },
         { "gen" : "4", "name" : "Shelly 1 Mini Gen4",               "model" : "S4SW-001X8EU",    "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1-mini-gen4",     "supported" : "not tested" },
         { "gen" : "4", "name" : "Shelly 1PM Mini Gen4",             "model" : "S4SW-001P8EU",    "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1pm-mini-gen4",   "supported" : "not tested" },
-        { "gen" : "4", "name" : "Shelly EM Mini Gen4",              "model" : "S4EM-001PXCEU16", "type" : "Measure",         "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-em-mini-gen4",    "supported" : "not tested" } 
-
+        { "gen" : "4", "name" : "Shelly EM Mini Gen4",              "model" : "S4EM-001PXCEU16", "type" : "Measure",         "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-em-mini-gen4",    "supported" : "not tested" }
     ]
 }
