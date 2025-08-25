@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.6.6] - 2025-08-25
+###  added Shelly Walldisplay X2 - [#221](https://github.com/windkh/node-red-contrib-shelly/issues/221)
+
 ## [11.6.5] - 2025-08-11
 ###  added Shelly Ogemray 25A - [#220](https://github.com/windkh/node-red-contrib-shelly/issues/220)
 ###  added Shelly 2PM Gen4 - [#219](https://github.com/windkh/node-red-contrib-shelly/issues/219)
