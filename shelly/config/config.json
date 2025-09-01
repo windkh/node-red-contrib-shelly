@@ -109,6 +109,7 @@
         { "gen" : "2", "name" : "Shelly Pro RGBWW PM",              "model" : "SPDC-0D5PE16EU",  "type" : "RGBW",            "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-pro-rgbww-pm",   "supported" : "not tested" },
    
         { "gen" : "2", "name" : "Shelly Wall Display",              "model" : "SAWD-0A1XX10EU1", "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-wall-display",   "supported" : "true" },
+        { "gen" : "2", "name" : "Shelly Wall Display X2",           "model" : "SAWD-2A1XX10EU1", "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-wall-display-x2","supported" : "not tested" },
         { "gen" : "2", "name" : "ShellyBLU Gateway",                "model" : "SNGW-BT01",       "type" : "BluGateway",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shellyblu-gateway",     "supported" : "true" },
     
         { "gen" : "3", "name" : "Shelly 1 Gen3",                    "model" : "S3SW-001X16EU",   "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1-gen3",         "supported" : "not tested" },
@@ -138,7 +139,6 @@
         { "gen" : "4", "name" : "Shelly 2PM Gen4",                  "model" : "S4SW-002P16EU",   "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-2pm-gen4",        "supported" : "not tested" },
         { "gen" : "4", "name" : "Shelly 1 Mini Gen4",               "model" : "S4SW-001X8EU",    "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1-mini-gen4",     "supported" : "not tested" },
         { "gen" : "4", "name" : "Shelly 1PM Mini Gen4",             "model" : "S4SW-001P8EU",    "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1pm-mini-gen4",   "supported" : "not tested" },
-        { "gen" : "4", "name" : "Shelly EM Mini Gen4",              "model" : "S4EM-001PXCEU16", "type" : "Measure",         "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-em-mini-gen4",    "supported" : "not tested" },
-        { "gen" : "4", "name" : "Shelly Wall Display X2",           "model" : "SAWD-2A1XX10EU1", "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-wall-display-x2", "supported" : "not tested" }
+        { "gen" : "4", "name" : "Shelly EM Mini Gen4",              "model" : "S4EM-001PXCEU16", "type" : "Measure",         "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-em-mini-gen4",    "supported" : "not tested" }
     ]
 }
