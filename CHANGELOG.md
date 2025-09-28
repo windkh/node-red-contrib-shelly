@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.6.8] - 2025-09-28
+###  added gen 4 devices - [#223](https://github.com/windkh/node-red-contrib-shelly/issues/223)
+
 ## [11.6.7] - 2025-09-01
 ###  fixed Shelly Walldisplay X2 gen - [#221](https://github.com/windkh/node-red-contrib-shelly/issues/221)
 
