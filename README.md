@@ -92,6 +92,14 @@ If you want to support this free project. Any help is welcome. You can donate by
 - MichaelEFlip for improving the readme
 - Solarer for fixing script overload
 
+# 👥 Contributors
+
+  <p align="center">
+    <a href="https://github.com/windkh/node-red-contrib-shelly/graphs/contributors">
+      <img src="https://contrib.rocks/image?repo=windkh/node-red-contrib-shelly" />
+    </a>
+  </p>
+
 
 # Changelog
 Changes can be followed [here](/CHANGELOG.md)
