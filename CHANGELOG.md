@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.6.9] - 2025-09-28
+###  added Pro 4pm V3 - [#226](https://github.com/windkh/node-red-contrib-shelly/issues/226)
+
 ## [11.6.8] - 2025-09-28
 ###  added gen 4 devices - [#223](https://github.com/windkh/node-red-contrib-shelly/issues/223)
 
