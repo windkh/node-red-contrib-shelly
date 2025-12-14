@@ -1,6 +1,6 @@
 {
     "name": "node-red-contrib-shelly",
-    "version": "11.6.9",
+    "version": "11.7.0",
     "description": "Shelly nodes.",
     "node-red": {
         "version": ">=3.0.0",
@@ -27,5 +27,21 @@
         "crypto": "^1.0.1",
         "fastify": "^4.28.1",
         "path": "^0.12.7"
+    },
+	"scripts": {
+        "lint": "eslint shelly --ext .js --format unix --ignore-pattern scripts",
+        "postlint": "echo ✅ lint valid"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "npm run lint"
+        }
+    },
+	"devDependencies": {
+        "eslint": "^8.20.0",
+        "eslint-config-prettier": "^8.5.0",
+        "eslint-plugin-prettier": "^4.2.1",
+        "husky": "^8.0.1",
+        "prettier": "^2.7.1"
     }
 }

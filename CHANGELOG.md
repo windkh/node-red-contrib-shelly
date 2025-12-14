@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.7.0] - 2025-12-14
+### Refactored code: split code into several files. Warning this is a beta! Testing is required!
+
 ## [11.6.9] - 2025-09-28
 ###  added Pro 4pm V3 - [#226](https://github.com/windkh/node-red-contrib-shelly/issues/226)
 

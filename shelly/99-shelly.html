@@ -194,6 +194,7 @@
                     }
 
                     $.getJSON('node-red-contrib-shelly-getshellyinfo', parameters, function(data) {
+                        debugger
                         if(data.gen !== undefined){
                             if(data.gen == 1) {
                                 $("#getdevicetypebuttonresult").text("Detected shelly " + data.model + "");
@@ -560,6 +561,7 @@
                     }
 
                     $.getJSON('node-red-contrib-shelly-getshellyinfo', parameters, function(data) {
+                        debugger
                         if(data.gen !== undefined){
                             if(data.gen >= 2) {
                                 $("#getdevicetypebuttonresult").text("Detected shelly " + data.model + "");
