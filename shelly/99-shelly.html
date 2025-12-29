@@ -32,7 +32,7 @@
 
             let populateHostnames = function() {
                 $.getJSON('node-red-contrib-shelly-getipaddresses', function(ipAddresses) {
-                    for (let i = 0; i <= ipAddresses.length; i++) {
+                    for (let i = 0; i < ipAddresses.length; i++) {
                         let ipAddress = ipAddresses[i];
                         if (ipAddress !== undefined) {
                             $('#node-config-input-hostip').append('<option value="' + ipAddress + '">' + ipAddress + '</option>');
@@ -152,7 +152,7 @@
 
             let populateDeviceTypes = function(devicetype) {
                 $.getJSON('node-red-contrib-shelly-getidevicetypesgen1', function(deviceTypeInfos) {
-                    for (let i = 0; i <= deviceTypeInfos.length; i++) {
+                    for (let i = 0; i < deviceTypeInfos.length; i++) {
                         let deviceTypeInfo = deviceTypeInfos[i];
                         if (deviceTypeInfo !== undefined) {
                             $('#node-input-devicetype').append('<option value="' + deviceTypeInfo.deviceType + '">' + deviceTypeInfo.description + '</option>');
@@ -413,7 +413,7 @@
 
             let populateHostnames = function() {
                 $.getJSON('node-red-contrib-shelly-getipaddresses', function(ipAddresses) {
-                    for (let i = 0; i <= ipAddresses.length; i++) {
+                    for (let i = 0; i < ipAddresses.length; i++) {
                         let ipAddress = ipAddresses[i];
                         if (ipAddress !== undefined) {
                             $('#node-config-input-hostip').append('<option value="' + ipAddress + '">' + ipAddress + '</option>');
@@ -527,7 +527,7 @@
 
             let populateDeviceTypes = function(devicetype) {
                 $.getJSON('node-red-contrib-shelly-getidevicetypesgen2', function(deviceTypeInfos) {
-                    for (let i = 0; i <= deviceTypeInfos.length; i++) {
+                    for (let i = 0; i < deviceTypeInfos.length; i++) {
                         let deviceTypeInfo = deviceTypeInfos[i];
                         if (deviceTypeInfo !== undefined) {
                             $('#node-input-devicetype').append('<option value="' + deviceTypeInfo.deviceType + '">' + deviceTypeInfo.description + '</option>');
