@@ -128,9 +128,7 @@
         labelStyle: function() {
             return this.description?"node_label_italic":"";
         },
-        oneditprepare: function() {
-            debugger;
-               
+        oneditprepare: function() {   
             // the inputs edit field is always hidden.
             $("#hiddeninputs").hide();
 
@@ -194,7 +192,6 @@
                     }
 
                     $.getJSON('node-red-contrib-shelly-getshellyinfo', parameters, function(data) {
-                        debugger
                         if(data.gen !== undefined){
                             if(data.gen == 1) {
                                 $("#getdevicetypebuttonresult").text("Detected shelly " + data.model + "");
@@ -510,8 +507,6 @@
             return this.description?"node_label_italic":"";
         },
         oneditprepare: function() {
-            debugger;
-
             // polling or callback
             var updateMode = function() {
                 var mode = $("#node-input-mode").val();
@@ -561,7 +556,6 @@
                     }
 
                     $.getJSON('node-red-contrib-shelly-getshellyinfo', parameters, function(data) {
-                        debugger
                         if(data.gen !== undefined){
                             if(data.gen >= 2) {
                                 $("#getdevicetypebuttonresult").text("Detected shelly " + data.model + "");
