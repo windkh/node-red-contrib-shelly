@@ -141,6 +141,8 @@
         { "gen" : "4", "name" : "Shelly 1PM Mini Gen4",             "model" : "S4SW-001P8EU",    "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1pm-mini-gen4",   "supported" : "not tested" },
         { "gen" : "4", "name" : "Shelly EM Mini Gen4",              "model" : "S4EM-001PXCEU16", "type" : "Measure",         "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-em-mini-gen4",    "supported" : "not tested" },
         { "gen" : "4", "name" : "Shelly Flood Gen4",                "model" : "S4SN-0071A",      "type" : "Sensor",          "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-flood-gen4",      "supported" : "not tested" },
-        { "gen" : "4", "name" : "Shelly Power Strip 4 Gen4",        "model" : "S4PL-00416EU",    "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-power-strip-gen4","supported" : "not tested" }
+        { "gen" : "4", "name" : "Shelly Power Strip 4 Gen4",        "model" : "S4PL-00416EU",    "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-power-strip-gen4","supported" : "not tested" },
+        { "gen" : "4", "name" : "Shelly Plug US Gen4",              "model" : "S4PL-00116US",    "type" : "Relay",           "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-plug-us-gen4",    "supported" : "not tested" },
+        { "gen" : "4", "name" : "Shelly Dimmer Gen4",               "model" : "S4DM-0A101WWL",   "type" : "Dimmer",          "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-dimmer-gen4",     "supported" : "not tested" }
     ]
 }
