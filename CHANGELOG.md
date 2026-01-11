@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.7.2] - 2026-01-11
+###  fixed wrong script path - [#236](https://github.com/windkh/node-red-contrib-shelly/issues/236)
+
 ## [11.7.1] - 2026-01-11
 ###  added Shelly Plus US - [#235](https://github.com/windkh/node-red-contrib-shelly/issues/235)
 

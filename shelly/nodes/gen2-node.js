@@ -13,6 +13,12 @@ module.exports = function (RED) {
     const path = require('path');
     // const path = require('node:path'); see #99 nodejs V19
 
+    // The name of the script for callback mode.
+    const callbackScript = '../scripts/callback.js';
+
+    // The name of the script for callback mode for bluetooth devices.
+    const bluCallbackScript = '../scripts/ble-shelly-blu.js';
+    
     // Uploads and enables a skript.
     async function tryInstallScriptAsync(node, script, scriptName) {
         let success = false;
@@ -376,7 +382,7 @@ module.exports = function (RED) {
                 await shelly.startAsync(node, types);
                 success = true;
             } else if (mode === 'callback') {
-                let scriptPath = path.resolve(__dirname, './scripts/callback.js');
+                let scriptPath = path.resolve(__dirname, callbackScript);
                 const buffer = fs.readFileSync(scriptPath);
                 // const buffer = await readFile(scriptPath); #96 nodejs V19
                 let script = buffer.toString();
@@ -409,7 +415,7 @@ module.exports = function (RED) {
 
             let mode = node.mode;
             if (mode === 'callback') {
-                let scriptPath = path.resolve(__dirname, './scripts/ble-shelly-blu.js');
+                let scriptPath = path.resolve(__dirname, bluCallbackScript);
                 const buffer = fs.readFileSync(scriptPath);
                 // const buffer = await readFile(scriptPath); #96 nodejs V19
                 let script = buffer.toString();
