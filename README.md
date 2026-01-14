@@ -26,50 +26,155 @@ This package depends on the following libraries
 
 
 # Supported Devices
-This package is under construction. Right now the following devices are supported
 
-Generation 1 devices:
-- Shelly Switch 1 (PM), 2, L,  
-- Shelly Plug PlugS
-- Shelly 2, 2.5 (roller shutter) 
-- Shelly Dimmer / Shelly Bulb Duo, Vintage
-- Shelly Door / Shelly Door 2
-- Shelly RGBW2 / Shelly Bulb RGBW
-- Shelly Motion 1/2
-- Shelly Emeasure (EM, EM3)
-- Shelly UNI
-- Shelly TRV
-- Shelly Button / I3
+The following table lists all Shelly devices that are supported by this package. Devices marked as "true" have been tested and confirmed to work. Devices marked as "not tested" should work but have not been verified yet.
 
-Generation 2 devices:
-- Shelly Plus l, Plus 1 PM, Plus 2 PM,Shelly Plus PM Mini, I4
-- Shelly Pro 1, Pro 1 PM, Pro 2 PM, Pro 4 PM
-- Shelly US Plug
-- Shelly Plus Plug S
-- Shelly Plus Smoke
-- Shelly Plus H&T
-- Shelly Plus Wall Dimmer
-- Shelly Plus UNI
-- Shelly Blu Gateway
-- Shelly Wall Display
-- Shelly Plus Dimmer 0-10V
-- Shelly Wall Display 
-- Shelly Plus RGBW PM
+## Generation 1 Devices
 
-Generation 3 devices:
-- Shelly 1 Mini, 1PM Mini, PM Mini
-- Shelly Dimmer 
-- Shelly Plus H&T
-- ...
+| Device Name | Model | Type |
+|-------------|-------|------|
+| Shelly 1 | SHSW-1 | Relay |
+| Shelly 1PM | SHSW-PM | Relay |
+| Shelly 1L Relay | SHSW-L | Relay |
+| Shelly 1L Roller | SHSW-L | Roller |
+| Shelly 2 Relay | SHSW-21 | Relay |
+| Shelly 2 Roller | SHSW-21 | Relay |
+| Shelly 2.5 Relay | SHSW-25 | Relay |
+| Shelly 2.5 Roller | SHSW-25 | Roller |
+| Shelly I3 | SHIX3-1 | Button |
+| Shelly EM | SHEM | Measure |
+| Shelly 3EM | SHEM-3 | Measure |
+| Shelly UNI | SHUNI-1 | Relay |
+| Shelly TRV | SHTRV-01 | Thermostat |
+| Shelly Button 1 | SHBTN-1 | Button |
+| Shelly Button 2 | SHBTN-2 | Button |
+| Shelly Plug | SHPLG-1 | Relay |
+| Shelly Plug E | SHPLG2-1 | Relay |
+| Shelly Plug S | SHPLG-S | Relay |
+| Shelly Plug US | SHPLG-U1 | Relay |
+| Shelly RGBW2 | SHRGBW2 | RGBW |
+| Shelly Dimmer 1 | SHDM-1 | Dimmer |
+| Shelly Dimmer 2 | SHDM-2 | Dimmer |
+| Shelly DUO | SHBDUO-1 | Dimmer |
+| Shelly Vintage | SHVIN-1 | Dimmer |
+| Shelly Duo RGBW | SHCB-1 | RGBW |
+| Shelly Bulb RGBW | SHBLB-1 | RGBW |
+| Shelly H&T | SHHT-1 | Sensor |
+| Shelly Flood | SHWT-1 | Sensor |
+| Shelly Door/Window 1 | SHDW-1 | Sensor |
+| Shelly Door/Window 2 | SHDW-2 | Sensor |
+| Shelly Gas | SHGS-1 | Sensor |
+| Shelly Motion | SHMOS-01 | Sensor |
+| Shelly Motion 2 | SHMOS-02 | Sensor |
+| Shelly Smoke | SHSM-01 | Sensor |
 
-Generation 4 devices:
-...
+## Generation 2 Devices
 
-BLU Devices
+| Device Name | Model | Type |
+|-------------|-------|------|
+| Shelly Plus 1 | SNSW-001X16EU | Relay |
+| Shelly Plus 1 UL | SNSW-001X15UL | Relay |
+| Shelly Plus 1PM | SNSW-001P16EU | Relay |
+| Shelly Plus 1PM UL | SNSW-001P15UL | Relay |
+| Shelly Plus 2PM | SNSW-002P16EU | Relay |
+| Shelly Plus 2PM v.1 | SNSW-102P16EU | Relay |
+| Shelly Plus 2PM UL | SNSW-002P15UL | Relay |
+| Shelly Plus i4 | SNSN-0024X | Button |
+| Shelly Plus i4DC | SNSN-0D24X | Button |
+| Shelly Plus H&T | SNSN-0013A | Sensor |
+| Shelly Plus Plug IT | SNPL-00110IT | Relay |
+| Shelly Plus Plug S | SNPL-00112EU | Relay |
+| Shelly Plus Plug S V2 | SNPL-10112EU | Relay |
+| Shelly Plus Plug UK | SNPL-00112UK | Relay |
+| Shelly Plus Plug US | SNPL-00116US | Relay |
+| Shelly Plus Smoke | SNSN-0031Z | Sensor |
+| Shelly Plus Wall Dimmer | SNDM-0013US | Dimmer |
+| Shelly Plus Uni | SNSN-0043X | Relay |
+| Shelly Plus 0-10V Dimmer | SNDM-00100WW | Dimmer |
+| Shelly Plus RGBW PM | SNDC-0D4P10WW | RGBW |
+| Shelly Plus 1 Mini | SNSW-001X8EU | Relay |
+| Shelly Plus 1PM Mini | SNSW-001P8EU | Relay |
+| Shelly Plus PM Mini | SNPM-001PCEU16 | Relay |
+| Shelly Pro 1 | SPSW-001XE16EU | Relay |
+| Shelly Pro 1 v.0 | SPSW-101XE16EU | Relay |
+| Shelly Pro 1 v.1 | SPSW-201XE16EU | Relay |
+| Shelly Pro 1 v.1 UL | SPSW-201XE15UL | Relay |
+| Shelly Pro 1PM | SPSW-001PE16EU | Relay |
+| Shelly Pro 1PM v.0 | SPSW-101PE16EU | Relay |
+| Shelly Pro 1PM v.1 | SPSW-201PE16EU | Relay |
+| Shelly Pro 1PM v.1 UL | SPSW-201PE15UL | Relay |
+| Shelly Pro 2 v.1 | SPSW-202XE16EU | Relay |
+| Shelly Pro 2 v.1 UL | SPSW-202XE12UL | Relay |
+| Shelly Pro 2PM | SPSW-002PE16EU | Relay |
+| Shelly Pro 2PM v.0 | SPSW-102PE16EU | Relay |
+| Shelly Pro 2PM v.1 | SPSW-202PE16EU | Relay |
+| Shelly Pro Dual Cover/Shutter PM | SPSH-002PE16EU | Relay |
+| Shelly Pro Dimmer 1PM | SPDM-001PE01EU | Dimmer |
+| Shelly Pro Dimmer 2PM | SPDM-002PE01EU | Dimmer |
+| Shelly Pro Dimmer 0/1-10V PM | SPCC-001PE10EU | Dimmer |
+| Shelly Pro 3 | SPSW-003XE16EU | Relay |
+| Shelly Pro 3EM | SPEM-003CEBEU | Measure |
+| Shelly Pro 3EM | SPEM-003CEBEU120 | Measure |
+| Shelly Pro 3EM-400 | SPEM-003CEBEU400 | Measure |
+| Shelly Pro EM-50 | SPEM-002CEBEU50 | Measure |
+| Shelly Pro 4PM V1 | SPSW-004PE16EU | Relay |
+| Shelly Pro 4PM V2 | SPSW-104PE16EU | Relay |
+| Shelly Pro 4PM V3 | SPSW-204PE16EU | Relay |
+| Shelly Pro RGBWW PM | SPDC-0D5PE16EU | RGBW |
+| Shelly Wall Display | SAWD-0A1XX10EU1 | Relay |
+| Shelly Wall Display X2 | SAWD-2A1XX10EU1 | Relay |
+| ShellyBLU Gateway | SNGW-BT01 | BluGateway |
+
+## Generation 3 Devices
+
+| Device Name | Model | Type |
+|-------------|-------|------|
+| Shelly 1 Gen3 | S3SW-001X16EU | Relay |
+| Shelly 1PM Gen3 | S3SW-001P16EU | Relay |
+| Shelly 2PM Gen3 | S3SW-002P16EU | Relay |
+| Shelly i4 Gen3 | S3SN-0024X | Button |
+| Shelly H&T Gen3 | S3SN-0U12A | Sensor |
+| Shelly Dimmer Gen3 | S3DM-0A101WWL | Dimmer |
+| Shelly Dimmer 0/1-10V PM Gen3 | S3DM-0010WW | Dimmer |
+| Shelly Plug S MTR Gen3 | S3PL-00112EU | Relay |
+| Shelly 1 Mini Gen3 | S3SW-001X8EU | Relay |
+| Shelly 1PM Mini Gen3 | S3SW-001P8EU | Relay |
+| Shelly PM Mini Gen3 | S3PM-001PCEU16 | Relay |
+| Shelly DALI Dimmer Gen3 | S3DM-0A1WW | Dimmer |
+| Shelly EM Gen3 | S3EM-002CXCEU | Measure |
+| Shelly 3EM-63 Gen3 | S3EM-003CXCEU63 | Measure |
+| ShellyBLU Gateway Gen3 | S3GW-1DBT001 | BluGateway |
+| Shelly Outdoor Plug S Gen3 | S3PL-20112EU | Relay |
+| Shelly AZ Plug Gen3 | S3PL-10112EU | Relay |
+| Shelly Shutter Gen3 | S3SH-0A2P4EU | Roller |
+| Shelly 2L Gen3 | S3SW-0A2X4EUL | Relay |
+| Shelly 1L Gen3 | S3SW-0A1X1EUL | Relay |
+| Shelly The Pill Gen3 | S3SN-0U53X | Sensor |
+| Shelly Plug PM Gen3 | S3PL-30116EU | Relay |
+| Shelly Ogemray Smart Relay 25A | S3PB-O3AR000001 | Relay |
+
+## Generation 4 Devices
+
+| Device Name | Model | Type |
+|-------------|-------|------|
+| Shelly 1 Gen4 | S4SW-001X16EU | Relay |
+| Shelly 1PM Gen4 | S4SW-001P16EU | Relay |
+| Shelly 2PM Gen4 | S4SW-002P16EU | Relay |
+| Shelly 1 Mini Gen4 | S4SW-001X8EU | Relay |
+| Shelly 1PM Mini Gen4 | S4SW-001P8EU | Relay |
+| Shelly EM Mini Gen4 | S4EM-001PXCEU16 | Measure |
+| Shelly Flood Gen4 | S4SN-0071A | Sensor |
+| Shelly Power Strip 4 Gen4 | S4PL-00416EU | Relay |
+| Shelly Plug US Gen4 | S4PL-00116US | Relay |
+| Shelly Dimmer Gen4 | S4DM-0A101WWL | Dimmer |
+| Shelly 1 Gen4 ANZ | S4SW-001X16ANZ | Relay |
+| Shelly 1PM Gen4 ANZ | S4SW-001P16ANZ | Relay |
+| Shelly 2PM Gen4 ANZ | S4SW-002P16ANZ | Relay |
+
+## BLU Devices
 - Shelly RC Button 4
 
-Others may work but are not really tested so far. If you discover a new device then please create an issue in github
-with the info returned from the /shelly endpoint of the device.
+**Note:** Devices marked as "not tested" should work but have not been verified. If you discover a new device or encounter issues, please create an issue on GitHub with the information returned from the /shelly endpoint of the device.
 
 
 # Thanks for your donation
