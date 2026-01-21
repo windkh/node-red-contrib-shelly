@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+prpr19xx
+
+## [11.7.4] - 2026-01-21
+### Add exception handling to callback script - [#239](https://github.com/windkh/node-red-contrib-shelly/pull/239)
+
 ## [11.7.3] - 2026-01-14
 ### Code Cleanup - added missing devices
 

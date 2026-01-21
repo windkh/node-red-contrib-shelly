@@ -196,6 +196,7 @@ If you want to support this free project. Any help is welcome. You can donate by
 - teixemf for testing and fixing gen 2 rpc problems 
 - MichaelEFlip for improving the readme
 - Solarer for fixing script overload
+- prpr19xx for adding exception handling to callback script
 
 # 👥 Contributors
 
