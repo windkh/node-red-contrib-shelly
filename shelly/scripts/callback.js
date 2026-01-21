@@ -19,7 +19,8 @@ let EVENT_FILTER = {
 
 if(CONFIG.SENDER === ''){
     Shelly.call(
-        'Shelly.GetStatus',''
+        'Shelly.GetStatus',
+        '',
         function (res, error_code, error_msg, ud) {
            let status = res;
            // print(JSON.stringify(status));
