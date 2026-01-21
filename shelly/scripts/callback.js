@@ -57,14 +57,18 @@ function CallNodeRed(event) {
     };
    
     let body = JSON.stringify(data );
-    Shelly.call(
-        'http.request', {
-            method: 'PUT',
-            url: CONFIG.URL,
-            body: body
-        },
-        function (r, e, m) {
-        },
-        null
-    );
+    try {
+      Shelly.call(
+          'http.request', {
+              method: 'PUT',
+              url: CONFIG.URL,
+              body: body
+          },
+          function (r, e, m) {
+          },
+          null
+      );
+    } catch(e) {
+      print('Exception: ' + JSON.stringify(e));
+    }
 }
