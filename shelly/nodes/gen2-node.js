@@ -18,7 +18,7 @@ module.exports = function (RED) {
 
     // The name of the script for callback mode for bluetooth devices.
     const bluCallbackScript = '../scripts/ble-shelly-blu.js';
-    
+
     // Uploads and enables a skript.
     async function tryInstallScriptAsync(node, script, scriptName) {
         let success = false;
