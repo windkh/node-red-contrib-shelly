@@ -1,10 +1,10 @@
-// This block must be configured by the one who creates the skript
+// This block must be configured by the one who creates the script
 let CONFIG = {
     URL: '%URL%',
     SENDER: '%SENDER%'
 };
 
-// Events which are in this list and value is true will be filtered.
+// Events which are in this list and the value is true will be filtered.
 let EVENT_FILTER = {
     power_update : true, 
     current_update : true, 
@@ -37,7 +37,7 @@ Shelly.addEventHandler(
         if (typeof event.info.event !== 'undefined') {
             let eventType = event.info.event;
             let filter = EVENT_FILTER[eventType];
-            if(filter == undefined || filter == false) {
+            if(typeof filter == 'undefined' || filter == false) {
                 CallNodeRed(event)
             }
         }
