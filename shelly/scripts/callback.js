@@ -1,10 +1,10 @@
-// This block must be configured by the one who creates the skript
+// This block must be configured by the one who creates the script
 let CONFIG = {
     URL: '%URL%',
     SENDER: '%SENDER%'
 };
 
-// Events which are in this list and value is true will be filtered.
+// Events which are in this list and the value is true will be filtered.
 let EVENT_FILTER = {
     power_update : true, 
     current_update : true, 
@@ -19,7 +19,8 @@ let EVENT_FILTER = {
 
 if(CONFIG.SENDER === ''){
     Shelly.call(
-        'Shelly.GetStatus',''
+        'Shelly.GetStatus',
+        '',
         function (res, error_code, error_msg, ud) {
            let status = res;
            // print(JSON.stringify(status));
@@ -36,7 +37,7 @@ Shelly.addEventHandler(
         if (typeof event.info.event !== 'undefined') {
             let eventType = event.info.event;
             let filter = EVENT_FILTER[eventType];
-            if(filter == undefined || filter == false) {
+            if(typeof filter == 'undefined' || filter == false) {
                 CallNodeRed(event)
             }
         }
@@ -56,14 +57,18 @@ function CallNodeRed(event) {
     };
    
     let body = JSON.stringify(data );
-    Shelly.call(
-        'http.request', {
-            method: 'PUT',
-            url: CONFIG.URL,
-            body: body
-        },
-        function (r, e, m) {
-        },
-        null
-    );
+    try {
+      Shelly.call(
+          'http.request', {
+              method: 'PUT',
+              url: CONFIG.URL,
+              body: body
+          },
+          function (r, e, m) {
+          },
+          null
+      );
+    } catch(e) {
+      print('Exception: ' + JSON.stringify(e));
+    }
 }
