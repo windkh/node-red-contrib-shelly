@@ -1,8 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.7.6] - 2026-02-15
+### Fixed polling output for gen1 when offline - [#232](https://github.com/windkh/node-red-contrib-shelly/issues/232)
+
 ## [11.7.5] - 2026-02-15
-### Added S3PL-30110EU - [#241](https://github.com/windkh/node-red-contrib-shelly/pull/241)
+### Added S3PL-30110EU - [#241](https://github.com/windkh/node-red-contrib-shelly/issues/241)
 
 ## [11.7.4] - 2026-01-21
 ### Add exception handling to callback script - [#239](https://github.com/windkh/node-red-contrib-shelly/pull/239)

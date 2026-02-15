@@ -219,6 +219,8 @@ function getCredentials(node, msg) {
 
 // Hint: the /shelly route can be accessed without authorization
 async function shellyPing(node, credentials, types) {
+    let found = false;
+            
     // gen 1 and gen 2 devices support this endpoint (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
     try {
         let data;
@@ -251,7 +253,6 @@ async function shellyPing(node, credentials, types) {
         }
 
         if (requiredNodeType === node.type) {
-            let found = false;
             for (let i = 0; i < types.length; i++) {
                 let type = types[i];
 
@@ -280,6 +281,8 @@ async function shellyPing(node, credentials, types) {
             node.warn(error.message);
         }
     }
+
+    return found;
 }
 
 // checks if the device is the configured one.
@@ -360,10 +363,10 @@ function start(node, types) {
         shellyPing(node, credentials, types);
 
         if (node.pollInterval > 0) {
-            node.pollingTimer = setInterval(function () {
-                shellyPing(node, credentials, types);
+            node.pollingTimer = setInterval(async function () {
 
-                if (node.pollStatus) {
+                let found = await shellyPing(node, credentials, types);
+                if (found && node.pollStatus) {
                     node.emit('input', {});
                 }
             }, node.pollInterval);
