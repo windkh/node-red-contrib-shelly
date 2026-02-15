@@ -151,6 +151,7 @@ The following table lists all Shelly devices that are supported by this package.
 | Shelly 1L Gen3 | S3SW-0A1X1EUL | Relay |
 | Shelly The Pill Gen3 | S3SN-0U53X | Sensor |
 | Shelly Plug PM Gen3 | S3PL-30116EU | Relay |
+| Shelly Plug M Gen3 | S3PL-30110EU | Relay |
 | Shelly Ogemray Smart Relay 25A | S3PB-O3AR000001 | Relay |
 
 ## Generation 4 Devices
@@ -172,7 +173,7 @@ The following table lists all Shelly devices that are supported by this package.
 | Shelly 2PM Gen4 ANZ | S4SW-002P16ANZ | Relay |
 
 ## BLU Devices
-- Shelly RC Button 4
+Blu devices must be connected to a BlueGateway or any other bluetooth capable shelly.
 
 **Note:** Devices marked as "not tested" should work but have not been verified. If you discover a new device or encounter issues, please create an issue on GitHub with the information returned from the /shelly endpoint of the device.
 
