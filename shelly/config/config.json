@@ -134,8 +134,9 @@
         { "gen" : "3", "name" : "Shelly 1L Gen3",                   "model" : "S3SW-0A1X1EUL",   "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1l-gen3",                     "supported" : "not tested" },
         { "gen" : "3", "name" : "Shelly The Pill Gen3",             "model" : "S3SN-0U53X",      "type" : "Sensor",     "helpLink" : "https://kb.shelly.cloud/knowledge-base/the-pill-by-shelly",                 "supported" : "not tested" },
         { "gen" : "3", "name" : "Shelly Plug PM Gen3",              "model" : "S3PL-30116EU",    "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-plug-pm-gen3",                "supported" : "not tested" },
+        { "gen" : "3", "name" : "Shelly Plug M Gen3",               "model" : "S3PL-30110EU",    "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-plug-m-gen3",                 "supported" : "not tested" },
         { "gen" : "3", "name" : "Shelly Ogemray Smart Relay 25A",   "model" : "S3PB-O3AR000001", "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/ogemray-smart-relay",                "supported" : "not tested" },
-
+       
         { "gen" : "4", "name" : "Shelly 1 Gen4",                    "model" : "S4SW-001X16EU",   "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1-gen4",                      "supported" : "not tested" },
         { "gen" : "4", "name" : "Shelly 1PM Gen4",                  "model" : "S4SW-001P16EU",   "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-1pm-gen4",                    "supported" : "not tested" },
         { "gen" : "4", "name" : "Shelly 2PM Gen4",                  "model" : "S4SW-002P16EU",   "type" : "Relay",      "helpLink" : "https://kb.shelly.cloud/knowledge-base/shelly-2pm-gen4",                    "supported" : "not tested" },
