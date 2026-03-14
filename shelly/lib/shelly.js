@@ -117,13 +117,13 @@ function getDigestAuthorization(response, credentials, config) {
 // generic REST request wrapper.
 async function shellyRequestAsync(axiosInstance, method, route, params, data, credentials, timeout) {
     if (timeout === undefined || timeout === null) {
-        timeout = 5003;
+        timeout = 10001;
     }
 
     // We avoid an invalid timeout by taking a default if 0.
     let requestTimeout = timeout;
     if (requestTimeout <= 0) {
-        requestTimeout = 5004;
+        requestTimeout = 10002;
     }
 
     let headers = getHeaders(credentials);

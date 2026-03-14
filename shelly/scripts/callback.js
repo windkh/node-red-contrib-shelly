@@ -6,13 +6,14 @@ let CONFIG = {
 
 // Events which are in this list and the value is true will be filtered.
 let EVENT_FILTER = {
+    'node-red-contrib-shelly-blu' : false, // events from gateway script node-red-contrib-shelly-blu.
     power_update : true, 
-    current_update : true, 
     btn_up : true,
     btn_down : true,
     temperature_update : true,
     energy_update : true,
     current_measurement : true,
+    current_update : true, 
     power_measurement : true,
     voltage_measurement : true,
 };
@@ -39,6 +40,9 @@ Shelly.addEventHandler(
             let filter = EVENT_FILTER[eventType];
             if(typeof filter == 'undefined' || filter == false) {
                 CallNodeRed(event)
+            }
+            else {
+                // print('Event ' + eventType + ' filtered out.');
             }
         }
         else {

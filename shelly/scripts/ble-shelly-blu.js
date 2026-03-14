@@ -31,7 +31,7 @@
 /******************* START CHANGE HERE *******************/
 const CONFIG = {
     // Specify the destination event where the decoded BLE data will be emitted. It allows for easy identification by other applications/scripts
-    eventName: 'shelly-blu',
+    eventName: 'node-red-contrib-shelly-blu',
 
     // If the script owns the scanner and this value is set to true, the scan will be active.
     // If the script does not own the scanner, it may remain passive even when set to true.
@@ -41,7 +41,8 @@ const CONFIG = {
     // When set to true, debug messages will be logged to the console
     debug: false,
 
-    includeRawData: true,
+    // If set to true, the raw service data will be included in the emitted event, this can be useful for debugging or for use cases where the raw data is needed. Note that this will increase the size of the emitted event.
+    includeRawData: false, 
 };
 /******************* STOP CHANGE HERE *******************/
 

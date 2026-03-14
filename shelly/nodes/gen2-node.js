@@ -86,15 +86,12 @@ module.exports = function (RED) {
                     node.status({ fill: 'green', shape: 'ring', text: 'Connected.' });
                     success = true;
                 } else {
-                    node.error('Uploaded script not running.');
+                    node.error('Uploaded script ' + scriptName + ' not running.');
                     node.status({ fill: 'red', shape: 'ring', text: 'Script not running.' });
                 }
             } catch (error) {
-                node.error('Uploading script failed.', error);
-                if (error.request !== undefined) {
-                    node.error('Request: ' + error.request.method + ' ' + error.request.path);
-                }
-                node.status({ fill: 'red', shape: 'ring', text: 'Uploading script failed ' });
+                node.error('Uploading script ' + scriptName + ' failed: ' + error.request._currentUrl + ' --> ' + error.message);
+                node.status({ fill: 'red', shape: 'ring', text: 'Uploading script ' + scriptName + ' failed ' + error.message});
             }
         } else {
             node.status({ fill: 'red', shape: 'ring', text: 'Hostname not configured' });
