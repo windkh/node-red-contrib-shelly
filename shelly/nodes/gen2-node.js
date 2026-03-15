@@ -1,3 +1,5 @@
+const { hostname } = require('os');
+
 module.exports = function (RED) {
     'use strict';
 
@@ -554,15 +556,17 @@ module.exports = function (RED) {
         } catch (error) {
             if (msg.payload) {
                 node.status({ fill: 'yellow', shape: 'ring', text: error.message });
-                // if (node.verbose) {
                 node.warn(error.message);
-                // }
             } else {
                 node.status({ fill: 'red', shape: 'ring', text: 'Error: ' + error });
-                // if (node.verbose) {
                 node.warn('Error in executeCommand2: ' + route + '  --> ' + error);
-                // }
             }
+
+            msg.error = {
+                hostname : node.hostname,
+                error : error.message,
+            };
+            node.send([msg]);
         }
     }
 
@@ -621,6 +625,14 @@ module.exports = function (RED) {
 
                 // if the device is not online, then we wait until it is available and try again.
                 if (!initialized) {
+                    let msg = {
+                        error : {
+                            hostname : node.hostname,
+                            message : 'Device is not reachable. Retrying to connect every ' + node.initializeRetryInterval / 1000 + ' seconds.',
+                        }     
+                    };
+                    node.send([msg]);
+
                     node.initializeTimer = setInterval(async function () {
                         let initialized = await node.initializer(node, node.types);
                         if (initialized) {

@@ -360,15 +360,35 @@ async function tryCheckDeviceType(node, types) {
 function start(node, types) {
     if (node.hostname !== '') {
         let credentials = getCredentials(node);
-        shellyPing(node, credentials, types);
+        node.online = shellyPing(node, credentials, types);
 
         if (node.pollInterval > 0) {
             node.pollingTimer = setInterval(async function () {
 
                 let found = await shellyPing(node, credentials, types);
-                if (found && node.pollStatus) {
-                    node.emit('input', {});
+                if (found) {
+                    if (node.online === false) {
+                        node.status({ fill: 'green', shape: 'ring', text: 'Connected.' });
+                    }
+
+                    if (node.pollStatus) {
+                        node.emit('input', {});
+                    }
+                } else {
+                    if (node.online === true) {
+                        node.status({ fill: 'yellow', shape: 'ring', text: 'Polling: device not reachable' });
+               
+                        let msg = {
+                            error : {
+                                hostname : node.hostname,
+                                message : 'Device is not reachable. Retrying to connect every ' + node.initializeRetryInterval / 1000 + ' seconds.',
+                            }     
+                        };
+                        node.send([msg]);
+                    }
                 }
+
+                node.online = found;
             }, node.pollInterval);
         } else {
             node.status({ fill: 'yellow', shape: 'ring', text: 'Polling is turned off' });

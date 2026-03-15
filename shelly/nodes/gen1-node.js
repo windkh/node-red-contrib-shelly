@@ -768,6 +768,8 @@ module.exports = function (RED) {
                 // nothing to do.
                 success = true;
             }
+        } else {
+            success = false;
         }
 
         return success;
@@ -1140,8 +1142,11 @@ module.exports = function (RED) {
                 node.status({ fill: 'red', shape: 'ring', text: 'Error: ' + error });
                 node.warn('Error in executeCommand1: ' + route + '  --> ' + error);
 
-                // node.status({ fill: "yellow", shape: "ring", text: error.message });
-                // node.warn(error.message);
+                msg.error = {
+                    hostname : node.hostname,
+                    error : error.message,
+                };
+                node.send([msg]);
             }
         } else {
             try {
@@ -1261,6 +1266,14 @@ module.exports = function (RED) {
 
                 // if the device is not online, then we wait until it is available and try again.
                 if (!initialized) {
+                    let msg = {
+                        error : {
+                            hostname : node.hostname,
+                            message : 'Device is not reachable. Retrying to connect every ' + node.initializeRetryInterval / 1000 + ' seconds.',
+                        }     
+                    };
+                    node.send([msg]);
+
                     node.initializeTimer = setInterval(async function () {
                         let initialized = await node.initializer(node, node.types);
                         if (initialized) {

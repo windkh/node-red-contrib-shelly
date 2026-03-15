@@ -1,10 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [11.7.7] - 2026-03-14
-### modified callback scripts
+## [11.8.0] - 2026-03-15
+### On error the node will send a msg.error (polling) - [#168](https://github.com/windkh/node-red-contrib-shelly/issues/168)
 
-## [11.7.6] - 2026-02-15
+## [11.7.6] - 2026-03-15
 ### Fixed polling output for gen1 when offline - [#232](https://github.com/windkh/node-red-contrib-shelly/issues/232)
 
 ## [11.7.5] - 2026-02-15
