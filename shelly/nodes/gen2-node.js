@@ -280,7 +280,7 @@ module.exports = function (RED) {
         }
 
         if (rpcMethod !== undefined) {
-            route = '/rpc/';
+            route = '/rpc';
             data = {
                 id: 1,
                 method: rpcMethod,

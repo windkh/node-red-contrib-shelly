@@ -141,22 +141,34 @@ async function shellyRequestAsync(axiosInstance, method, route, params, data, cr
     };
 
     let result;
-    const response = await axiosInstance.request(config);
-    if (response.status == 200) {
-        result = response.data;
-    } else if (response.status == 401) {
-        config.headers = {
-            Authorization: getDigestAuthorization(response, credentials, config),
-        };
+    try {
+        const response = await axiosInstance.request(config);
+        if (response.status == 200) {
+            result = response.data;
+        } else if (response.status == 401) {
+            config.headers = {
+                Authorization: getDigestAuthorization(response, credentials, config),
+            };
 
-        const digestResponse = await axiosInstance.request(config);
-        if (digestResponse.status == 200) {
-            result = digestResponse.data;
+            const digestResponse = await axiosInstance.request(config);
+            if (digestResponse.status == 200) {
+                result = digestResponse.data;
+            } else {
+                throw new Error(digestResponse.statusText + ' ' + config.url);
+            }
         } else {
-            throw new Error(digestResponse.statusText + ' ' + config.url);
+            throw new Error(response.statusText + ' ' + config.url);
         }
-    } else {
-        throw new Error(response.statusText + ' ' + config.url);
+    } catch (error) {
+        // Surface the device's response body so callers see the real diagnostic
+        // (Shelly gen2 RPC returns errors like {"error":{"code":-103,"message":"..."}}
+        // in the body; without this enrichment users only see axios's generic
+        // "Request failed with status code 400").
+        if (error.response && error.response.data !== undefined) {
+            const body = typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data);
+            throw new Error(error.message + ' (' + config.url + '): ' + body);
+        }
+        throw error;
     }
 
     return result;
