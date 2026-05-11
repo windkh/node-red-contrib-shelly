@@ -595,6 +595,10 @@ module.exports = function (RED) {
         node.mode = config.mode;
         if (!node.mode) {
             node.mode = 'polling';
+        } else if (node.mode === 'callback' && (node.server === undefined || node.server === null)) {
+            node.warn('Callback mode selected but no shelly-gen2-server config is bound on this node — falling back to polling.');
+            node.status({ fill: 'yellow', shape: 'ring', text: 'No server: polling' });
+            node.mode = 'polling';
         }
 
         node.status({});
@@ -620,6 +624,7 @@ module.exports = function (RED) {
 
             (async () => {
                 let initialized = await node.initializer(node, node.types);
+                if (node.closing) return;
 
                 // if the device is not online, then we wait until it is available and try again.
                 if (!initialized) {
@@ -632,7 +637,9 @@ module.exports = function (RED) {
                     node.send([msg]);
 
                     node.initializeTimer = setInterval(async function () {
+                        if (node.closing) return;
                         let initialized = await node.initializer(node, node.types);
+                        if (node.closing) return;
                         if (initialized) {
                             clearInterval(node.initializeTimer);
                         }
@@ -674,6 +681,7 @@ module.exports = function (RED) {
             }
 
             this.on('close', function (done) {
+                node.closing = true;
                 node.status({});
 
                 if (node.onCallback) {

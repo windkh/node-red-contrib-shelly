@@ -366,7 +366,9 @@ async function start(node, types) {
 
         if (node.pollInterval > 0) {
             node.pollingTimer = setInterval(async function () {
+                if (node.closing) return;
                 let found = await shellyPing(node, credentials, types);
+                if (node.closing) return;
                 if (found) {
                     if (node.online === false) {
                         node.status({ fill: 'green', shape: 'ring', text: 'Connected.' });

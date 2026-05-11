@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.10.0] - 2026-05-11
+### Plugged a redeploy timer leak and surfaced callback-mode misconfiguration
+- **Closing race fixed.** If a flow was redeployed while a node's `initializer` was still awaiting (slow network, sleeping sensor, etc.), the IIFE could resolve _after_ the `close` handler had already run `clearInterval`, then schedule a fresh `setInterval` that no one ever cleared. The dangling timer kept calling `node.initializer` on the orphaned node forever, leaking N timers per N redeploys and filling logs with status/send calls on a closed node. Both `gen1-node.js` and `gen2-node.js` now set `node.closing = true` in their `close` handler and short-circuit the init IIFE, its retry interval, and the polling loop in `shelly/lib/shelly.js` when that flag is set.
+- **Callback-mode misconfiguration is now visible.** Selecting "callback" mode in the UI without binding a `shelly-gen*-server` config node used to silently downgrade to polling. The node now emits `node.warn(...)` and shows a yellow "No server: polling" status badge before falling back, so the misconfiguration is debuggable instead of mysterious. (Gen 2 used to crash later on `node.server.port` access; that path is now caught up front.)
+
 ## [11.9.4] - 2026-05-11
 ### Re-enabled the husky pre-commit lint gate
 - The project was upgraded to husky v8 in devDependencies but kept the husky v4-style `"husky": { "hooks": { ... } }` block in `package.json`, which v8 ignores. There was no `.husky/` directory and no `prepare` script, so the pre-commit lint gate had been silently disabled — which is why formatting drift accumulated on master.
