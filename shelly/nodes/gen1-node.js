@@ -341,7 +341,7 @@ module.exports = function (RED) {
 
             let scheduleProfile;
             if (command.scheduleProfile !== undefined) {
-                if (command.scheduleProfile >= 1 || command.scheduleProfile <= 5) {
+                if (command.scheduleProfile >= 1 && command.scheduleProfile <= 5) {
                     scheduleProfile = command.scheduleProfile;
                 }
             }
@@ -717,7 +717,7 @@ module.exports = function (RED) {
 
                 node.rgbwMode = settings.mode;
 
-                success = initializer1WebhookAsync(node, types);
+                success = await initializer1WebhookAsync(node, types);
             } catch (error) {
                 node.status({ fill: 'red', shape: 'ring', text: 'Failed to get mode from settings.' });
                 node.warn('Failed to get mode from settings. ' + error);
@@ -893,7 +893,7 @@ module.exports = function (RED) {
 
                         // We only delete the hook from us: find the sender url in the hook url.
                         for (let j = 0; j < urls.length; j++) {
-                            let url = urls[i];
+                            let url = urls[j];
 
                             // This is a vage assumption but it is the best we have at the moment to identify our hooks.
                             if (url.includes(sender)) {

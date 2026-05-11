@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.9.2] - 2026-05-11
+### Fixed three logic bugs in the gen 1 node
+- Webhook uninstall was scanning the wrong index: the inner URL loop used the outer hook index (`urls[i]` instead of `urls[j]`), so when a hook had more than one URL, own-webhook detection failed and stale webhooks accumulated on the device after every redeploy.
+- RGBW init reported success regardless of webhook install result because `initializer1WebhookAsync` was called without `await`, so the retry-on-failure path was never taken for RGBW devices.
+- TRV `scheduleProfile` range check was `>=1 || <=5` (always true). Out-of-range values were forwarded to the device. Changed to `&&`.
+
 ## [11.9.1] - 2026-05-11
 ### Fixed missed online/offline transition on first poll cycle
 - `start()` in `shelly/lib/shelly.js` called `shellyPing` without awaiting it, so `node.online` was assigned a Promise. The subsequent `node.online === false` / `=== true` comparisons were never true, so the first reachability transition (and its `msg.error` notification when the device first goes offline) was silently dropped.
