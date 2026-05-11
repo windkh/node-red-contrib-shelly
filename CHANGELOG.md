@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.10.1] - 2026-05-11
+### Surface the device's error body so failures are self-diagnosing
+- `shellyRequestAsync` now folds `error.response.data` into the thrown error when axios rejects on a non-2xx. Shelly gen2 RPC errors carry the real diagnostic in the body (e.g. `{"error":{"code":-103,"message":"..."}}`); without this enrichment users only saw axios's generic `"Request failed with status code 400"` — which is the symptom in [#195](https://github.com/windkh/node-red-contrib-shelly/issues/195).
+- Drop a trailing slash on the generic gen2 envelope route (`/rpc/` → `/rpc`). Most gen2 docs use the un-slashed form; defensive change for stricter firmware revisions.
+
 ## [11.10.0] - 2026-05-11
 ### Plugged a redeploy timer leak and surfaced callback-mode misconfiguration
 - **Closing race fixed.** If a flow was redeployed while a node's `initializer` was still awaiting (slow network, sleeping sensor, etc.), the IIFE could resolve _after_ the `close` handler had already run `clearInterval`, then schedule a fresh `setInterval` that no one ever cleared. The dangling timer kept calling `node.initializer` on the orphaned node forever, leaking N timers per N redeploys and filling logs with status/send calls on a closed node. Both `gen1-node.js` and `gen2-node.js` now set `node.closing = true` in their `close` handler and short-circuit the init IIFE, its retry interval, and the polling loop in `shelly/lib/shelly.js` when that flag is set.
