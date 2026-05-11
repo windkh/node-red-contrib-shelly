@@ -1,6 +1,6 @@
 {
     "name": "node-red-contrib-shelly",
-    "version": "11.8.0",
+    "version": "11.9.0",
     "description": "Shelly nodes.",
     "node-red": {
         "version": ">=3.0.0",
@@ -9,7 +9,7 @@
         }
     },
     "engines": {
-		"node": ">=16.0.0"
+		"node": ">=20.0.0"
     },
     "keywords": [
         "node-red",
@@ -24,9 +24,7 @@
     "dependencies": {
         "axios": "^1.7.7",
         "axios-rate-limit": "^1.4.0",
-        "crypto": "^1.0.1",
-        "fastify": "^5.7.3",
-        "path": "^0.12.7"
+        "fastify": "^5.7.3"
     },
 	"scripts": {
         "lint": "eslint shelly --ext .js --format unix --ignore-pattern scripts",

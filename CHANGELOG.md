@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.9.0] - 2026-05-11
+### Dropped EOL Node versions and removed deprecated dependency shims
+- Bumped minimum Node.js to >=20 (Node 16 and 18 are EOL).
+- Updated CI matrix to Node 20.x and 22.x (the previous matrix had a `20,x` typo that broke the Node 20 entry).
+- Bumped npm-publish workflow to Node 20.
+- Removed the `crypto` and `path` dependencies. Both are deprecated userland shims of built-in Node modules; the code already uses the built-ins via `require('crypto')` / `require('path')`.
+
 ## [11.8.0] - 2026-03-15
 ### On error the node will send a msg.error (polling) - [#168](https://github.com/windkh/node-red-contrib-shelly/issues/168)
 
