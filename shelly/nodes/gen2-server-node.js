@@ -44,7 +44,7 @@ module.exports = function (RED) {
                 }
             });
         } else {
-            node.error('Shelly gen1 server failed to start: port number is not betwee 0 and 65535: ' + node.port);
+            node.error('Shelly gen2 server failed to start: port number is not between 0 and 65535: ' + node.port);
         }
 
         this.on('close', function (removed, done) {

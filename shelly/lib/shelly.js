@@ -220,7 +220,7 @@ function getCredentials(node, msg) {
 // Hint: the /shelly route can be accessed without authorization
 async function shellyPing(node, credentials, types) {
     let found = false;
-            
+
     // gen 1 and gen 2 devices support this endpoint (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
     try {
         let data;
@@ -380,10 +380,10 @@ async function start(node, types) {
                         node.status({ fill: 'yellow', shape: 'ring', text: 'Polling: device not reachable' });
 
                         let msg = {
-                            error : {
-                                hostname : node.hostname,
-                                message : 'Device is not reachable. Retrying to connect every ' + node.initializeRetryInterval / 1000 + ' seconds.',
-                            }
+                            error: {
+                                hostname: node.hostname,
+                                message: 'Device is not reachable. Retrying to connect every ' + node.initializeRetryInterval / 1000 + ' seconds.',
+                            },
                         };
                         node.send([msg]);
                     }

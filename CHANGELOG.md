@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.9.3] - 2026-05-11
+### Cleanup: restored lint, fixed misleading error reporting
+- `npm run lint` is green again. Removed an unused `const { hostname } = require('os')` import in `gen2-node.js` and applied prettier across the package (whitespace / line-ending drift had accumulated on master, bypassing the husky pre-commit gate).
+- `ShellyGen2ServerNode` reported "Shelly gen1 server failed to start" on port errors (copy-paste). Now says gen2.
+- The cloud node status badge displayed `[object Object]` on errors. Now shows `error.message`.
+- Three `node.error(text, error)` call sites passed the error as a second arg, which Node-RED silently drops. They now concatenate `error.message` into the message string so it actually surfaces.
+
 ## [11.9.2] - 2026-05-11
 ### Fixed three logic bugs in the gen 1 node
 - Webhook uninstall was scanning the wrong index: the inner URL loop used the outer hook index (`urls[i]` instead of `urls[j]`), so when a hook had more than one URL, own-webhook detection failed and stale webhooks accumulated on the device after every redeploy.

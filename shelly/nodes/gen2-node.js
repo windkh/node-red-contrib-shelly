@@ -1,5 +1,3 @@
-const { hostname } = require('os');
-
 module.exports = function (RED) {
     'use strict';
 
@@ -93,7 +91,7 @@ module.exports = function (RED) {
                 }
             } catch (error) {
                 node.error('Uploading script ' + scriptName + ' failed: ' + error.request._currentUrl + ' --> ' + error.message);
-                node.status({ fill: 'red', shape: 'ring', text: 'Uploading script ' + scriptName + ' failed ' + error.message});
+                node.status({ fill: 'red', shape: 'ring', text: 'Uploading script ' + scriptName + ' failed ' + error.message });
             }
         } else {
             node.status({ fill: 'red', shape: 'ring', text: 'Hostname not configured' });
@@ -126,7 +124,7 @@ module.exports = function (RED) {
                 }
             } catch (error) {
                 if (node.verbose) {
-                    node.error('Uninstalling script failed.', error);
+                    node.error('Uninstalling script failed: ' + error.message);
                 }
                 node.status({ fill: 'red', shape: 'ring', text: 'Uninstalling script failed ' });
             }
@@ -563,8 +561,8 @@ module.exports = function (RED) {
             }
 
             msg.error = {
-                hostname : node.hostname,
-                error : error.message,
+                hostname: node.hostname,
+                error: error.message,
             };
             node.send([msg]);
         }
@@ -626,10 +624,10 @@ module.exports = function (RED) {
                 // if the device is not online, then we wait until it is available and try again.
                 if (!initialized) {
                     let msg = {
-                        error : {
-                            hostname : node.hostname,
-                            message : 'Device is not reachable. Retrying to connect every ' + node.initializeRetryInterval / 1000 + ' seconds.',
-                        }     
+                        error: {
+                            hostname: node.hostname,
+                            message: 'Device is not reachable. Retrying to connect every ' + node.initializeRetryInterval / 1000 + ' seconds.',
+                        },
                     };
                     node.send([msg]);
 

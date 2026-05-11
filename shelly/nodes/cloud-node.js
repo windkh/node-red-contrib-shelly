@@ -149,8 +149,8 @@ module.exports = function (RED) {
                     node.send([msg]);
                 }
             } catch (error) {
-                node.status({ fill: 'red', shape: 'ring', text: error });
-                node.error('Failed to get status: ' + error, error);
+                node.status({ fill: 'red', shape: 'ring', text: error.message });
+                node.error('Failed to get status: ' + error.message);
             }
         });
 

@@ -121,7 +121,7 @@ module.exports = function (RED) {
                         let body = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', downloadRoute, null, null, credentials, timeout);
                         data.push(body);
                     } catch (error) {
-                        node.error('Downloading CSV failed ' + emeter, error);
+                        node.error('Downloading CSV failed ' + emeter + ': ' + error.message);
                         node.status({ fill: 'red', shape: 'ring', text: 'Downloading CSV failed ' + emeter });
                         node.warn('Downloading CSV failed ' + emeter);
                     }
@@ -1143,8 +1143,8 @@ module.exports = function (RED) {
                 node.warn('Error in executeCommand1: ' + route + '  --> ' + error);
 
                 msg.error = {
-                    hostname : node.hostname,
-                    error : error.message,
+                    hostname: node.hostname,
+                    error: error.message,
                 };
                 node.send([msg]);
             }
@@ -1197,7 +1197,7 @@ module.exports = function (RED) {
                         success = true;
                     } catch (error) {
                         node.status({ fill: 'red', shape: 'ring', text: 'Failed to set settings to: ' + settingRoute });
-                        node.error('Failed to set settings to: ' + settingRoute, error);
+                        node.error('Failed to set settings to: ' + settingRoute + ': ' + error.message);
                     }
                 } else {
                     node.error('Failed to set settings as input is not complete: device, attribute and value must be specified. ' + setting);
@@ -1267,10 +1267,10 @@ module.exports = function (RED) {
                 // if the device is not online, then we wait until it is available and try again.
                 if (!initialized) {
                     let msg = {
-                        error : {
-                            hostname : node.hostname,
-                            message : 'Device is not reachable. Retrying to connect every ' + node.initializeRetryInterval / 1000 + ' seconds.',
-                        }     
+                        error: {
+                            hostname: node.hostname,
+                            message: 'Device is not reachable. Retrying to connect every ' + node.initializeRetryInterval / 1000 + ' seconds.',
+                        },
                     };
                     node.send([msg]);
 
