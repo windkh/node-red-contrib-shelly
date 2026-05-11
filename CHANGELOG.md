@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.9.1] - 2026-05-11
+### Fixed missed online/offline transition on first poll cycle
+- `start()` in `shelly/lib/shelly.js` called `shellyPing` without awaiting it, so `node.online` was assigned a Promise. The subsequent `node.online === false` / `=== true` comparisons were never true, so the first reachability transition (and its `msg.error` notification when the device first goes offline) was silently dropped.
+
 ## [11.9.0] - 2026-05-11
 ### Dropped EOL Node versions and removed deprecated dependency shims
 - Bumped minimum Node.js to >=20 (Node 16 and 18 are EOL).

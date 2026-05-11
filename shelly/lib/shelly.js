@@ -357,14 +357,15 @@ async function tryCheckDeviceType(node, types) {
 }
 
 // Starts polling the status.
-function start(node, types) {
+async function start(node, types) {
     if (node.hostname !== '') {
         let credentials = getCredentials(node);
-        node.online = shellyPing(node, credentials, types);
+        // Note: must await — otherwise node.online holds a Promise and the
+        // first reachability transition is missed (Promise === true/false is never true).
+        node.online = await shellyPing(node, credentials, types);
 
         if (node.pollInterval > 0) {
             node.pollingTimer = setInterval(async function () {
-
                 let found = await shellyPing(node, credentials, types);
                 if (found) {
                     if (node.online === false) {
@@ -377,12 +378,12 @@ function start(node, types) {
                 } else {
                     if (node.online === true) {
                         node.status({ fill: 'yellow', shape: 'ring', text: 'Polling: device not reachable' });
-               
+
                         let msg = {
                             error : {
                                 hostname : node.hostname,
                                 message : 'Device is not reachable. Retrying to connect every ' + node.initializeRetryInterval / 1000 + ' seconds.',
-                            }     
+                            }
                         };
                         node.send([msg]);
                     }
