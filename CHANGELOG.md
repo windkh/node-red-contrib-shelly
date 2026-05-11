@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.9.4] - 2026-05-11
+### Re-enabled the husky pre-commit lint gate
+- The project was upgraded to husky v8 in devDependencies but kept the husky v4-style `"husky": { "hooks": { ... } }` block in `package.json`, which v8 ignores. There was no `.husky/` directory and no `prepare` script, so the pre-commit lint gate had been silently disabled — which is why formatting drift accumulated on master.
+- Added a `prepare` script that runs `husky install` on `npm install`, dropped the obsolete v4 config block, and committed `.husky/pre-commit` so contributors get the gate automatically after a fresh clone + install.
+
 ## [11.9.3] - 2026-05-11
 ### Cleanup: restored lint, fixed misleading error reporting
 - `npm run lint` is green again. Removed an unused `const { hostname } = require('os')` import in `gen2-node.js` and applied prettier across the package (whitespace / line-ending drift had accumulated on master, bypassing the husky pre-commit gate).
