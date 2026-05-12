@@ -4,6 +4,7 @@ module.exports = function (RED) {
     const utils = require('../lib/utils.js');
     const shelly = require('../lib/shelly.js');
     const configuration = require('../lib/configuration.js');
+    const { convertStatus2 } = require('./gen2/status-converter.js');
 
     const axios = require('axios').default;
 
@@ -488,27 +489,7 @@ module.exports = function (RED) {
         return result;
     }
 
-    // Returns a status object with filtered properties.
-    function convertStatus2(status) {
-        let result = {};
-
-        Object.keys(status).forEach((key) => {
-            let statusValue = status[key];
-            if (statusValue !== undefined) {
-                // we only copy the key that contain a : like input:0...
-                let newKey;
-                if (key.indexOf(':') !== -1) {
-                    newKey = utils.replace(key, ':', '');
-                    result[newKey] = statusValue;
-                } else {
-                    newKey = key;
-                }
-                result[newKey] = statusValue;
-            }
-        });
-
-        return result;
-    }
+    // convertStatus2 moved to ./gen2/status-converter.js (testable in isolation)
 
     async function executeCommand2(msg, request, node, credentials) {
         let getStatusRoute = '/rpc/Shelly.GetStatus';

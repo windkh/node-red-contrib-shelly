@@ -295,13 +295,15 @@ jobs:
 
 Each phase raises the thresholds in `coverage:check`:
 
-| Phase | Lines | Functions | Branches |
-|---:|---:|---:|---:|
-| 1 | 10 | 10 | 8 |
-| 2 | 25 | 30 | 15 |
-| 3 | 50 | 60 | 35 |
-| 4 | 65 | 75 | 50 |
-| 5 | 70 | 80 | 55 |
+| Phase | Lines | Functions | Branches | Notes |
+|---:|---:|---:|---:|---|
+| 1 | 5 | 10 | 5 | Pure helpers in `lib/utils.js` + `lib/configuration.js`. Branch %% is high because tested files are densely branched. |
+| 2 | 10 | 50 | 80 | + status converters extracted to `shelly/nodes/gen{1,2}/`. |
+| 3 | 30 | 65 | 85 | + per-family input parsers extracted to `shelly/nodes/gen{1,2}/parsers/`. The 1342-line gen1-node.js shrinks dramatically; line coverage jumps. |
+| 4 | 45 | 75 | 88 | + transport tests (`shellyRequestAsync` with nock, digest 401 retry). |
+| 5 | 55 | 80 | 90 | + lifecycle (constructor / close handler with mocked Node-RED `RED`). |
+
+Note: line / function / branch percentages don't move in lockstep. Branch and function percentages spike early because the small tested files are well-branched; line percentage moves slowly until the large `gen1-node.js` and `gen2-node.js` get split (Phase 3).
 
 Each phase's PR bumps the previous floor. CI then prevents regressions back below it.
 
