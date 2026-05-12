@@ -295,15 +295,19 @@ jobs:
 
 Each phase raises the thresholds in `coverage:check`:
 
-| Phase | Lines | Functions | Branches | Notes |
-|---:|---:|---:|---:|---|
-| 1 | 5 | 10 | 5 | Pure helpers in `lib/utils.js` + `lib/configuration.js`. Branch %% is high because tested files are densely branched. |
-| 2 | 10 | 50 | 80 | + status converters extracted to `shelly/nodes/gen{1,2}/`. |
-| 3 | 30 | 65 | 85 | + per-family input parsers extracted to `shelly/nodes/gen{1,2}/parsers/`. The 1342-line gen1-node.js shrinks dramatically; line coverage jumps. |
-| 4 | 45 | 75 | 88 | + transport tests (`shellyRequestAsync` with nock, digest 401 retry). |
-| 5 | 55 | 80 | 90 | + lifecycle (constructor / close handler with mocked Node-RED `RED`). |
+Actual progression once executed (matches the floors set in `package.json`'s `c8` block at each phase):
 
-Note: line / function / branch percentages don't move in lockstep. Branch and function percentages spike early because the small tested files are well-branched; line percentage moves slowly until the large `gen1-node.js` and `gen2-node.js` get split (Phase 3).
+| Phase | Lines | Functions | Branches | What was added | Tests |
+|---:|---:|---:|---:|---|---:|
+| 1 | 5 | 10 | 5 | `lib/utils.js` + `lib/configuration.js`. | 48 |
+| 2 | 10 | 50 | 80 | + status converters extracted to `shelly/nodes/gen{1,2}/`. | 73 |
+| 3 | 28 | 73 | 87 | + 7 per-family gen1 parsers extracted to `shelly/nodes/gen1/parsers/`, gen2 generic parser to `shelly/nodes/gen2/parsers/`. The 1342-line `gen1-node.js` shrinks to 696 LOC. | 153 |
+| 4 | 35 | 70 | 88 | + transport tests (`shellyRequestAsync` with nock, digest 401-retry, error-body enrichment) and `getCredentials` / `getShellyInfo`. Functions floor dipped because `shelly.js` (12 functions) entered the tested-files denominator with only 7 covered. | 175 |
+| 5 | 40 | 75 | 88 | + lifecycle: `shellyPing`, `tryCheckDeviceType`, `start` against nock + a fake-node harness. `shelly.js` went from 49% → 82% lines. | 193 |
+
+The remaining uncovered ~58% lives mostly in the four files that need a fake Node-RED `RED` object to exercise (`99-shelly.js`, `cloud-node.js`, `gen1-node.js`, `gen2-node.js` — all at 0%). Their core logic — the input parsers, status converters, transport, polling lifecycle — is already tested in isolation. What remains uncovered in those files is mostly wiring (constructor field assignment, `RED.nodes.createNode`, event-handler registration, the EM-data download side path in `inputParserMeasure1Async`). Adding fake-RED tests for the constructors would lift line coverage roughly to 55-60% but with much lower value-per-test than Phases 1-5; left as future work.
+
+Note: line / function / branch percentages don't move in lockstep. Branch and function percentages spike early because the small tested files are well-branched; line percentage moves slowly until the large `gen1-node.js` and `gen2-node.js` get split (Phase 3); and the function metric can dip when a new larger file enters the tested set (Phase 4) before its functions get covered (Phase 5).
 
 Each phase's PR bumps the previous floor. CI then prevents regressions back below it.
 
