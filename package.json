@@ -30,10 +30,10 @@
         "prepare": "husky install",
         "lint": "eslint shelly --ext .js --format unix --ignore-pattern scripts",
         "postlint": "echo ✅ lint valid",
-        "test": "node --test test/unit",
-        "test:watch": "node --test --watch test/unit",
-        "coverage": "c8 node --test test/unit",
-        "coverage:check": "c8 --check-coverage node --test test/unit"
+        "test": "node --test",
+        "test:watch": "node --test --watch",
+        "coverage": "c8 node --test",
+        "coverage:check": "c8 --check-coverage node --test"
     },
     "c8": {
         "include": ["shelly/**/*.js"],
