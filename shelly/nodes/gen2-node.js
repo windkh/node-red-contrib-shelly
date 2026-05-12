@@ -5,6 +5,7 @@ module.exports = function (RED) {
     const shelly = require('../lib/shelly.js');
     const configuration = require('../lib/configuration.js');
     const { convertStatus2 } = require('./gen2/status-converter.js');
+    const { inputParserGeneric2Array } = require('./gen2/parsers/generic.js');
 
     const axios = require('axios').default;
 
@@ -264,58 +265,7 @@ module.exports = function (RED) {
         return success;
     }
 
-    // Converts a payload to one single request
-    function inputParserGeneric2(command) {
-        let method = 'POST';
-        let data;
-        let route;
-
-        let rpcMethod;
-        if (command.method !== undefined) {
-            rpcMethod = command.method;
-        }
-
-        let parameters;
-        if (command.parameters !== undefined) {
-            parameters = command.parameters;
-        }
-
-        if (rpcMethod !== undefined) {
-            route = '/rpc';
-            data = {
-                id: 1,
-                method: rpcMethod,
-                params: parameters,
-            };
-        }
-
-        let request = {
-            route: route,
-            method: method,
-            data: data,
-        };
-
-        return request;
-    }
-
-    // Creates request(s) from the input or input arrays.
-    function inputParserGeneric2Array(msg) {
-        let requests = [];
-
-        if (utils.isMsgPayloadValidOrArray(msg)) {
-            if (!Array.isArray(msg.payload)) {
-                let request = inputParserGeneric2(msg.payload);
-                requests.push(request);
-            } else {
-                msg.payload.forEach((payload) => {
-                    let request = inputParserGeneric2(payload);
-                    requests.push(request);
-                });
-            }
-        }
-
-        return requests;
-    }
+    // inputParserGeneric2 and inputParserGeneric2Array moved to ./gen2/parsers/generic.js
 
     // returns an empty array.
     function inputParserEmptyArray2(/*msg*/) {

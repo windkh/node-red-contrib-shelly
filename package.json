@@ -40,9 +40,9 @@
         "exclude": ["shelly/scripts/**", "shelly/**/*.html"],
         "reporter": ["text", "html", "lcov"],
         "all": true,
-        "lines": 10,
-        "functions": 50,
-        "branches": 80
+        "lines": 28,
+        "functions": 73,
+        "branches": 87
     },
 	"devDependencies": {
         "c8": "^10.1.3",
