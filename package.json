@@ -29,9 +29,23 @@
 	"scripts": {
         "prepare": "husky install",
         "lint": "eslint shelly --ext .js --format unix --ignore-pattern scripts",
-        "postlint": "echo ✅ lint valid"
+        "postlint": "echo ✅ lint valid",
+        "test": "node --test test/unit",
+        "test:watch": "node --test --watch test/unit",
+        "coverage": "c8 node --test test/unit",
+        "coverage:check": "c8 --check-coverage node --test test/unit"
+    },
+    "c8": {
+        "include": ["shelly/**/*.js"],
+        "exclude": ["shelly/scripts/**", "shelly/**/*.html"],
+        "reporter": ["text", "html", "lcov"],
+        "all": true,
+        "lines": 5,
+        "functions": 10,
+        "branches": 5
     },
 	"devDependencies": {
+        "c8": "^10.1.3",
         "eslint": "^8.20.0",
         "eslint-config-prettier": "^8.5.0",
         "eslint-plugin-prettier": "^4.2.1",
