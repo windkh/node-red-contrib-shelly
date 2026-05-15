@@ -1,6 +1,23 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.11.0] - 2026-05-15
+### Added 9 new devices from the Shelly KB audit
+- Gen 2:
+  - Shelly Pro 3EM-3CT63 (`SPEM-003CEBEU63`)
+  - Shelly Wall Display XL (`SAWD-3A1XE10EU2`)
+  - Shelly Wall Display X2i (`SAWD-5A1XX10EU0`)
+- Gen 3:
+  - Shelly AZ H&T Gen3 (`S3SN-1U12A`)
+  - Shelly Duo Bulb E27 Gen3 (`S3BL-D010009AEU`) — first device with the new `S3BL-` (bulb) SKU prefix. Routed as `Dimmer` (warm/cool tunable white).
+  - Shelly Multicolor Bulb E27 Gen3 (`S3BL-C010007AEU`) — routed as `RGBW`.
+- Gen 4:
+  - Shelly EM Gen4 (`S4EM-002CXCEU`)
+  - Shelly Dimmer 0/1-10V PM Gen4 (`S4DM-0010WW`)
+  - Shelly Dimmer Gen4 US (`S4DM-0A102US`)
+
+The two `S3BL-` bulbs are not added to the `gen2DeviceTypes` family prefix lists, because the same prefix spans both Dimmer (Duo) and RGBW (Multicolor) variants — same convention as existing gen 2 RGBW devices (`SNDC-`, `SPDC-`), which are selected by exact model name in the editor rather than via a family lookup.
+
 ## [11.10.3] - 2026-05-15
 ### Fixed SHSW-21 "Shelly 2 Roller" entry mistakenly typed as Relay
 - The Shelly 2 Roller (gen 1, model `SHSW-21` in roller mode) was registered with `"type": "Relay"` in the catalog, while the same `SHSW-21` prefix is listed under `gen1DeviceTypes.Roller`. The internal disagreement meant picking this device family in the editor wired the wrong input parser. Now `"type": "Roller"`.
