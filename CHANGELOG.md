@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.11.2] - 2026-05-15
+### Fixed RGBW family selection on gen 2/3/4 devices
+- The `gen2DeviceTypes` map had no entry for `RGBW`, so selecting **RGBW** as the *family* (rather than picking an exact model) returned an empty prefix list and produced a "Shelly type mismatch" error. Specific RGBW models still worked when selected by exact name; only the family-level selection was broken.
+- Added `["RGBW", ["SNDC-", "SPDC-", "S3BL-C"]]` to `gen2DeviceTypes`. The longer `S3BL-C` prefix matches the Multicolor Bulb E27 Gen3 (`S3BL-C010007AEU`) but keeps the Duo Bulb (`S3BL-D010009AEU`, a Dimmer) out of the RGBW bucket. This bug pre-dated 11.11.0 — `SNDC-0D4P10WW` and `SPDC-0D5PE16EU` had been affected since gen 2 launched.
+
 ## [11.11.1] - 2026-05-15
 ### Catalog cleanup
 - Renamed the second "Shelly Pro 3EM" entry (`SPEM-003CEBEU120`) to "Shelly Pro 3EM-120" so the editor dropdown can distinguish it from `SPEM-003CEBEU`. Matches the existing "Shelly Pro 3EM-400" naming pattern.

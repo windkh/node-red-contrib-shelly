@@ -18,6 +18,7 @@
         ["Measure",    ["SPEM-", "S3EM-", "S4EM-"]],
         ["Dimmer",     ["SNDM-", "SPCC-", "SPDM-", "S3DM-"]],
         ["Roller",     ["S3SH-"]],
+        ["RGBW",       ["SNDC-", "SPDC-", "S3BL-C"]],
         ["BluGateway", ["SNGW-", "S3GW-"]]
     ],
     "devices" :

@@ -172,6 +172,28 @@ describe('configuration.getDeviceTypes2', () => {
         assert.ok(prefixes.includes('S3GW-'), 'expected S3GW- in BluGateway prefixes');
     });
 
+    it('returns the RGBW prefixes for gen 2/3/4 family selection (regression for 11.11.2)', () => {
+        // Pre-11.11.2 this returned []. Family-level RGBW selection was
+        // therefore broken for SNDC-/SPDC-/S3BL-C devices.
+        const prefixes = configuration.getDeviceTypes2('RGBW', false);
+        assert.ok(prefixes.includes('SNDC-'), 'expected SNDC- (Plus RGBW PM) in RGBW prefixes');
+        assert.ok(prefixes.includes('SPDC-'), 'expected SPDC- (Pro RGBWW PM) in RGBW prefixes');
+        assert.ok(prefixes.includes('S3BL-C'), 'expected S3BL-C (Multicolor Bulb E27 Gen3) in RGBW prefixes');
+    });
+
+    it('the S3BL-C RGBW prefix is narrow enough to exclude the S3BL-D Duo Bulb (a Dimmer)', () => {
+        // The Duo Bulb shares the S3BL- SKU root but is a tunable-white
+        // Dimmer, not an RGBW. The longer prefix S3BL-C is what makes the
+        // family lookup discriminate.
+        const rgbwPrefixes = configuration.getDeviceTypes2('RGBW', false);
+        const duoModel = 'S3BL-D010009AEU';
+        const multiModel = 'S3BL-C010007AEU';
+        const duoMatches = rgbwPrefixes.some((p) => duoModel.startsWith(p));
+        const multiMatches = rgbwPrefixes.some((p) => multiModel.startsWith(p));
+        assert.equal(duoMatches, false, 'Duo Bulb (S3BL-D...) must NOT match the RGBW prefix list');
+        assert.equal(multiMatches, true, 'Multicolor Bulb (S3BL-C...) must match the RGBW prefix list');
+    });
+
     it('returns empty array for unknown family', () => {
         assert.deepEqual(configuration.getDeviceTypes2('NotAFamily', false), []);
     });
