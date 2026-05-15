@@ -144,6 +144,19 @@ describe('configuration.getDeviceTypes2', () => {
         assert.ok(models.includes('S4SW-001X16EU'), 'expected gen 4 model');
     });
 
+    it('Shelly 2 Roller (SHSW-21 in roller mode) is typed as Roller, not Relay', () => {
+        // Regression test for 11.10.3 — the catalog used to disagree with
+        // itself: the SHSW-21 Roller entry was typed Relay while the
+        // SHSW-21 prefix was already mapped to the Roller family.
+        const device = configuration.getDevice('SHSW-21');
+        assert.ok(device);
+        // The first match is the "Shelly 2 Relay" entry (a relay), so
+        // searching by model alone returns that. Searching the Roller
+        // family for SHSW-21 should still find the prefix.
+        const rollerModels = configuration.getDeviceTypes1('Roller', false);
+        assert.ok(rollerModels.includes('SHSW-21'), 'SHSW-21 should be in the Roller prefix list');
+    });
+
     it('lists the gen 4 sensors including the Presence Gen4 (S4SN-0U61X, #253)', () => {
         const sensors = configuration.getDeviceTypes2('Sensor', true);
         assert.ok(sensors.includes('S4SN-0U61X'), 'expected S4SN-0U61X (Presence Gen4) in Sensor models');

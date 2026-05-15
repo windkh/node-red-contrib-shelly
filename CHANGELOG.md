@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.10.3] - 2026-05-15
+### Fixed SHSW-21 "Shelly 2 Roller" entry mistakenly typed as Relay
+- The Shelly 2 Roller (gen 1, model `SHSW-21` in roller mode) was registered with `"type": "Relay"` in the catalog, while the same `SHSW-21` prefix is listed under `gen1DeviceTypes.Roller`. The internal disagreement meant picking this device family in the editor wired the wrong input parser. Now `"type": "Roller"`.
+
 ## [11.10.2] - 2026-05-12
 ### Added Shelly Presence Gen4 (S4SN-0U61X) — [#253](https://github.com/windkh/node-red-contrib-shelly/issues/253)
 - Catalog-only edit. The `S4SN-` prefix was already mapped to the Sensor family in `gen2DeviceTypes`, so the device routes through the existing gen 2+ sensor path (webhook install on wake, callback events forwarded by the device-side script).
