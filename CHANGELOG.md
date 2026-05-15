@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.11.1] - 2026-05-15
+### Catalog cleanup
+- Renamed the second "Shelly Pro 3EM" entry (`SPEM-003CEBEU120`) to "Shelly Pro 3EM-120" so the editor dropdown can distinguish it from `SPEM-003CEBEU`. Matches the existing "Shelly Pro 3EM-400" naming pattern.
+- Normalised the Shelly Plus Plug S (`SNPL-00112EU`) `helpLink` from `/shelly-plus-plug-s` to `/shelly-plus-plug-s-1` (the canonical destination — Shelly's KB now redirects the former to the latter).
+
 ## [11.11.0] - 2026-05-15
 ### Added 9 new devices from the Shelly KB audit
 - Gen 2:
