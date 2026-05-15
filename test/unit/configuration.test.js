@@ -144,6 +144,15 @@ describe('configuration.getDeviceTypes2', () => {
         assert.ok(models.includes('S4SW-001X16EU'), 'expected gen 4 model');
     });
 
+    it('lists the gen 4 sensors including the Presence Gen4 (S4SN-0U61X, #253)', () => {
+        const sensors = configuration.getDeviceTypes2('Sensor', true);
+        assert.ok(sensors.includes('S4SN-0U61X'), 'expected S4SN-0U61X (Presence Gen4) in Sensor models');
+        assert.equal(configuration.getDeviceType('S4SN-0U61X'), 'Sensor');
+        const device = configuration.getDevice('S4SN-0U61X');
+        assert.equal(device.gen, '4');
+        assert.equal(device.name, 'Shelly Presence Gen4');
+    });
+
     it('returns the BluGateway prefixes', () => {
         const prefixes = configuration.getDeviceTypes2('BluGateway', false);
         assert.ok(prefixes.includes('SNGW-'), 'expected SNGW- in BluGateway prefixes');

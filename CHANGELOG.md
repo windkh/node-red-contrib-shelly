@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.10.2] - 2026-05-12
+### Added Shelly Presence Gen4 (S4SN-0U61X) — [#253](https://github.com/windkh/node-red-contrib-shelly/issues/253)
+- Catalog-only edit. The `S4SN-` prefix was already mapped to the Sensor family in `gen2DeviceTypes`, so the device routes through the existing gen 2+ sensor path (webhook install on wake, callback events forwarded by the device-side script).
+
 ## [11.10.1] - 2026-05-11
 ### Surface the device's error body so failures are self-diagnosing
 - `shellyRequestAsync` now folds `error.response.data` into the thrown error when axios rejects on a non-2xx. Shelly gen2 RPC errors carry the real diagnostic in the body (e.g. `{"error":{"code":-103,"message":"..."}}`); without this enrichment users only saw axios's generic `"Request failed with status code 400"` — which is the symptom in [#195](https://github.com/windkh/node-red-contrib-shelly/issues/195).
