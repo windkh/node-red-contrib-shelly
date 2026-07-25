@@ -10,7 +10,7 @@ Node-RED contribution package (`node-red-contrib-shelly`) that provides nodes fo
 
 - `npm install` — install dependencies
 - `npm run lint` — ESLint over `shelly/` (excludes `shelly/scripts`). The husky pre-commit hook runs this; lint must pass before commits land.
-- No test suite exists. The `npm test` step is commented out in [.github/workflows/node.js.yml](.github/workflows/node.js.yml); CI only runs `npm ci`.
+- `npm test` — Node's built-in test runner over [test/](test/) (auto-discovered, no framework). `npm run coverage` / `npm run coverage:check` add c8 with the thresholds in `package.json`. Both CI ([.github/workflows/node.js.yml](.github/workflows/node.js.yml)) and the npm publish workflow ([.github/workflows/npm-publish.yml](.github/workflows/npm-publish.yml)) run lint + tests, so a red suite blocks a release.
 - To test changes against a real Node-RED install: `npm link` here, then `npm link node-red-contrib-shelly` inside the Node-RED user dir (typically `~/.node-red`), and restart Node-RED.
 
 Formatting is governed by [.prettierrc](.prettierrc) (4-space indent, single quotes, 160 print width, semicolons). The ESLint config wires Prettier in as an error-level rule, so `npm run lint` also flags formatting drift.

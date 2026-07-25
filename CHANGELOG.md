@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.11.4] - 2026-07-25
+### Publish path is now test-gated, and the tarball ships only runtime files
+- The npm publish workflow had its `npm test` step commented out from before a test suite existed, so releases were cut without the suite ever running in CI — the husky pre-commit hook was the only gate, and that protects committers rather than the release. `build` now runs `npm run lint` and `npm test`, and `publish-npm` already depends on it, so a red suite blocks the publish. (The CI workflow on push/PR already ran lint, tests and the coverage gate; only the release path was unguarded.)
+- Added a `files` allowlist to `package.json`. The package had none, so every consumer received `test/`, `doc/`, `.github/`, `.husky/`, `CLAUDE.md` and the lint/prettier configs. The tarball goes from 106 files / 564.5 kB unpacked to 60 files / 368.6 kB. `shelly/` (including `config/config.json`, `icons/` and the device-side `scripts/`) and `examples/` are both kept — Node-RED reads `examples/` to populate the editor's *Import → Examples* menu, so dropping it would have removed the shipped example flows. Verified by loading the packed tarball with a stub `RED`: all six node types register and the device catalog resolves.
+
 ## [11.11.3] - 2026-07-25
 ### Accept `params` as well as `parameters` on gen 2+ commands - [#195](https://github.com/windkh/node-red-contrib-shelly/issues/195)
 - `inputParserGeneric2` only read `command.parameters`. Shelly's own gen 2 RPC documentation — which the README explicitly sends users to for "further rpc commands" — spells the field `params`, so a payload written that way (or a JSON-RPC frame copied verbatim from those docs) had its arguments silently dropped. The node then posted `{"id":1,"method":"Switch.Set"}` with no arguments, the device rejected it with HTTP 400 (`{"error":{"code":-103,"message":"Argument 'id' is missing"}}`), and the user saw exactly the two symptoms in [#195](https://github.com/windkh/node-red-contrib-shelly/issues/195): the switch does not change state, and `Request failed with status code 400` appears in the console. Both spellings are now accepted (`parameters` wins if both are present), so the failure is no longer reachable from a docs-shaped payload.
