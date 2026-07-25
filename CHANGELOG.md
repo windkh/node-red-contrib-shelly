@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [11.11.3] - 2026-07-25
+### Accept `params` as well as `parameters` on gen 2+ commands - [#195](https://github.com/windkh/node-red-contrib-shelly/issues/195)
+- `inputParserGeneric2` only read `command.parameters`. Shelly's own gen 2 RPC documentation — which the README explicitly sends users to for "further rpc commands" — spells the field `params`, so a payload written that way (or a JSON-RPC frame copied verbatim from those docs) had its arguments silently dropped. The node then posted `{"id":1,"method":"Switch.Set"}` with no arguments, the device rejected it with HTTP 400 (`{"error":{"code":-103,"message":"Argument 'id' is missing"}}`), and the user saw exactly the two symptoms in [#195](https://github.com/windkh/node-red-contrib-shelly/issues/195): the switch does not change state, and `Request failed with status code 400` appears in the console. Both spellings are now accepted (`parameters` wins if both are present), so the failure is no longer reachable from a docs-shaped payload.
+- The four gen 2+ payload examples in the README were missing the comma after the `method` line, so copying them into a function node was a syntax error. Fixed, and the `params`/`parameters` equivalence is now documented.
+
 ## [11.11.2] - 2026-05-15
 ### Fixed RGBW family selection on gen 2/3/4 devices
 - The `gen2DeviceTypes` map had no entry for `RGBW`, so selecting **RGBW** as the *family* (rather than picking an exact model) returned an empty prefix list and produced a "Shelly type mismatch" error. Specific RGBW models still worked when selected by exact name; only the family-level selection was broken.

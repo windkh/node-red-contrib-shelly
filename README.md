@@ -758,7 +758,7 @@ Turning on is done by sending the following payload into the input. The relay nu
 
 ```
 {
-    method : 'Switch.Set'
+    method : 'Switch.Set',
 	parameters : {
         id : 0,
         on : true,
@@ -788,6 +788,12 @@ See https://shelly-api-docs.shelly.cloud/gen2/Overview/CommonServices/Shelly
 
 For further rpc commands see the shelly documentation.
 
+The arguments may be given as `parameters` (as above) or as `params`, which is the spelling used by
+the official Shelly RPC documentation. Both are accepted, so a JSON-RPC frame copied straight out of
+the Shelly docs can be used as `msg.payload` unchanged. Before 11.11.3 only `parameters` was read and
+a payload using `params` lost its arguments, which the device answered with
+`Request failed with status code 400`.
+
 ### Examples:  
 [**shelly switch gen 2 flow**](examples/switchplus.json) 
 [**shelly rollerplus flow (Shelly Plus 2 PM)**](examples/rollerplus.json) 
@@ -800,7 +806,7 @@ Turning on is done by sending the following payload into the input. The light nu
 
 ```
 {
-    method : 'Light.Set'
+    method : 'Light.Set',
 	parameters : {
         id : 0,
         on : true,
@@ -844,7 +850,7 @@ For color mode you can use the following example:
 
 ```
 {
-    method : 'RGBW.Set'
+    method : 'RGBW.Set',
 	parameters : {
         id : 0,
         on : true,
@@ -869,7 +875,7 @@ For white mode you can use the following example:
 
 ```
 {
-    method : 'Light.Set'
+    method : 'Light.Set',
 	parameters : {
         id : 0,
         on : true,

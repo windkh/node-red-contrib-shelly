@@ -44,6 +44,49 @@ describe('inputParserGeneric2', () => {
         const result = inputParserGeneric2({ parameters: { id: 0 } });
         assert.equal(result.route, undefined);
     });
+
+    // #195: Shelly's own gen2 docs spell this field `params`. Payloads written that
+    // way used to lose their arguments and the device answered HTTP 400
+    // ({"error":{"code":-103,...}}), which read as "Request failed with status code 400".
+    it("accepts 'params' as an alias for 'parameters'", () => {
+        const result = inputParserGeneric2({
+            method: 'Switch.Set',
+            params: { id: 0, on: true },
+        });
+        assert.deepEqual(result.data, {
+            id: 1,
+            method: 'Switch.Set',
+            params: { id: 0, on: true },
+        });
+    });
+
+    it('accepts a full JSON-RPC frame copied from the Shelly docs', () => {
+        const result = inputParserGeneric2({
+            id: 1,
+            method: 'Switch.Set',
+            params: { id: 0, on: false },
+        });
+        assert.equal(result.route, '/rpc');
+        assert.deepEqual(result.data.params, { id: 0, on: false });
+    });
+
+    it("prefers 'parameters' when both spellings are present", () => {
+        const result = inputParserGeneric2({
+            method: 'Switch.Set',
+            parameters: { id: 0, on: true },
+            params: { id: 1, on: false },
+        });
+        assert.deepEqual(result.data.params, { id: 0, on: true });
+    });
+
+    it("treats an explicitly undefined 'parameters' as absent and falls back to 'params'", () => {
+        const result = inputParserGeneric2({
+            method: 'Switch.Set',
+            parameters: undefined,
+            params: { id: 2, on: true },
+        });
+        assert.deepEqual(result.data.params, { id: 2, on: true });
+    });
 });
 
 describe('inputParserGeneric2Array', () => {
@@ -70,6 +113,17 @@ describe('inputParserGeneric2Array', () => {
             ],
         });
         assert.equal(result.length, 2);
+        assert.deepEqual(result[0].data.params, { id: 0, on: true });
+        assert.deepEqual(result[1].data.params, { id: 1, on: false });
+    });
+
+    it("carries the 'params' alias through the array path too", () => {
+        const result = inputParserGeneric2Array({
+            payload: [
+                { method: 'Switch.Set', params: { id: 0, on: true } },
+                { method: 'Switch.Set', parameters: { id: 1, on: false } },
+            ],
+        });
         assert.deepEqual(result[0].data.params, { id: 0, on: true });
         assert.deepEqual(result[1].data.params, { id: 1, on: false });
     });

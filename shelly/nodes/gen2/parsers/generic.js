@@ -14,9 +14,15 @@ function inputParserGeneric2(command) {
         rpcMethod = command.method;
     }
 
+    // `parameters` is this node's documented spelling, but Shelly's own gen2 RPC
+    // docs (linked from the README) call the field `params`, so users routinely
+    // write that instead. It used to be dropped silently, and the device then
+    // rejected the argument-less call with HTTP 400 — see #195. Accept both.
     let parameters;
     if (command.parameters !== undefined) {
         parameters = command.parameters;
+    } else if (command.params !== undefined) {
+        parameters = command.params;
     }
 
     if (rpcMethod !== undefined) {
