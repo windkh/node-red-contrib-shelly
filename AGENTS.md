@@ -7,6 +7,7 @@
 > below the managed block (the "Project-specific rules" section) is yours and is never overwritten.
 
 ## Shared: Architecture
+
 - Node packages are modular: `lib/` holds framework-independent, unit-testable core logic;
   `nodes/` holds one file per Node-RED node; `icons/` holds node icons.
 - The registered entry file (`<pkg>/99-<name>.js`) is a thin delegator that only `require`s and
@@ -14,6 +15,7 @@
 - Record non-trivial design decisions as an ADR in `doc/architecture/adr/`.
 
 ## Shared: Code style
+
 - Lint: ESLint flat config (`eslint.config.js`), ESLint >= 9. Run the lint script before committing.
 - Format: Prettier (`.prettierrc.json`) — 4-space indent, single quotes, es5 trailing commas.
 - Target Node.js >= 20.
@@ -33,21 +35,28 @@
   hypothetical future changes to code you control. Validate input at the boundary and then trust it.
 
 ## Shared: Tests
-- Node's built-in test runner (`node --test`) + `node-red-node-test-helper`. Tests live in `test/` as `*.test.js`; the test script scopes discovery to `node --test 'test/**/*.test.js'` so fixtures are not run as tests.
+
+- Node's built-in test runner (`node --test`) + `node-red-node-test-helper`. Tests live in `test/` as `*.test.js`.
   Import `{ describe, it }` from `node:test` and assert with `node:assert`. Coverage via `c8`.
+- Node's default discovery runs **every** `.js` under `test/`, whatever it is named, so shared helpers and
+  fixtures belong outside that directory (e.g. `test-helpers/`). The test script deliberately takes no path
+  arguments: a `'test/**/*.test.js'` glob would need Node >= 21 and fails on Node 20, which is still supported.
 
 ## Shared: Documentation
+
 - `README.md` is user-facing. Architecture docs live under `doc/architecture/`
   (`overview.md`, `structural-design.md`, `behavioural-design.md`, `adr/`).
 - Update `CHANGELOG.md` (Keep a Changelog style) for every user-visible change; bump the
   patch version in `package.json` in the same commit.
 
 ## Shared: Workflow
+
 - CI (`.github/workflows/node.js.yml`) must pass: lint, format:check, test, coverage.
 - Releases go through `.github/workflows/npm-publish.yml`.
 - Never bump the major version without an ADR explaining the breaking change.
 
 ## Shared: package.json scripts
+
 `lint`, `lint:fix`, `format`, `format:check`, `test` (`node --test` with `--test-force-exit --test-timeout=30000 --test-concurrency=1`, no path args), `coverage` / `coverage:check` (c8 over `npm test`).
 
 <!-- END node-red-standards:managed -->

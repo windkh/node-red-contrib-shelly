@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [11.11.6] - 2026-07-27
+
+### Removed the two node-red-standards workarounds by fixing the standard
+
+Both compromises noted in 11.11.5 were symptoms of bugs in [node-red-standards](https://github.com/windkh/node-red-standards) itself, so they were fixed upstream and the local workarounds are gone.
+
+- **`AGENTS.md` is no longer excluded from Prettier.** The root cause was that `templates/AGENTS.md` (and five other templates) were not Prettier-clean under the `.prettierrc.json` the standard itself ships, so `sync` wrote a managed block that `format:check` rejected — and which no target repo could fix, because the next `sync` reverted it. With the templates formatted upstream, `AGENTS.md` is simultaneously Prettier-clean and reported `unchanged` by `sync`. The standard also gained a CI job that keeps `templates/` Prettier-clean, so the invariant can no longer regress into the six downstream repos.
+- **`test/helpers/fake-node.js` → `test-helpers/fake-node.js`.** Node's default discovery pattern is `**/test/**/*.?(c|m)js` — it matches on the _directory_, so every `.js` under `test/` was loaded and run as a test file regardless of its name. The helper counted as a phantom passing test (202 → 201 real tests) and would have failed the suite outright had it ever thrown on import. Moving it out of `test/` is the portable fix; the glob the standard previously prescribed (`node --test 'test/**/*.test.js'`) needs Node >= 21 and fails on Node 20, which this package still supports.
+
 ## [11.11.5] - 2026-07-25
 
 ### Adopted the shared node-red-standards toolchain

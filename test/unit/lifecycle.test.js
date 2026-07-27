@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const nock = require('nock');
 
 const { shellyPing, tryCheckDeviceType, start } = require('../../shelly/lib/shelly.js');
-const { makeFakeNode } = require('../helpers/fake-node.js');
+const { makeFakeNode } = require('../../test-helpers/fake-node.js');
 
 nock.disableNetConnect();
 
