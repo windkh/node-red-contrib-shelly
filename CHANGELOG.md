@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [11.11.7] - 2026-07-27
+
+### Dependency updates, husky 9, and LF normalisation
+
+- **husky 8 → 9**, with the hook modernised rather than just bumped. `.husky/pre-commit` no longer sources the v8 shim (`. "$(dirname -- "$0")/_/husky.sh"`) and `prepare` is now `husky` instead of the deprecated `husky install`. Verified in a throwaway repo that the old v8-style hook does still run under husky 9.1.7 and still blocks a failing commit — so this was noise, not breakage — but husky printed a deprecation warning on every `npm install` and every commit, and husky 10 removes the shim entirely.
+- **`.gitattributes` now pins the working tree to LF** (`* text=auto eol=lf`). Prettier's `endOfLine` defaults to `lf` and the shared `.prettierrc.json` does not override it (the `.prettierrc` replaced in 11.11.5 did, with `"endOfLine": "auto"`). With `core.autocrlf=true` on Windows, every file touched by a `git pull` was checked out as CRLF and failed `npm run format:check` locally, while CI stayed green on Linux — a false alarm that reappeared after each pull. Local and CI results are now identical.
+
+### Dependencies
+
+- `actions/checkout` 4 → 7, `actions/setup-node` 4 → 7, `actions/upload-artifact` 4 → 7 — clears the deprecated Node 20 runtime warning and matches what the shared standard's workflow templates now pin.
+- `globals` 15.15.0 → 17.8.0, `nock` 14.0.15 → 14.0.16.
+
+ESLint 10 (`eslint` 9 → 10 plus `@eslint/js` 9 → 10) is deliberately **not** taken yet: the two bumps pass CI individually but fail together, because ESLint 10's `js.configs.recommended` adds `no-unassigned-vars` and `no-useless-assignment`, which flag 17 real spots in `shelly/`. That is a code change plus a decision for the shared standard (which still pins `^9`), not a dependency merge.
+
 ## [11.11.6] - 2026-07-27
 
 ### Removed the two node-red-standards workarounds by fixing the standard

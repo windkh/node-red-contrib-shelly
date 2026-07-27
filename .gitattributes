@@ -1,1 +1,10 @@
+# Normalise to LF in the working tree, not just in the index.
+#
+# Prettier's `endOfLine` defaults to "lf" and the shared .prettierrc.json does not override it,
+# so a file checked out as CRLF fails `npm run format:check` even though the blob in git is LF.
+# With core.autocrlf=true (the Windows default) that happened to every file touched by a pull,
+# turning format:check red locally while CI stayed green on Linux. Pinning the working tree to
+# LF makes the local and CI results identical.
+* text=auto eol=lf
+
 .husky/* text eol=lf
