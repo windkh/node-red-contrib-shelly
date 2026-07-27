@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This folder holds one Markdown file per architectural decision. See [`../04-architecture-decisions.md`](../04-architecture-decisions.md) for the indexed table of all ADRs in reading order.
+This folder holds one Markdown file per architectural decision. See [`../architecture-decisions.md`](../architecture-decisions.md) for the indexed table of all ADRs in reading order.
 
 ## Format
 
@@ -13,12 +13,15 @@ Each ADR follows the Nygard-style structure:
 - **Date:** YYYY-MM-DD
 
 ## Context
+
 Why this decision came up. What constraints were in play?
 
 ## Decision
+
 The choice that was made. Single, declarative sentence ideally.
 
 ## Consequences
+
 Positive, negative, and neutral fallout of the choice. What does this lock us into?
 ```
 

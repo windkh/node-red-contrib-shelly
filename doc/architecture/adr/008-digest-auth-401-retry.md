@@ -35,7 +35,7 @@ The nonce counter (`nc=`) is a single module-level integer, monotonically increm
 **Negative:**
 
 - **Every authenticated request is two round trips.** No caching of the digest header or nonce. For a Pro 4PM hit every 5 seconds, that's 17,280 round trips per day instead of 8,640.
-- The module-level `nonceCount` is shared across all nodes and never resets — RFC 7616 says it should reset to 1 per new server nonce. Shelly tolerates monotonic-only, but this is non-conformant (see [Errors and Weaknesses § nonceCount](../05-errors-and-weaknesses.md)).
+- The module-level `nonceCount` is shared across all nodes and never resets — RFC 7616 says it should reset to 1 per new server nonce. Shelly tolerates monotonic-only, but this is non-conformant (see [Errors and Weaknesses § nonceCount](../errors-and-weaknesses.md)).
 - The `www-authenticate` parser splits on `", "` then `"="` — fragile against quoted values containing those characters. Works against current Shelly firmware but is brittle.
 
 **Locks us into:**

@@ -58,7 +58,7 @@ describe('shellyRequestAsync — basic 200', () => {
             '/rpc',
             null,
             { id: 1, method: 'Switch.Set', params: { id: 0, on: true } },
-            { hostname: HOST },
+            { hostname: HOST }
         );
 
         assert.deepEqual(result, { result: { was_on: false } });
@@ -104,12 +104,9 @@ describe('shellyRequestAsync — Basic auth (gen 1)', () => {
 describe('shellyRequestAsync — Digest auth (gen 2+) 401 retry', () => {
     it('transparently retries with a Digest header after a 401 challenge', async () => {
         // First call: no auth header; device responds 401 with a Digest challenge.
-        nock(URL)
-            .get('/rpc/Switch.GetStatus')
-            .reply(401, 'Unauthorized', {
-                'www-authenticate':
-                    'Digest qop="auth", realm="shellypro1pm", nonce="abc123", algorithm=SHA-256',
-            });
+        nock(URL).get('/rpc/Switch.GetStatus').reply(401, 'Unauthorized', {
+            'www-authenticate': 'Digest qop="auth", realm="shellypro1pm", nonce="abc123", algorithm=SHA-256',
+        });
 
         // Second call: must carry an Authorization: Digest ... header. Match
         // partial values — exact nc / cnonce are nondeterministic.
@@ -144,18 +141,14 @@ describe('shellyRequestAsync — Digest auth (gen 2+) 401 retry', () => {
     });
 
     it('throws when the digest retry itself is rejected with a non-200, non-401 status', async () => {
-        nock(URL)
-            .get('/rpc/Switch.Set')
-            .reply(401, '', {
-                'www-authenticate': 'Digest qop="auth", realm="r", nonce="n", algorithm=SHA-256',
-            });
+        nock(URL).get('/rpc/Switch.Set').reply(401, '', {
+            'www-authenticate': 'Digest qop="auth", realm="r", nonce="n", algorithm=SHA-256',
+        });
 
         // axios sees this as a non-allowed status (only 200/401 pass), so it throws.
         // The catch in shellyRequestAsync re-throws with the response body folded in
         // (since 11.10.1). The body here is an empty string — the message ends with " - ".
-        nock(URL)
-            .get('/rpc/Switch.Set')
-            .reply(403, 'forbidden');
+        nock(URL).get('/rpc/Switch.Set').reply(403, 'forbidden');
 
         await assert.rejects(
             shellyRequestAsync(axios, 'GET', '/rpc/Switch.Set', null, null, {
@@ -164,7 +157,7 @@ describe('shellyRequestAsync — Digest auth (gen 2+) 401 retry', () => {
                 username: 'admin',
                 password: 'x',
             }),
-            /forbidden/,
+            /forbidden/
         );
     });
 });
@@ -182,7 +175,7 @@ describe('shellyRequestAsync — error body enrichment (11.10.1)', () => {
                 '/rpc',
                 null,
                 { id: 1, method: 'Switch.Set', params: {} },
-                { hostname: HOST },
+                { hostname: HOST }
             ),
             (error) => {
                 // Standard axios message stays present and the device body is appended.
@@ -190,7 +183,7 @@ describe('shellyRequestAsync — error body enrichment (11.10.1)', () => {
                 assert.match(error.message, /Argument 'id' is missing/);
                 assert.match(error.message, /-103/);
                 return true;
-            },
+            }
         );
     });
 
@@ -199,7 +192,7 @@ describe('shellyRequestAsync — error body enrichment (11.10.1)', () => {
 
         await assert.rejects(
             shellyRequestAsync(axios, 'GET', '/diag', null, null, { hostname: HOST }),
-            /internal server error/,
+            /internal server error/
         );
     });
 
@@ -224,15 +217,7 @@ describe('shellyRequestAsync — timeouts', () => {
     it('applies an explicit timeout value', async () => {
         nock(URL).get('/shelly').reply(200, { type: 'SHSW-1' });
 
-        const result = await shellyRequestAsync(
-            axios,
-            'GET',
-            '/shelly',
-            null,
-            null,
-            { hostname: HOST },
-            1500,
-        );
+        const result = await shellyRequestAsync(axios, 'GET', '/shelly', null, null, { hostname: HOST }, 1500);
 
         assert.deepEqual(result, { type: 'SHSW-1' });
     });

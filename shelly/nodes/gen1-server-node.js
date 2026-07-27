@@ -6,7 +6,7 @@ module.exports = function (RED) {
     function ShellyGen1ServerNode(config) {
         RED.nodes.createNode(this, config);
 
-        let node = this;
+        const node = this;
         this.port = parseInt(config.port);
         this.hostname = config.hostname;
         this.hostip = config.hostip;
@@ -24,13 +24,13 @@ module.exports = function (RED) {
             });
 
             node.server.get('/webhook', (request, reply) => {
-                let queryFields = request.query.data.split('?');
-                let query = {
+                const queryFields = request.query.data.split('?');
+                const query = {
                     hookType: queryFields[0],
                     index: queryFields[1],
                     sender: queryFields[2],
                 };
-                let data = {
+                const data = {
                     hookType: queryFields[0],
                     index: queryFields[1],
                     sender: queryFields[2],

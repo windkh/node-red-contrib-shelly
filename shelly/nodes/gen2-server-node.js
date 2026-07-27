@@ -6,7 +6,7 @@ module.exports = function (RED) {
     function ShellyGen2ServerNode(config) {
         RED.nodes.createNode(this, config);
 
-        let node = this;
+        const node = this;
         this.port = parseInt(config.port);
         this.hostname = config.hostname;
         this.hostip = config.hostip;
@@ -16,7 +16,7 @@ module.exports = function (RED) {
 
         if (node.port > 0 && node.port <= 65535) {
             node.server.put('/callback', (request, reply) => {
-                let data = {
+                const data = {
                     sender: request.body.sender,
                     event: request.body.event,
                 };
@@ -26,7 +26,7 @@ module.exports = function (RED) {
             });
 
             node.server.get('/webhook', (request, reply) => {
-                let data = {
+                const data = {
                     hookType: request.query.hookType,
                     sender: request.query.sender,
                     event: request.query, // request.body is null

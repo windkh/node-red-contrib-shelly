@@ -25,10 +25,7 @@ describe('inputParserRGBW1Async (color mode)', () => {
     });
 
     it('emits RGB values in range', async () => {
-        const r = await inputParserRGBW1Async(
-            { payload: { red: 10, green: 20, blue: 30, white: 40 } },
-            colorNode,
-        );
+        const r = await inputParserRGBW1Async({ payload: { red: 10, green: 20, blue: 30, white: 40 } }, colorNode);
         assert.ok(r.includes('red=10'));
         assert.ok(r.includes('green=20'));
         assert.ok(r.includes('blue=30'));
@@ -88,11 +85,11 @@ describe('inputParserRGBW1Async (color mode)', () => {
                     timer: 60,
                 },
             },
-            colorNode,
+            colorNode
         );
         assert.equal(
             r,
-            '/color/0?turn=on&gain=100&red=10&green=20&blue=30&white=0&brightness=80&effect=0&transition=500&timer=60',
+            '/color/0?turn=on&gain=100&red=10&green=20&blue=30&white=0&brightness=80&effect=0&transition=500&timer=60'
         );
     });
 });
@@ -116,7 +113,7 @@ describe('inputParserRGBW1Async (white mode)', () => {
     it('builds the full white payload', async () => {
         const r = await inputParserRGBW1Async(
             { payload: { light: 0, on: true, brightness: 80, temp: 3500, transition: 200, timer: 30 } },
-            whiteNode,
+            whiteNode
         );
         assert.equal(r, '/white/0?turn=on&brightness=80&temp=3500&transition=200&timer=30');
     });

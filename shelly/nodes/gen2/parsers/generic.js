@@ -5,7 +5,7 @@ const utils = require('../../../lib/utils.js');
 // Converts a single gen 2+ command object into the JSON-RPC envelope shape
 // the device's POST /rpc endpoint expects.
 function inputParserGeneric2(command) {
-    let method = 'POST';
+    const method = 'POST';
     let data;
     let route;
 
@@ -34,7 +34,7 @@ function inputParserGeneric2(command) {
         };
     }
 
-    let request = {
+    const request = {
         route: route,
         method: method,
         data: data,
@@ -47,15 +47,15 @@ function inputParserGeneric2(command) {
 // the requests for executeCommand2 to issue. An empty array means "no commands
 // to issue" — executeCommand2 will then fall through to a plain GetStatus.
 function inputParserGeneric2Array(msg) {
-    let requests = [];
+    const requests = [];
 
     if (utils.isMsgPayloadValidOrArray(msg)) {
         if (!Array.isArray(msg.payload)) {
-            let request = inputParserGeneric2(msg.payload);
+            const request = inputParserGeneric2(msg.payload);
             requests.push(request);
         } else {
             msg.payload.forEach((payload) => {
-                let request = inputParserGeneric2(payload);
+                const request = inputParserGeneric2(payload);
                 requests.push(request);
             });
         }

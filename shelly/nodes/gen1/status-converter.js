@@ -6,7 +6,7 @@ const utils = require('../../lib/utils.js');
 // that the node surfaces on msg.payload. The full status remains available
 // on msg.status when getStatusOnCommand is enabled.
 function convertStatus1(status) {
-    let result = {};
+    const result = {};
 
     if (status.relays !== undefined) {
         result.relays = status.relays;

@@ -142,7 +142,7 @@ node.on('close', function(done) {
 });
 ```
 
-The `node.closing` flag is checked at three points: the init IIFE after its `await`, the retry interval callback, and the polling-loop's setInterval body. These short-circuit when the flag is set, preventing the well-documented race in older versions where a slow init could schedule a fresh `setInterval` _after_ close had already cleared it (see [Errors and Weaknesses §3](05-errors-and-weaknesses.md) and [ADR-008](adrs/008-digest-auth-401-retry.md)).
+The `node.closing` flag is checked at three points: the init IIFE after its `await`, the retry interval callback, and the polling-loop's setInterval body. These short-circuit when the flag is set, preventing the well-documented race in older versions where a slow init could schedule a fresh `setInterval` _after_ close had already cleared it (see [Errors and Weaknesses §3](errors-and-weaknesses.md) and [ADR-008](adr/008-digest-auth-401-retry.md)).
 
 **Not done in close (by design):** the uploaded callback script is _not_ removed from the device. Webhooks are not removed either. A comment in the code reads `// TODO: call node.uninitializer();` — this is a known gap.
 
@@ -185,11 +185,11 @@ msg.settings = [{ device: 'ext_temperature', index: 0, attribute: 'overtemp_act'
 
 ### Outbound
 
-| Field | Meaning |
-|---|---|
+| Field         | Meaning                                                                                                                                                     |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `msg.payload` | Lightweight status (gen 1: `convertStatus1` filtered; gen 2: `convertStatus2` filtered; cloud: raw response) or, in callback `event` mode, the event itself |
-| `msg.status` | Full unfiltered status object from `/status` (gen 1) or `Shelly.GetStatus` (gen 2). Only present when `getStatusOnCommand` is on |
-| `msg.error` | `{hostname, error: error.message}` on any device-side failure (network, auth, 4xx, 5xx) |
+| `msg.status`  | Full unfiltered status object from `/status` (gen 1) or `Shelly.GetStatus` (gen 2). Only present when `getStatusOnCommand` is on                            |
+| `msg.error`   | `{hostname, error: error.message}` on any device-side failure (network, auth, 4xx, 5xx)                                                                     |
 
 ## State machines
 
@@ -242,8 +242,8 @@ The retry loop is cleared by `close`, and as of 11.10.0 won't be re-armed by a l
 - **Two timers per node:** `pollingTimer` (alive only in polling mode) and `initializeTimer` (alive only while waiting for first init success). Both are cleared in `close`.
 - **No mutexes / locking.** The library assumes that input messages arrive sequentially, which is the Node-RED single-threaded reality.
 - **Module-global state:**
-  - `nonceCount` in [`lib/shelly.js`](../../shelly/lib/shelly.js) — monotonic counter for HTTP Digest auth. Shared across all nodes (see [Errors and Weaknesses §nonceCount](05-errors-and-weaknesses.md)).
-  - `cloudAxios` in [`nodes/cloud-node.js`](../../shelly/nodes/cloud-node.js) — single rate-limited axios instance shared by _all_ cloud nodes (so the 1 req/sec limit is enforced across the whole flow, not per node).
+    - `nonceCount` in [`lib/shelly.js`](../../shelly/lib/shelly.js) — monotonic counter for HTTP Digest auth. Shared across all nodes (see [Errors and Weaknesses §nonceCount](errors-and-weaknesses.md)).
+    - `cloudAxios` in [`nodes/cloud-node.js`](../../shelly/nodes/cloud-node.js) — single rate-limited axios instance shared by _all_ cloud nodes (so the 1 req/sec limit is enforced across the whole flow, not per node).
 
 ## Error propagation
 

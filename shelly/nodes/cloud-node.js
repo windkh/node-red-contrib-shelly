@@ -10,12 +10,12 @@ module.exports = function (RED) {
 
     function encodeParams(data) {
         Object.keys(data).forEach((key) => data[key] === undefined && delete data[key]);
-        let params = new URLSearchParams(data).toString();
+        const params = new URLSearchParams(data).toString();
         return params;
     }
 
     function encodeArrayParams(data) {
-        let params = JSON.stringify(data);
+        const params = JSON.stringify(data);
         return params;
     }
 
@@ -36,8 +36,8 @@ module.exports = function (RED) {
             encodedData += '&' + data;
         }
 
-        let baseUrl = credentials.serverUri;
-        let config = {
+        const baseUrl = credentials.serverUri;
+        const config = {
             baseURL: baseUrl,
             url: route,
             method: method,
@@ -61,7 +61,7 @@ module.exports = function (RED) {
     // The shelly node controls a shelly via cloud api.
     function ShellyCloudNode(config) {
         RED.nodes.createNode(this, config);
-        let node = this;
+        const node = this;
 
         node.server = RED.nodes.getNode(config.server);
 
@@ -72,11 +72,11 @@ module.exports = function (RED) {
                 let route;
                 let params;
                 if (utils.isMsgPayloadValid(msg)) {
-                    let type = msg.payload.type;
+                    const type = msg.payload.type;
                     if (type === 'light') {
                         route = '/device/light/control';
 
-                        let data = {
+                        const data = {
                             id: msg.payload.id,
                             channel: msg.payload.channel,
                             turn: msg.payload.turn,
@@ -91,7 +91,7 @@ module.exports = function (RED) {
                     } else if (type === 'relay') {
                         route = '/device/relay/control';
 
-                        let data = {
+                        const data = {
                             id: msg.payload.id,
                             channel: msg.payload.channel,
                             turn: msg.payload.turn,
@@ -100,7 +100,7 @@ module.exports = function (RED) {
                     } else if (type === 'roller') {
                         route = '/device/relay/roller/control';
 
-                        let data = {
+                        const data = {
                             id: msg.payload.id,
                             channel: msg.payload.channel,
                             direction: msg.payload.direction,
@@ -110,7 +110,7 @@ module.exports = function (RED) {
                     } else if (type === 'relays') {
                         route = '/device/relay/bulk_control';
 
-                        let data = {
+                        const data = {
                             turn: msg.payload.turn,
                         };
                         params = encodeParams(data);
@@ -118,14 +118,14 @@ module.exports = function (RED) {
                     } else if (type === 'status') {
                         route = '/device/status';
 
-                        let data = {
+                        const data = {
                             id: msg.payload.id,
                         };
                         params = encodeParams(data);
                     } else if (type === 'all_status') {
                         route = '/device/all_status';
 
-                        let data = {
+                        const data = {
                             show_info: msg.payload.show_info,
                             no_shared: msg.payload.no_shared,
                         };
@@ -136,12 +136,12 @@ module.exports = function (RED) {
                 }
 
                 if (route) {
-                    let credentials = node.server.getCredentials();
-                    let body = await shellyCloudRequestAsync('POST', route, params, credentials);
+                    const credentials = node.server.getCredentials();
+                    const body = await shellyCloudRequestAsync('POST', route, params, credentials);
 
                     node.status({ fill: 'green', shape: 'ring', text: 'OK' });
 
-                    let status = body;
+                    const status = body;
                     // msg.status = status;
                     msg.payload = status;
                     node.send([msg]);

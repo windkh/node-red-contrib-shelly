@@ -67,27 +67,27 @@ describe('convertStatus1', () => {
     });
 
     it('promotes ext_temperature into result.ext.temperature', () => {
-        const status = { ext_temperature: { '0': { tC: 22.5, tF: 72.5 } } };
+        const status = { ext_temperature: { 0: { tC: 22.5, tF: 72.5 } } };
         const result = convertStatus1(status);
-        assert.deepEqual(result, { ext: { temperature: { '0': { tC: 22.5, tF: 72.5 } } } });
+        assert.deepEqual(result, { ext: { temperature: { 0: { tC: 22.5, tF: 72.5 } } } });
     });
 
     it('promotes ext_humidity into result.ext.humidity', () => {
-        const status = { ext_humidity: { '0': { hum: 55 } } };
+        const status = { ext_humidity: { 0: { hum: 55 } } };
         const result = convertStatus1(status);
-        assert.deepEqual(result, { ext: { humidity: { '0': { hum: 55 } } } });
+        assert.deepEqual(result, { ext: { humidity: { 0: { hum: 55 } } } });
     });
 
     it('merges ext_temperature and ext_humidity under one result.ext', () => {
         const status = {
-            ext_temperature: { '0': { tC: 22.5 } },
-            ext_humidity: { '0': { hum: 55 } },
+            ext_temperature: { 0: { tC: 22.5 } },
+            ext_humidity: { 0: { hum: 55 } },
         };
         const result = convertStatus1(status);
         assert.deepEqual(result, {
             ext: {
-                temperature: { '0': { tC: 22.5 } },
-                humidity: { '0': { hum: 55 } },
+                temperature: { 0: { tC: 22.5 } },
+                humidity: { 0: { hum: 55 } },
             },
         });
     });

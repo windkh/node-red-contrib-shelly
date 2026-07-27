@@ -1,5 +1,5 @@
 'use strict';
-let config = require('../config/config.json');
+const config = require('../config/config.json');
 
 // Distinct filter.
 function distinct(value, index, array) {
@@ -8,13 +8,13 @@ function distinct(value, index, array) {
 
 // Gets all device type infos for the config editor
 function getDeviceTypeInfos(gen) {
-    let deviceTypeInfos = [];
+    const deviceTypeInfos = [];
 
-    let keys = Object.keys(config.devices);
+    const keys = Object.keys(config.devices);
     for (let i = 0; i < keys.length; i++) {
-        let device = config.devices[i];
+        const device = config.devices[i];
         if (device.gen === gen) {
-            let deviceTypeInfo = {
+            const deviceTypeInfo = {
                 deviceType: device.model,
                 description: device.name + ' - (' + device.type + ' ' + device.model + ')',
             };
@@ -28,11 +28,11 @@ function getDeviceTypeInfos(gen) {
 
 // Gets the distinct models from the configuration.
 function getDeviceModels(gen, type) {
-    let foundModels = [];
+    const foundModels = [];
 
-    let keys = Object.keys(config.devices);
+    const keys = Object.keys(config.devices);
     for (let i = 0; i < keys.length; i++) {
-        let device = config.devices[i];
+        const device = config.devices[i];
         if (device.gen === gen) {
             if (device.type === type) {
                 foundModels.push(device.model);
@@ -40,7 +40,7 @@ function getDeviceModels(gen, type) {
         }
     }
 
-    let models = foundModels.filter(distinct);
+    const models = foundModels.filter(distinct);
     return models;
 }
 
@@ -48,9 +48,9 @@ function getDeviceModels(gen, type) {
 function getDeviceType(model) {
     let result;
 
-    let keys = Object.keys(config.devices);
+    const keys = Object.keys(config.devices);
     for (let i = 0; i < keys.length; i++) {
-        let device = config.devices[i];
+        const device = config.devices[i];
         if (device.model === model) {
             result = device.type;
             break;
@@ -63,9 +63,9 @@ function getDeviceType(model) {
 function getDevice(model) {
     let result;
 
-    let keys = Object.keys(config.devices);
+    const keys = Object.keys(config.devices);
     for (let i = 0; i < keys.length; i++) {
-        let device = config.devices[i];
+        const device = config.devices[i];
         if (device.model === model) {
             result = device;
             break;
@@ -76,7 +76,7 @@ function getDevice(model) {
 }
 
 // see https://kb.shelly.cloud/knowledge-base/devices
-let gen1DeviceTypes = new Map(config.gen1DeviceTypes);
+const gen1DeviceTypes = new Map(config.gen1DeviceTypes);
 
 function getDeviceTypes1(deviceType, exactMatch) {
     let deviceTypes;
@@ -116,14 +116,14 @@ function isExactTypeGen1(deviceType) {
 
 // see https://kb.shelly.cloud/knowledge-base/devices
 // this list also contains the shelly gen3 and gen4 devices
-let gen2DeviceTypes = new Map(config.gen2DeviceTypes);
+const gen2DeviceTypes = new Map(config.gen2DeviceTypes);
 
 function getDeviceTypes2(deviceType, exactMatch) {
     let deviceTypes = [];
     if (exactMatch === true) {
-        let deviceTypes2 = getDeviceModels('2', deviceType);
-        let deviceTypes3 = getDeviceModels('3', deviceType);
-        let deviceTypes4 = getDeviceModels('4', deviceType);
+        const deviceTypes2 = getDeviceModels('2', deviceType);
+        const deviceTypes3 = getDeviceModels('3', deviceType);
+        const deviceTypes4 = getDeviceModels('4', deviceType);
         deviceTypes = deviceTypes2;
         deviceTypes = deviceTypes.concat(deviceTypes3);
         deviceTypes = deviceTypes.concat(deviceTypes4);

@@ -22,18 +22,9 @@ describe('inputParserThermostat1Async', () => {
     });
 
     it('emits target_t when temperature in range 4..31', async () => {
-        assert.equal(
-            await inputParserThermostat1Async({ payload: { temperature: 21 } }),
-            '/thermostat/0?target_t=21',
-        );
-        assert.equal(
-            await inputParserThermostat1Async({ payload: { temperature: 4 } }),
-            '/thermostat/0?target_t=4',
-        );
-        assert.equal(
-            await inputParserThermostat1Async({ payload: { temperature: 31 } }),
-            '/thermostat/0?target_t=31',
-        );
+        assert.equal(await inputParserThermostat1Async({ payload: { temperature: 21 } }), '/thermostat/0?target_t=21');
+        assert.equal(await inputParserThermostat1Async({ payload: { temperature: 4 } }), '/thermostat/0?target_t=4');
+        assert.equal(await inputParserThermostat1Async({ payload: { temperature: 31 } }), '/thermostat/0?target_t=31');
     });
 
     it('skips temperature out of range', async () => {
@@ -44,63 +35,45 @@ describe('inputParserThermostat1Async', () => {
     });
 
     it('emits schedule for true and false', async () => {
-        assert.equal(
-            await inputParserThermostat1Async({ payload: { schedule: true } }),
-            '/thermostat/0?schedule=true',
-        );
+        assert.equal(await inputParserThermostat1Async({ payload: { schedule: true } }), '/thermostat/0?schedule=true');
         assert.equal(
             await inputParserThermostat1Async({ payload: { schedule: false } }),
-            '/thermostat/0?schedule=false',
+            '/thermostat/0?schedule=false'
         );
     });
 
     it('emits scheduleProfile when in range 1..5', async () => {
         assert.equal(
             await inputParserThermostat1Async({ payload: { scheduleProfile: 1 } }),
-            '/thermostat/0?schedule_profile=1',
+            '/thermostat/0?schedule_profile=1'
         );
         assert.equal(
             await inputParserThermostat1Async({ payload: { scheduleProfile: 5 } }),
-            '/thermostat/0?schedule_profile=5',
+            '/thermostat/0?schedule_profile=5'
         );
     });
 
     it('skips scheduleProfile out of range', async () => {
         // This is the regression test for the bug fixed in 11.9.2 (was `||` so always true).
-        assert.equal(
-            await inputParserThermostat1Async({ payload: { scheduleProfile: 0 } }),
-            undefined,
-        );
-        assert.equal(
-            await inputParserThermostat1Async({ payload: { scheduleProfile: 6 } }),
-            undefined,
-        );
-        assert.equal(
-            await inputParserThermostat1Async({ payload: { scheduleProfile: -1 } }),
-            undefined,
-        );
-        assert.equal(
-            await inputParserThermostat1Async({ payload: { scheduleProfile: 100 } }),
-            undefined,
-        );
+        assert.equal(await inputParserThermostat1Async({ payload: { scheduleProfile: 0 } }), undefined);
+        assert.equal(await inputParserThermostat1Async({ payload: { scheduleProfile: 6 } }), undefined);
+        assert.equal(await inputParserThermostat1Async({ payload: { scheduleProfile: -1 } }), undefined);
+        assert.equal(await inputParserThermostat1Async({ payload: { scheduleProfile: 100 } }), undefined);
     });
 
     it('emits boostMinutes when >= 0', async () => {
         assert.equal(
             await inputParserThermostat1Async({ payload: { boostMinutes: 30 } }),
-            '/thermostat/0?boost_minutes=30',
+            '/thermostat/0?boost_minutes=30'
         );
         assert.equal(
             await inputParserThermostat1Async({ payload: { boostMinutes: 0 } }),
-            '/thermostat/0?boost_minutes=0',
+            '/thermostat/0?boost_minutes=0'
         );
     });
 
     it('skips boostMinutes when negative', async () => {
-        assert.equal(
-            await inputParserThermostat1Async({ payload: { boostMinutes: -1 } }),
-            undefined,
-        );
+        assert.equal(await inputParserThermostat1Async({ payload: { boostMinutes: -1 } }), undefined);
     });
 
     it('combines multiple parameters', async () => {
@@ -108,7 +81,7 @@ describe('inputParserThermostat1Async', () => {
             await inputParserThermostat1Async({
                 payload: { position: 30, temperature: 22, schedule: true, scheduleProfile: 2, boostMinutes: 45 },
             }),
-            '/thermostat/0?pos=30&target_t=22&schedule=true&schedule_profile=2&boost_minutes=45',
+            '/thermostat/0?pos=30&target_t=22&schedule=true&schedule_profile=2&boost_minutes=45'
         );
     });
 });

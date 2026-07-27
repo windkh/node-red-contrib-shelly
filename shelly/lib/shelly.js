@@ -1,6 +1,6 @@
 const utils = require('./utils.js');
 
-let crypto = require('crypto');
+const crypto = require('crypto');
 // const crypto = require('node:crypto'); see #99 nodejs V19
 
 const axios = require('axios').default;
@@ -9,13 +9,13 @@ let nonceCount = 1;
 
 // gets all IP addresses: https://stackoverflow.com/questions/3653065/get-local-ip-address-in-node-js?page=2&tab=scoredesc#tab-top
 function getIPAddresses() {
-    let ipAddresses = [];
+    const ipAddresses = [];
 
-    let interfaces = require('os').networkInterfaces();
-    for (let devName in interfaces) {
-        let iface = interfaces[devName];
+    const interfaces = require('os').networkInterfaces();
+    for (const devName in interfaces) {
+        const iface = interfaces[devName];
         for (let i = 0; i < iface.length; i++) {
-            let alias = iface[i];
+            const alias = iface[i];
             if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
                 ipAddresses.push(alias.address);
             }
@@ -34,7 +34,7 @@ function getIPAddress(node) {
     } else if (node.server.hostip === 'hostname' && node.server.hostname !== undefined && node.server.hostname !== '') {
         ipAddress = node.server.hostname;
     } else {
-        let ipAddresses = getIPAddresses();
+        const ipAddresses = getIPAddresses();
         if (ipAddresses !== undefined && ipAddresses.length > 0) {
             ipAddress = ipAddresses[0];
         } else {
@@ -47,13 +47,14 @@ function getIPAddress(node) {
 
 // Gets a header with the authorization property for the request.
 function getHeaders(credentials) {
-    let headers = {};
+    const headers = {};
 
     if (credentials) {
         if (credentials.authType === 'Basic') {
             if (credentials.username && credentials.password) {
                 // Authorization is case sensitive for some devices like the TRV!
-                headers.Authorization = 'Basic ' + Buffer.from(credentials.username + ':' + credentials.password).toString('base64');
+                headers.Authorization =
+                    'Basic ' + Buffer.from(credentials.username + ':' + credentials.password).toString('base64');
             }
         }
     }
@@ -63,36 +64,36 @@ function getHeaders(credentials) {
 
 // Encrypts a string using SHA-256.
 function sha256(str) {
-    let result = crypto.createHash('sha256').update(str).digest('hex');
+    const result = crypto.createHash('sha256').update(str).digest('hex');
     return result;
 }
 
 // see https://shelly-api-docs.shelly.cloud/gen2/General/Authentication
 // see https://github.com/axios/axios/issues/686
 function getDigestAuthorization(response, credentials, config) {
-    let authDetails = response.headers['www-authenticate'].split(', ');
-    let propertiesArray = authDetails.map((v) => v.split('='));
-    let properties = new Map(propertiesArray.map((obj) => [obj[0], obj[1]]));
+    const authDetails = response.headers['www-authenticate'].split(', ');
+    const propertiesArray = authDetails.map((v) => v.split('='));
+    const properties = new Map(propertiesArray.map((obj) => [obj[0], obj[1]]));
 
     nonceCount++; // global counter
-    let url = config.url;
-    let method = config.method;
+    const url = config.url;
+    const method = config.method;
 
     // let algorithm = properties.get('algorithm'); // TODO: check if it is still SHA-256
-    let username = credentials.username;
-    let password = credentials.password;
-    let realm = utils.replace(properties.get('realm'), /"/g, '');
-    let authParts = [username, realm, password];
+    const username = credentials.username;
+    const password = credentials.password;
+    const realm = utils.replace(properties.get('realm'), /"/g, '');
+    const authParts = [username, realm, password];
 
-    let ha1String = authParts.join(':');
-    let ha1 = sha256(ha1String);
-    let ha2String = method + ':' + url;
-    let ha2 = sha256(ha2String);
-    let nc = ('00000000' + nonceCount).slice(-8);
-    let nonce = utils.replace(properties.get('nonce'), /"/g, '');
-    let cnonce = crypto.randomBytes(24).toString('hex');
-    let responseString = ha1 + ':' + nonce + ':' + nc + ':' + cnonce + ':' + 'auth' + ':' + ha2;
-    let responseHash = sha256(responseString);
+    const ha1String = authParts.join(':');
+    const ha1 = sha256(ha1String);
+    const ha2String = method + ':' + url;
+    const ha2 = sha256(ha2String);
+    const nc = ('00000000' + nonceCount).slice(-8);
+    const nonce = utils.replace(properties.get('nonce'), /"/g, '');
+    const cnonce = crypto.randomBytes(24).toString('hex');
+    const responseString = ha1 + ':' + nonce + ':' + nc + ':' + cnonce + ':' + 'auth' + ':' + ha2;
+    const responseHash = sha256(responseString);
 
     const authorization =
         'Digest username="' +
@@ -126,10 +127,10 @@ async function shellyRequestAsync(axiosInstance, method, route, params, data, cr
         requestTimeout = 10002;
     }
 
-    let headers = getHeaders(credentials);
+    const headers = getHeaders(credentials);
 
-    let baseUrl = 'http://' + credentials.hostname;
-    let config = {
+    const baseUrl = 'http://' + credentials.hostname;
+    const config = {
         baseURL: baseUrl,
         url: route,
         method: method,
@@ -165,7 +166,8 @@ async function shellyRequestAsync(axiosInstance, method, route, params, data, cr
         // in the body; without this enrichment users only see axios's generic
         // "Request failed with status code 400").
         if (error.response && error.response.data !== undefined) {
-            const body = typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data);
+            const body =
+                typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data);
             throw new Error(error.message + ' (' + config.url + '): ' + body);
         }
         throw error;
@@ -180,11 +182,13 @@ async function getShellyInfo(hostname) {
 
     // (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
     try {
-        let credentials = {
+        const credentials = {
             hostname: hostname,
         };
         shellyInfo = await shellyRequestAsync(axios, 'GET', '/shelly', null, null, credentials);
-    } catch (error) {
+    } catch {
+        // Same contract as the admin-UI probe: an unreachable host yields an empty info
+        // object, not an exception.
         shellyInfo = {};
     }
 
@@ -214,12 +218,12 @@ function getCredentials(node, msg) {
         password = node.credentials.password;
     }
 
-    let authType = node.authType;
+    const authType = node.authType;
     if (authType === 'Digest') {
         username = 'admin'; // see https://shelly-api-docs.shelly.cloud/gen2/General/Authentication
     }
 
-    let credentials = {
+    const credentials = {
         hostname: hostname,
         authType: authType,
         username: username,
@@ -237,7 +241,15 @@ async function shellyPing(node, credentials, types) {
     try {
         let data;
         let params;
-        let body = await shellyRequestAsync(node.axiosInstance, 'GET', '/shelly', params, data, credentials, node.pollInterval);
+        const body = await shellyRequestAsync(
+            node.axiosInstance,
+            'GET',
+            '/shelly',
+            params,
+            data,
+            credentials,
+            node.pollInterval
+        );
 
         node.shellyInfo = body;
 
@@ -266,7 +278,7 @@ async function shellyPing(node, credentials, types) {
 
         if (requiredNodeType === node.type) {
             for (let i = 0; i < types.length; i++) {
-                let type = types[i];
+                const type = types[i];
 
                 // Generation 1 devices
                 if (deviceType) {
@@ -280,7 +292,11 @@ async function shellyPing(node, credentials, types) {
             if (found) {
                 node.status({ fill: 'green', shape: 'ring', text: 'Connected.' });
             } else {
-                node.status({ fill: 'red', shape: 'ring', text: 'Shelly type mismatch: ' + deviceType + ' not found in [' + types.join(',') + ']' });
+                node.status({
+                    fill: 'red',
+                    shape: 'ring',
+                    text: 'Shelly type mismatch: ' + deviceType + ' not found in [' + types.join(',') + ']',
+                });
                 node.warn('Shelly type mismatch: ' + deviceType);
             }
         } else {
@@ -300,11 +316,11 @@ async function shellyPing(node, credentials, types) {
 // checks if the device is the configured one.
 async function tryCheckDeviceType(node, types) {
     let success = false;
-    let credentials = getCredentials(node);
+    const credentials = getCredentials(node);
 
     // (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
     try {
-        let shellyInfo = await shellyRequestAsync(node.axiosInstance, 'GET', '/shelly', null, null, credentials);
+        const shellyInfo = await shellyRequestAsync(node.axiosInstance, 'GET', '/shelly', null, null, credentials);
 
         let requiredNodeType;
         let deviceType;
@@ -332,7 +348,7 @@ async function tryCheckDeviceType(node, types) {
         if (requiredNodeType === node.type) {
             let found = false;
             for (let i = 0; i < types.length; i++) {
-                let type = types[i];
+                const type = types[i];
 
                 if (deviceType) {
                     found = deviceType.startsWith(type);
@@ -371,7 +387,7 @@ async function tryCheckDeviceType(node, types) {
 // Starts polling the status.
 async function start(node, types) {
     if (node.hostname !== '') {
-        let credentials = getCredentials(node);
+        const credentials = getCredentials(node);
         // Note: must await — otherwise node.online holds a Promise and the
         // first reachability transition is missed (Promise === true/false is never true).
         node.online = await shellyPing(node, credentials, types);
@@ -379,7 +395,7 @@ async function start(node, types) {
         if (node.pollInterval > 0) {
             node.pollingTimer = setInterval(async function () {
                 if (node.closing) return;
-                let found = await shellyPing(node, credentials, types);
+                const found = await shellyPing(node, credentials, types);
                 if (node.closing) return;
                 if (found) {
                     if (node.online === false) {
@@ -393,10 +409,13 @@ async function start(node, types) {
                     if (node.online === true) {
                         node.status({ fill: 'yellow', shape: 'ring', text: 'Polling: device not reachable' });
 
-                        let msg = {
+                        const msg = {
                             error: {
                                 hostname: node.hostname,
-                                message: 'Device is not reachable. Retrying to connect every ' + node.initializeRetryInterval / 1000 + ' seconds.',
+                                message:
+                                    'Device is not reachable. Retrying to connect every ' +
+                                    node.initializeRetryInterval / 1000 +
+                                    ' seconds.',
                             },
                         };
                         node.send([msg]);

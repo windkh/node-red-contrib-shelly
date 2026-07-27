@@ -34,7 +34,7 @@ Items are grouped by category and listed in roughly descending impact within eac
 
 ### A5. 🔥 Two round-trips per authenticated request, always
 
-By design ([ADR-008](adrs/008-digest-auth-401-retry.md)): every authenticated request to a gen 2+ device starts with a 401 challenge and is re-sent with the digest header. No caching of the digest header or nonce across requests. Doubles the request rate against authenticated devices.
+By design ([ADR-008](adr/008-digest-auth-401-retry.md)): every authenticated request to a gen 2+ device starts with a 401 challenge and is re-sent with the digest header. No caching of the digest header or nonce across requests. Doubles the request rate against authenticated devices.
 
 ---
 
@@ -124,6 +124,6 @@ This is the single largest quality risk. The codebase has had at least four real
 
 ## Open issues at time of writing
 
-| Issue | Status |
-|---|---|
+| Issue                                                                                                        | Status                                                                  |
+| ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
 | [#195](https://github.com/windkh/node-red-contrib-shelly/issues/195) — "Request failed with status code 400" | Should now be self-diagnosing post-11.10.1; awaiting reporter follow-up |

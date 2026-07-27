@@ -2,7 +2,7 @@
 
 What follows are structural changes that would pay off in maintainability and review velocity. Each is sized roughly (S / M / L) so you can pick by available time, and grouped by theme.
 
-These are **refactoring** suggestions — they restructure existing behaviour without adding features. New features and capabilities are in [Future Improvements](07-future-improvements.md).
+These are **refactoring** suggestions — they restructure existing behaviour without adding features. New features and capabilities are in [Future Improvements](future-improvements.md).
 
 ---
 
@@ -24,7 +24,7 @@ These are **refactoring** suggestions — they restructure existing behaviour wi
 
 ## R2. Collapse `shellyPing` and `tryCheckDeviceType` (S)
 
-**Today:** two near-duplicate functions doing the same thing in [`lib/shelly.js`](../../shelly/lib/shelly.js) with subtle behavioural divergence ([§C5 in Errors & Weaknesses](05-errors-and-weaknesses.md#c5-two-near-duplicate-functions-for-the-same-job)).
+**Today:** two near-duplicate functions doing the same thing in [`lib/shelly.js`](../../shelly/lib/shelly.js) with subtle behavioural divergence ([§C5 in Errors & Weaknesses](errors-and-weaknesses.md#c5-two-near-duplicate-functions-for-the-same-job)).
 
 **Proposal:** keep one (call it `checkDevice(node, types, opts)` where opts toggles status-update behaviour). Update both call sites in [`shelly/nodes/gen1-node.js`](../../shelly/nodes/gen1-node.js) and [`shelly/nodes/gen2-node.js`](../../shelly/nodes/gen2-node.js).
 
@@ -39,17 +39,22 @@ These are **refactoring** suggestions — they restructure existing behaviour wi
 **Today:** the mapping from `shellyInfo.gen` to the required node type is hardcoded as an if/else ladder in both `shellyPing` and `tryCheckDeviceType`:
 
 ```js
-if (shellyInfo.type) { requiredNodeType = 'shelly-gen1'; }
-else if (shellyInfo.gen === 2) { requiredNodeType = 'shelly-gen2'; }
-else if (shellyInfo.gen === 3) { requiredNodeType = 'shelly-gen2'; }
-else if (shellyInfo.gen === 4) { requiredNodeType = 'shelly-gen2'; }
+if (shellyInfo.type) {
+    requiredNodeType = 'shelly-gen1';
+} else if (shellyInfo.gen === 2) {
+    requiredNodeType = 'shelly-gen2';
+} else if (shellyInfo.gen === 3) {
+    requiredNodeType = 'shelly-gen2';
+} else if (shellyInfo.gen === 4) {
+    requiredNodeType = 'shelly-gen2';
+}
 ```
 
 This recurs in 99-shelly.js (admin route) and the editor JS.
 
 **Proposal:** put a `generationToNodeType` map in [`shelly/config/config.json`](../../shelly/config/config.json) (e.g., `{"1": "shelly-gen1", "2": "shelly-gen2", "3": "shelly-gen2", "4": "shelly-gen2"}`) and read it from one place. When gen 5 lands, it's a JSON edit.
 
-**Why:** [ADR-009](adrs/009-gen3-gen4-share-gen2-codepath.md) already commits us to data-driven generation handling, but the mapping isn't actually in the data yet.
+**Why:** [ADR-009](adr/009-gen3-gen4-share-gen2-codepath.md) already commits us to data-driven generation handling, but the mapping isn't actually in the data yet.
 
 **Cost:** tiny.
 
@@ -99,7 +104,7 @@ or, better, gate on the presence of `.git`:
 
 ## R6. Introduce a test suite (L)
 
-**Today:** zero coverage ([§E1 in Errors & Weaknesses](05-errors-and-weaknesses.md#e1-zero-automated-tests)). At least four user-visible bugs reached master in the 11.9.x series alone, each of which a one-line unit test would have caught.
+**Today:** zero coverage ([§E1 in Errors & Weaknesses](errors-and-weaknesses.md#e1-zero-automated-tests)). At least four user-visible bugs reached master in the 11.9.x series alone, each of which a one-line unit test would have caught.
 
 **Proposal — minimum viable:**
 
@@ -123,7 +128,7 @@ The first three together would already lift coverage from 0% to ~40% and would h
 
 ## R7. Surface BLU events as their own node type (M)
 
-**Today:** [ADR-006](adrs/006-blu-via-gen2-gateway.md) — BLU devices ride the gen 2 gateway node. Users filter by MAC in their flow. Each BLU device has no representation in the editor.
+**Today:** [ADR-006](adr/006-blu-via-gen2-gateway.md) — BLU devices ride the gen 2 gateway node. Users filter by MAC in their flow. Each BLU device has no representation in the editor.
 
 **Proposal (compatible with the existing model):** add a `shelly-blu` node type that subscribes to a chosen `shelly-gen2-server` and filters by user-configured MAC. Internally it's a thin adapter — the gateway still does the actual scanning. Users get one node per BLU device, type-completed.
 

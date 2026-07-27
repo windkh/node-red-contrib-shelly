@@ -1,7 +1,6 @@
 <!-- Created by Karl-Heinz Wind -->
 <!-- see also // https://shelly-api-docs.shelly.cloud/#common-http-api -->
 
-
 <!-- GEN 1 ------------------------------------------------------------------------------------ -->
 
 <!-- ------------------------------------------------------------------------------------------ -->
@@ -9,39 +8,40 @@
     RED.nodes.registerType('shelly-gen1-server', {
         category: 'config',
         defaults: {
-            port: { value: 0, validate: x => 0 <= Number(x) && Number(x) <= 65535 },
-            hostname: { value:"" },
-            hostip: { value:"" },
+            port: { value: 0, validate: (x) => 0 <= Number(x) && Number(x) <= 65535 },
+            hostname: { value: '' },
+            hostip: { value: '' },
         },
         label: function () {
             return this.port;
         },
-        oneditprepare: function() {
-
+        oneditprepare: function () {
             // ip or hostname
-            let updateMode = function() {
-                let mode = $("#node-config-input-hostip").val();
-                if (mode == "hostname") {
-                    $("#hostnameinput").show();
-                }  else {
-                    $("#hostnameinput").hide();
+            let updateMode = function () {
+                let mode = $('#node-config-input-hostip').val();
+                if (mode == 'hostname') {
+                    $('#hostnameinput').show();
+                } else {
+                    $('#hostnameinput').hide();
                 }
             };
             updateMode();
-            $("#node-config-input-hostip").change(updateMode);
+            $('#node-config-input-hostip').change(updateMode);
 
-            let populateHostnames = function() {
-                $.getJSON('node-red-contrib-shelly-getipaddresses', function(ipAddresses) {
+            let populateHostnames = function () {
+                $.getJSON('node-red-contrib-shelly-getipaddresses', function (ipAddresses) {
                     for (let i = 0; i < ipAddresses.length; i++) {
                         let ipAddress = ipAddresses[i];
                         if (ipAddress !== undefined) {
-                            $('#node-config-input-hostip').append('<option value="' + ipAddress + '">' + ipAddress + '</option>');
+                            $('#node-config-input-hostip').append(
+                                '<option value="' + ipAddress + '">' + ipAddress + '</option>'
+                            );
                         }
                     }
-                }); 
+                });
             };
             populateHostnames();
-        }
+        },
     });
 </script>
 
@@ -83,147 +83,153 @@
         category: 'Shelly',
         color: '#319DD7',
         defaults: {
-            hostname: { value:"" },
-            description: { value:"" },
-            mode: { value: "polling", required: true },
+            hostname: { value: '' },
+            description: { value: '' },
+            mode: { value: 'polling', required: true },
             verbose: { value: false, required: true },
 
             // callback
-            server: { value:"", type: "shelly-gen1-server", validate:function(v) {
-                let mode = $("#node-input-mode").val();
-                let ok = true;
-                
-                if(mode == "callback"){
-                    if(v.length == 0 || v === '_ADD_'){
-                        ok = false;
+            server: {
+                value: '',
+                type: 'shelly-gen1-server',
+                validate: function (v) {
+                    let mode = $('#node-input-mode').val();
+                    let ok = true;
+
+                    if (mode == 'callback') {
+                        if (v.length == 0 || v === '_ADD_') {
+                            ok = false;
+                        }
                     }
-                }
-                
-                return ok;
-            } },
-            outputmode: { value: "event", required: false },
-            uploadretryinterval: { value: 5000, required: false, validate:RED.validators.number() },
-            
+
+                    return ok;
+                },
+            },
+            outputmode: { value: 'event', required: false },
+            uploadretryinterval: { value: 5000, required: false, validate: RED.validators.number() },
+
             // polling
-            pollinginterval: { value: 5000, validate:RED.validators.number() },
+            pollinginterval: { value: 5000, validate: RED.validators.number() },
             pollstatus: { value: false, required: false },
             getstatusoncommand: { value: true },
 
-            devicetype: { value: "", required: true},
-            devicetypemustmatchexactly : { value: true, required: false },
+            devicetype: { value: '', required: true },
+            devicetypemustmatchexactly: { value: true, required: false },
 
-            outputs: {value: 1},
+            outputs: { value: 1 },
         },
         credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
+            username: { type: 'text' },
+            password: { type: 'password' },
         },
         inputs: 1,
         outputs: 2,
-        icon: "shelly.png",
-        paletteLabel: "shelly gen 1",
+        icon: 'shelly.png',
+        paletteLabel: 'shelly gen 1',
         label: function () {
-            return this.description || this.hostname || this.devicetype || "Shelly";
+            return this.description || this.hostname || this.devicetype || 'Shelly';
         },
-        labelStyle: function() {
-            return this.description?"node_label_italic":"";
+        labelStyle: function () {
+            return this.description ? 'node_label_italic' : '';
         },
-        oneditprepare: function() {   
+        oneditprepare: function () {
             // the inputs edit field is always hidden.
-            $("#hiddeninputs").hide();
+            $('#hiddeninputs').hide();
 
             // polling or callback
-            var updateMode = function() {
-                var mode = $("#node-input-mode").val();
-                if (mode == "callback") {
-                    $("#callback").show();
-                    $("#polling").hide();
-                } else if (mode == "polling"){
-                    $("#callback").hide();
-                    $("#polling").show();
+            var updateMode = function () {
+                var mode = $('#node-input-mode').val();
+                if (mode == 'callback') {
+                    $('#callback').show();
+                    $('#polling').hide();
+                } else if (mode == 'polling') {
+                    $('#callback').hide();
+                    $('#polling').show();
                 } else {
-                    $("#callback").hide();
-                    $("#polling").hide();
+                    $('#callback').hide();
+                    $('#polling').hide();
                 }
             };
             updateMode();
-            $("#node-input-mode").change(updateMode);
+            $('#node-input-mode').change(updateMode);
 
-
-            let populateDeviceTypes = function(devicetype) {
-                $.getJSON('node-red-contrib-shelly-getidevicetypesgen1', function(deviceTypeInfos) {
+            let populateDeviceTypes = function (devicetype) {
+                $.getJSON('node-red-contrib-shelly-getidevicetypesgen1', function (deviceTypeInfos) {
                     for (let i = 0; i < deviceTypeInfos.length; i++) {
                         let deviceTypeInfo = deviceTypeInfos[i];
                         if (deviceTypeInfo !== undefined) {
-                            $('#node-input-devicetype').append('<option value="' + deviceTypeInfo.deviceType + '">' + deviceTypeInfo.description + '</option>');
+                            $('#node-input-devicetype').append(
+                                '<option value="' +
+                                    deviceTypeInfo.deviceType +
+                                    '">' +
+                                    deviceTypeInfo.description +
+                                    '</option>'
+                            );
                         }
                     }
 
                     $('#node-input-devicetype').val(devicetype);
-                }); 
+                });
             };
             populateDeviceTypes(this.devicetype);
 
-          
             // enable 2nd output when measure device is selected
-            var updateDeviceType = function() {
-                var devicetype = $("#node-input-devicetype").val();
+            var updateDeviceType = function () {
+                var devicetype = $('#node-input-devicetype').val();
                 if (devicetype == 'Measure') {
-                    $("#node-input-outputs").val(2);
+                    $('#node-input-outputs').val(2);
                 } else {
-                    $("#node-input-outputs").val(1);
+                    $('#node-input-outputs').val(1);
                 }
 
                 if (devicetype == 'RGBW') {
-                    $("#rgbw").show();
+                    $('#rgbw').show();
                 } else {
-                    $("#rgbw").hide();
+                    $('#rgbw').hide();
                 }
             };
             updateDeviceType();
-            $("#node-input-devicetype").change(updateDeviceType);
+            $('#node-input-devicetype').change(updateDeviceType);
 
-
-            let getdevicetype = function() { 
-                let hostname = $("#node-input-hostname").val();
+            let getdevicetype = function () {
+                let hostname = $('#node-input-hostname').val();
                 if (hostname !== '') {
                     let parameters = {
-                        hostname : hostname
-                    }
+                        hostname: hostname,
+                    };
 
-                    $.getJSON('node-red-contrib-shelly-getshellyinfo', parameters, function(data) {
-                        if(data.gen !== undefined){
-                            if(data.gen == 1) {
-                                $("#getdevicetypebuttonresult").text("Detected shelly " + data.model + "");
-                                   
-                                if(data.device !== undefined) {
+                    $.getJSON('node-red-contrib-shelly-getshellyinfo', parameters, function (data) {
+                        if (data.gen !== undefined) {
+                            if (data.gen == 1) {
+                                $('#getdevicetypebuttonresult').text('Detected shelly ' + data.model + '');
+
+                                if (data.device !== undefined) {
                                     $('#node-input-devicetype').val(data.device.model);
                                     // gen 1 devices do not offer name nor id.
+                                } else {
+                                    $('#getdevicetypebuttonresult').text(
+                                        'Device could not be found in config. Please report device type in github.'
+                                    );
                                 }
-                                else {
-                                    $("#getdevicetypebuttonresult").text("Device could not be found in config. Please report device type in github.");
-                                }
+                            } else {
+                                $('#getdevicetypebuttonresult').text(
+                                    'Shelly gen ' + data.gen + ' is not supported by this node.'
+                                );
                             }
-                            else {
-                                $("#getdevicetypebuttonresult").text("Shelly gen " + data.gen + " is not supported by this node.");
-                            }
+                        } else {
+                            $('#getdevicetypebuttonresult').text('Shelly did not respond: ' + hostname);
                         }
-                        else {
-                            $("#getdevicetypebuttonresult").text("Shelly did not respond: " +  hostname);
-                        } 
                     });
+                } else {
+                    $('#getdevicetypebuttonresult').text('Please enter a valid hostname first.');
                 }
-                else{
-                    $("#getdevicetypebuttonresult").text("Please enter a valid hostname first.");
-                }
-            }
+            };
 
-            $( '#getdevicetypebutton' ).click( function() {
-                getdevicetype();    
+            $('#getdevicetypebutton').click(function () {
+                getdevicetype();
             });
-        }
+        },
     });
-
 </script>
 
 <script type="text/x-red" data-template-name="shelly-gen1">
@@ -250,28 +256,28 @@
     <div class="form-row">
         <div class="form-row">
             <label for="node-input-devicetype"><i class="fa fa-pencil"></i> Device Type</label>
-        
+
             <button id="getdevicetypebutton" type="button" class="red-ui-button" style="margin-left: 10px;">
                 <i class="fa fa-search"></i>
             </button>
-            
+
             <div style="display: inline-block; position: relative; width: calc(80% - 105px); height: 19.1333px;">
                 <div style="position: absolute; left: 0; right: 0;">
                     <select id="node-input-devicetype" style="width: 100%">
                         <option value="Relay">Relay - Shelly1, 1PM, 1L, 2, 2.5, Plug(S/E/US), Uni</option>
                         <option value="Measure">Measure - Shelly EM, EM3</option>
-                        <option value="Roller">Roller - Shelly 2, 2.5</option>  
-                        <option value="Dimmer">Dimmer - Shelly Dimmer 1/2, Duo, Vintage</option>  
-                        <option value="RGBW">RGBW - Shelly RGBW2, Bulb RGBW</option>  
-                        <option value="Thermostat">Thermostat - Shelly TRV</option>  
-                        <option value="Sensor">Sensor - Shelly Motion, Door, Window, H&T, Smoke, Flood, Gas</option>  
-                        <option value="Button">Button - Shelly Button, I3</option>  
+                        <option value="Roller">Roller - Shelly 2, 2.5</option>
+                        <option value="Dimmer">Dimmer - Shelly Dimmer 1/2, Duo, Vintage</option>
+                        <option value="RGBW">RGBW - Shelly RGBW2, Bulb RGBW</option>
+                        <option value="Thermostat">Thermostat - Shelly TRV</option>
+                        <option value="Sensor">Sensor - Shelly Motion, Door, Window, H&T, Smoke, Flood, Gas</option>
+                        <option value="Button">Button - Shelly Button, I3</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <div class="form-row">    
+        <div class="form-row">
             <div class="form-tips" id='getdevicetypebuttonresult' style="width: auto"></div>
              <div class="form-tips" id='getdevicetypebuttontip' style="width: auto">
                 <b>Tip:</b> You can auto detect the device type. Enter a valid IP address above and make sure the shelly is reachable and not sleeping. Press the search button next to the device type box.</div>
@@ -285,7 +291,7 @@
         </div>
         <div class="form-tips" style="width: auto"><b>Tip:</b> If checked an error is created if the shelly is not yet supported. If you want that a new device is supported then create a new issue here: <a href="https://github.com/windkh/node-red-contrib-shelly/issues">Github</a></div>
     </div>
-	    	
+
     <hr align="middle"/>
 
     <div class="form-row">
@@ -299,12 +305,12 @@
 
     <div class="form-row hidden" id="polling" style="background: #fbfbfb">
         <label style="width: auto"><i class="fa fa-cogs"></i> Polling Options:</label>
-    
+
         <div class="form-row" style="margin-left: 20px">
             <div class="form-row">
                 <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
                 <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
-            </div>    
+            </div>
             <div class="form-row">
                 <label for="node-input-pollstatus"><i class="fa fa-repeat"></i> Status</label>
                 <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;"> Enable status output after each poll cycle
@@ -314,7 +320,7 @@
 
     <div class="form-row hidden" id="callback" style="background: #fbfbfb">
         <label style="width: auto"><i class="fa fa-cogs"></i> Callback Options:</label>
-    
+
         <div class="form-row" style="margin-left: 20px">
             <div class="form-row">
                 <label for="node-input-server"><i class="fa fa-phone"></i> Server</label>
@@ -326,11 +332,11 @@
                     <option value="event">Event</option>
                     <option value="status">Status</option>
                 </select>
-            </div> 
+            </div>
             <div class="form-row">
                 <label for="node-input-uploadretryinterval"><i class="fa fa-clock-o"></i> Upload Retry Interval (ms)</label>
                 <input type="text" id="node-input-uploadretryinterval" placeholder="(Time in milliseconds. 0=off)">
-            </div> 
+            </div>
         </div>
     </div>
 
@@ -354,7 +360,6 @@
         <label for="node-input-verbose"><i class="fa fa-pencil"></i> Verbose Logging</label>
         <input type="checkbox" id="node-input-verbose" style="display: inline-block; width: auto; vertical-align: top;">
     </div>
-
 </script>
 
 <script type="text/x-red" data-help-name="shelly-gen1">
@@ -371,7 +376,7 @@
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. See documentation for device specific input.</p>
     <p><code>msg.payload</code></p>
-    
+
     <h3>Outputs</h3>
     <p>1. Standard Ouput: status object.</p>
     <p><code>msg.payload</code></p>
@@ -382,7 +387,6 @@
     <p><code>msg.payload</code></p>
 </script>
 
-
 <!-- GEN 2 ------------------------------------------------------------------------------------ -->
 
 <!-- ------------------------------------------------------------------------------------------ -->
@@ -390,39 +394,40 @@
     RED.nodes.registerType('shelly-gen2-server', {
         category: 'config',
         defaults: {
-            port: { value: 0, validate: x => 0 <= Number(x) && Number(x) <= 65535 },
-            hostname: { value:"" },
-            hostip: { value:"" },
+            port: { value: 0, validate: (x) => 0 <= Number(x) && Number(x) <= 65535 },
+            hostname: { value: '' },
+            hostip: { value: '' },
         },
         label: function () {
             return this.port;
         },
-        oneditprepare: function() {
-
+        oneditprepare: function () {
             // ip or hostname
-            let updateMode = function() {
-                let mode = $("#node-config-input-hostip").val();
-                if (mode == "hostname") {
-                    $("#hostnameinput").show();
-                }  else {
-                    $("#hostnameinput").hide();
+            let updateMode = function () {
+                let mode = $('#node-config-input-hostip').val();
+                if (mode == 'hostname') {
+                    $('#hostnameinput').show();
+                } else {
+                    $('#hostnameinput').hide();
                 }
             };
             updateMode();
-            $("#node-config-input-hostip").change(updateMode);
+            $('#node-config-input-hostip').change(updateMode);
 
-            let populateHostnames = function() {
-                $.getJSON('node-red-contrib-shelly-getipaddresses', function(ipAddresses) {
+            let populateHostnames = function () {
+                $.getJSON('node-red-contrib-shelly-getipaddresses', function (ipAddresses) {
                     for (let i = 0; i < ipAddresses.length; i++) {
                         let ipAddress = ipAddresses[i];
                         if (ipAddress !== undefined) {
-                            $('#node-config-input-hostip').append('<option value="' + ipAddress + '">' + ipAddress + '</option>');
+                            $('#node-config-input-hostip').append(
+                                '<option value="' + ipAddress + '">' + ipAddress + '</option>'
+                            );
                         }
                     }
-                }); 
+                });
             };
             populateHostnames();
-        }
+        },
     });
 </script>
 
@@ -463,139 +468,144 @@
         category: 'Shelly',
         color: '#6C95CE',
         defaults: {
-            hostname: { value:"" },
-            description: { value:"" },
-            mode: { value: "polling", required: true },
+            hostname: { value: '' },
+            description: { value: '' },
+            mode: { value: 'polling', required: true },
             verbose: { value: false, required: true },
 
             // callback
-            server: { value:"", type: "shelly-gen2-server", validate:function(v) {
-                let mode = $("#node-input-mode").val();
-                let ok = true;
-                if(mode == "callback"){
-                    if(v.length == 0 || v === '_ADD_'){
-                        ok = false;
+            server: {
+                value: '',
+                type: 'shelly-gen2-server',
+                validate: function (v) {
+                    let mode = $('#node-input-mode').val();
+                    let ok = true;
+                    if (mode == 'callback') {
+                        if (v.length == 0 || v === '_ADD_') {
+                            ok = false;
+                        }
                     }
-                }
-                return ok;
-            } },
-            outputmode: { value: "event", required: false },
-            uploadretryinterval: { value: 5000,  required: false, validate:RED.validators.number() },
-            
+                    return ok;
+                },
+            },
+            outputmode: { value: 'event', required: false },
+            uploadretryinterval: { value: 5000, required: false, validate: RED.validators.number() },
+
             // polling
-            pollinginterval: { value: 5000,  validate:RED.validators.number() },
+            pollinginterval: { value: 5000, validate: RED.validators.number() },
             pollstatus: { value: false, required: false },
             getstatusoncommand: { value: true },
-        
-            devicetype: { value: "", required: true},
-            devicetypemustmatchexactly : { value: true, required: false },
-            captureblutooth : { value: false, required: false },
 
-            outputs: {value: 1},
+            devicetype: { value: '', required: true },
+            devicetypemustmatchexactly: { value: true, required: false },
+            captureblutooth: { value: false, required: false },
+
+            outputs: { value: 1 },
         },
         credentials: {
-            password: { type: "password" },
+            password: { type: 'password' },
         },
         inputs: 1,
         outputs: 1,
-        icon: "shelly2.png",
-        paletteLabel: "shelly gen 2+",
+        icon: 'shelly2.png',
+        paletteLabel: 'shelly gen 2+',
         label: function () {
-            return this.description || this.hostname || this.devicetype || "Shelly";
+            return this.description || this.hostname || this.devicetype || 'Shelly';
         },
-        labelStyle: function() {
-            return this.description?"node_label_italic":"";
+        labelStyle: function () {
+            return this.description ? 'node_label_italic' : '';
         },
-        oneditprepare: function() {
+        oneditprepare: function () {
             // polling or callback
-            var updateMode = function() {
-                var mode = $("#node-input-mode").val();
-                if (mode == "callback") {
-                    $("#callback").show();
-                    $("#polling").hide();
-                } else if (mode == "polling"){
-                    $("#callback").hide();
-                    $("#polling").show();
+            var updateMode = function () {
+                var mode = $('#node-input-mode').val();
+                if (mode == 'callback') {
+                    $('#callback').show();
+                    $('#polling').hide();
+                } else if (mode == 'polling') {
+                    $('#callback').hide();
+                    $('#polling').show();
                 } else {
-                    $("#callback").hide();
-                    $("#polling").hide();
+                    $('#callback').hide();
+                    $('#polling').hide();
                 }
             };
             updateMode();
-            $("#node-input-mode").change(updateMode);
+            $('#node-input-mode').change(updateMode);
 
-
-            let populateDeviceTypes = function(devicetype) {
-                $.getJSON('node-red-contrib-shelly-getidevicetypesgen2', function(deviceTypeInfos) {
+            let populateDeviceTypes = function (devicetype) {
+                $.getJSON('node-red-contrib-shelly-getidevicetypesgen2', function (deviceTypeInfos) {
                     for (let i = 0; i < deviceTypeInfos.length; i++) {
                         let deviceTypeInfo = deviceTypeInfos[i];
                         if (deviceTypeInfo !== undefined) {
-                            $('#node-input-devicetype').append('<option value="' + deviceTypeInfo.deviceType + '">' + deviceTypeInfo.description + '</option>');
+                            $('#node-input-devicetype').append(
+                                '<option value="' +
+                                    deviceTypeInfo.deviceType +
+                                    '">' +
+                                    deviceTypeInfo.description +
+                                    '</option>'
+                            );
                         }
                     }
 
                     $('#node-input-devicetype').val(devicetype);
-                }); 
+                });
             };
             populateDeviceTypes(this.devicetype);
-            
 
-            let updateDeviceType = function() {
-                let devicetype = $("#node-input-devicetype").val();
+            let updateDeviceType = function () {
+                let devicetype = $('#node-input-devicetype').val();
                 // TODO: for future usage. e.g. give a measure node 2 outputs
             };
             updateDeviceType();
-            $("#node-input-devicetype").change(updateDeviceType);
-            
+            $('#node-input-devicetype').change(updateDeviceType);
 
-            let getdevicetype = function() { 
-                let hostname = $("#node-input-hostname").val();
+            let getdevicetype = function () {
+                let hostname = $('#node-input-hostname').val();
                 if (hostname !== '') {
                     let parameters = {
-                        hostname : hostname
-                    }
+                        hostname: hostname,
+                    };
 
-                    $.getJSON('node-red-contrib-shelly-getshellyinfo', parameters, function(data) {
-                        if(data.gen !== undefined){
-                            if(data.gen >= 2) {
-                                $("#getdevicetypebuttonresult").text("Detected shelly " + data.model + "");
-                                   
-                                if(data.device !== undefined) {
+                    $.getJSON('node-red-contrib-shelly-getshellyinfo', parameters, function (data) {
+                        if (data.gen !== undefined) {
+                            if (data.gen >= 2) {
+                                $('#getdevicetypebuttonresult').text('Detected shelly ' + data.model + '');
+
+                                if (data.device !== undefined) {
                                     $('#node-input-devicetype').val(data.device.model);
-                                    
-                                    if(data.name) {
+
+                                    if (data.name) {
                                         $('#node-input-description').val(data.name);
-                                    }else if(data.id) {
+                                    } else if (data.id) {
                                         $('#node-input-description').val(data.id);
-                                    }
-                                    else{
+                                    } else {
                                         // gen 1 devices do not offer name nor id.
                                     }
+                                } else {
+                                    $('#getdevicetypebuttonresult').text(
+                                        'Device could not be found in config. Please report device type in github.'
+                                    );
                                 }
-                                else {
-                                    $("#getdevicetypebuttonresult").text("Device could not be found in config. Please report device type in github.");
-                                }
+                            } else {
+                                $('#getdevicetypebuttonresult').text(
+                                    'Shelly gen ' + data.gen + ' is not supported by this node.'
+                                );
                             }
-                            else {
-                                $("#getdevicetypebuttonresult").text("Shelly gen " + data.gen + " is not supported by this node.");
-                            }
+                        } else {
+                            $('#getdevicetypebuttonresult').text('Shelly did not respond: ' + hostname);
                         }
-                        else {
-                            $("#getdevicetypebuttonresult").text("Shelly did not respond: " +  hostname);
-                        } 
                     });
+                } else {
+                    $('#getdevicetypebuttonresult').text('Please enter a valid hostname first.');
                 }
-                else{
-                    $("#getdevicetypebuttonresult").text("Please enter a valid hostname first.");
-                }
-            }
+            };
 
-            $( '#getdevicetypebutton' ).click( function() {
-                getdevicetype();    
+            $('#getdevicetypebutton').click(function () {
+                getdevicetype();
             });
-        }
+        },
     });
-
 </script>
 
 <script type="text/x-red" data-template-name="shelly-gen2">
@@ -618,11 +628,11 @@
     <div class="form-row">
         <div class="form-row">
             <label for="node-input-devicetype"><i class="fa fa-pencil"></i> Device Type</label>
-        
+
             <button id="getdevicetypebutton" type="button" class="red-ui-button" style="margin-left: 10px;">
                 <i class="fa fa-search"></i>
             </button>
-            
+
             <div style="display: inline-block; position: relative; width: calc(80% - 105px); height: 19.1333px;">
                 <div style="position: absolute; left: 0; right: 0;">
                     <select id="node-input-devicetype" style="width: 100%">
@@ -638,7 +648,7 @@
             </div>
         </div>
 
-        <div class="form-row">    
+        <div class="form-row">
             <div class="form-tips" id='getdevicetypebuttonresult' style="width: auto"></div>
              <div class="form-tips" id='getdevicetypebuttontip' style="width: auto">
                 <b>Tip:</b> You can auto detect the device type. Enter a valid IP address above and make sure the shelly is reachable and not sleeping. Press the search button next to the device type box.</div>
@@ -652,7 +662,7 @@
         </div>
         <div class="form-tips" style="width: auto"><b>Tip:</b> If checked an error is created if the shelly is not yet supported. If you want that a new device is supported then create a new issue here: <a href="https://github.com/windkh/node-red-contrib-shelly/issues">Github</a></div>
     </div>
-	    	
+
     <hr align="middle"/>
 
     <div class="form-row">
@@ -668,12 +678,12 @@
 
     <div class="form-row hidden" id="polling" style="background: #fbfbfb">
         <label style="width: auto"><i class="fa fa-cogs"></i> Polling Options:</label>
-    
+
         <div class="form-row" style="margin-left: 20px">
             <div class="form-row">
                 <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
                 <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
-            </div>    
+            </div>
             <div class="form-row">
                 <label for="node-input-pollstatus"><i class="fa fa-repeat"></i> Status</label>
                 <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;"> Enable status output after each poll cycle
@@ -683,7 +693,7 @@
 
     <div class="form-row hidden" id="callback" style="background: #fbfbfb">
         <label style="width: auto"><i class="fa fa-cogs"></i> Callback Options:</label>
-    
+
         <div class="form-row" style="margin-left: 20px">
             <div class="form-row">
                 <label for="node-input-server"><i class="fa fa-phone"></i> Server</label>
@@ -695,7 +705,7 @@
                     <option value="event">Event</option>
                     <option value="status">Status</option>
                 </select>
-            </div> 
+            </div>
             <div class="form-row">
                 <label for="node-input-uploadretryinterval"><i class="fa fa-clock-o"></i> Upload Retry Interval (ms)</label>
                 <input type="text" id="node-input-uploadretryinterval" placeholder="(Time in milliseconds. 0=off)">
@@ -704,7 +714,7 @@
                 <label for="node-input-captureblutooth"><i class="fa fa-bluetooth"></i> Blutooth</label>
                 <input type="checkbox" id="node-input-captureblutooth" style="display: inline-block; width: auto; vertical-align: top;"> Install blutooth gateway script
             </div>
-            <div class="form-tips" style="width: auto"><b>Tip:</b> If checked a blutooth gateway script is installed. Is automatically activated for BLU gateway.</div>    
+            <div class="form-tips" style="width: auto"><b>Tip:</b> If checked a blutooth gateway script is installed. Is automatically activated for BLU gateway.</div>
         </div>
     </div>
 
@@ -721,7 +731,6 @@
         <label for="node-input-verbose"><i class="fa fa-pencil"></i> Verbose Logging</label>
         <input type="checkbox" id="node-input-verbose" style="display: inline-block; width: auto; vertical-align: top;">
     </div>
-
 </script>
 
 <script type="text/x-red" data-help-name="shelly-gen2">
@@ -737,14 +746,13 @@
     <h3>Inputs</h3>
     <p>Empty payload for getting the status. See documentation for device specific input.</p>
     <p><code>msg.payload</code></p>
-    
+
     <h3>Outputs</h3>
     <p>1. Standard Ouput: status object.</p>
     <p><code>msg.payload</code></p>
     <p>Full status object is available at.</p>
     <p><code>msg.status</code></p>
 </script>
-
 
 <!-- CLOUD ------------------------------------------------------------------------------------ -->
 
@@ -753,15 +761,15 @@
     RED.nodes.registerType('shelly-cloud-server', {
         category: 'config',
         defaults: {
-            description: { value:"" },
+            description: { value: '' },
         },
         credentials: {
-            serveruri: { type: "text" },
-            authkey: { type: "password" },
+            serveruri: { type: 'text' },
+            authkey: { type: 'password' },
         },
         label: function () {
-            return this.description || "Shelly Cloud";
-        }
+            return this.description || 'Shelly Cloud';
+        },
     });
 </script>
 
@@ -787,32 +795,29 @@
     <p>A configuration node that can be used by several shelly cloud nodes.</p>
 </script>
 
-
 <!-- ------------------------------------------------------------------------------------------ -->
 <script type="text/javascript">
     RED.nodes.registerType('shelly-cloud', {
         category: 'Shelly',
         color: '#AEC860',
         defaults: {
-            server: { value:"", type: "shelly-cloud-server", required: true },
-            description: { value:"" },
-    
-            outputs: {value: 1},
+            server: { value: '', type: 'shelly-cloud-server', required: true },
+            description: { value: '' },
+
+            outputs: { value: 1 },
         },
         inputs: 1,
         outputs: 1,
-        icon: "shellycloud.png",
-        paletteLabel: "shelly cloud",
+        icon: 'shellycloud.png',
+        paletteLabel: 'shelly cloud',
         label: function () {
-            return this.description || "Shelly";
+            return this.description || 'Shelly';
         },
-        labelStyle: function() {
-            return this.description?"node_label_italic":"";
+        labelStyle: function () {
+            return this.description ? 'node_label_italic' : '';
         },
-        oneditprepare: function() {
-        }
+        oneditprepare: function () {},
     });
-
 </script>
 
 <script type="text/x-red" data-template-name="shelly-cloud">
@@ -826,7 +831,6 @@
         <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
         <input type="text" id="node-input-description" placeholder="The description of the device (optional)">
     </div>
-
 </script>
 
 <script type="text/x-red" data-help-name="shelly-cloud">
@@ -840,11 +844,10 @@
     <h3>Inputs</h3>
     <p>See example in example folder.</p>
     <p><code>msg.payload</code></p>
-    
+
     <h3>Outputs</h3>
     <p>1. Standard Ouput: status object.</p>
     <p><code>msg.payload</code></p>
     <p>Full status object is available at.</p>
     <p><code>msg.status</code></p>
 </script>
-

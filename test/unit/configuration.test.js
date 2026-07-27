@@ -86,7 +86,11 @@ describe('configuration.getDeviceTypeInfos', () => {
 describe('configuration.isExactTypeGen1', () => {
     it('returns false for known device families', () => {
         ['Relay', 'Measure', 'Dimmer', 'Roller', 'Sensor', 'Button', 'Thermostat', 'RGBW'].forEach((family) => {
-            assert.equal(configuration.isExactTypeGen1(family), false, `expected ${family} to be a family not an exact model`);
+            assert.equal(
+                configuration.isExactTypeGen1(family),
+                false,
+                `expected ${family} to be a family not an exact model`
+            );
         });
     });
 
@@ -98,9 +102,15 @@ describe('configuration.isExactTypeGen1', () => {
 
 describe('configuration.isExactTypeGen2', () => {
     it('returns false for known device families (including BluGateway)', () => {
-        ['Relay', 'Measure', 'Dimmer', 'Roller', 'Sensor', 'Button', 'Thermostat', 'RGBW', 'BluGateway'].forEach((family) => {
-            assert.equal(configuration.isExactTypeGen2(family), false, `expected ${family} to be a family not an exact model`);
-        });
+        ['Relay', 'Measure', 'Dimmer', 'Roller', 'Sensor', 'Button', 'Thermostat', 'RGBW', 'BluGateway'].forEach(
+            (family) => {
+                assert.equal(
+                    configuration.isExactTypeGen2(family),
+                    false,
+                    `expected ${family} to be a family not an exact model`
+                );
+            }
+        );
     });
 
     it('returns true for a concrete model name', () => {

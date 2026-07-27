@@ -2,7 +2,7 @@
 
 These are **feature** ideas — things the package doesn't do today but plausibly could. Each is sized roughly (S / M / L) and labelled with which user it benefits.
 
-These are different from [Refactoring Recommendations](06-recommendations-for-refactoring.md): refactors are internal cleanups with no user-visible change; these are new capabilities. Each has a brief sketch of how it would slot into the existing architecture.
+These are different from [Refactoring Recommendations](recommendations-for-refactoring.md): refactors are internal cleanups with no user-visible change; these are new capabilities. Each has a brief sketch of how it would slot into the existing architecture.
 
 ---
 
@@ -14,9 +14,9 @@ These are different from [Refactoring Recommendations](06-recommendations-for-re
 
 **Sketch:** add a third operating mode (`websocket`) alongside polling and callback. The server config node would host a fastify WS endpoint. Device-side configuration via the existing `WS.SetConfig` RPC. Reuse `inputParserGeneric2` — same envelope shape over a different transport.
 
-**Why it's appealing:** eliminates the two-round-trip auth penalty ([Errors & Weaknesses § A5](05-errors-and-weaknesses.md#a5--two-round-trips-per-authenticated-request-always)), reduces latency from N×polling-interval to ~0, and scales better with device count.
+**Why it's appealing:** eliminates the two-round-trip auth penalty ([Errors & Weaknesses § A5](errors-and-weaknesses.md#a5--two-round-trips-per-authenticated-request-always)), reduces latency from N×polling-interval to ~0, and scales better with device count.
 
-**Why it's hard:** WebSocket reconnect / backoff logic, NAT traversal (worse than callback mode — needs sustained connectivity in both directions), incompatible with the "Node-RED is behind Docker NAT" workaround that motivated [ADR-007](adrs/007-server-config-node-owns-listener.md).
+**Why it's hard:** WebSocket reconnect / backoff logic, NAT traversal (worse than callback mode — needs sustained connectivity in both directions), incompatible with the "Node-RED is behind Docker NAT" workaround that motivated [ADR-007](adr/007-server-config-node-owns-listener.md).
 
 ---
 
@@ -52,7 +52,7 @@ These are different from [Refactoring Recommendations](06-recommendations-for-re
 
 **For:** users with several BLU buttons / sensors who currently maintain MAC-filter logic in their flows.
 
-**What:** see [R7 in Recommendations for Refactoring](06-recommendations-for-refactoring.md#r7-surface-blu-events-as-their-own-node-type) — this is the feature corollary of that refactor. A `shelly-blu` node type that wraps a gateway subscription with a MAC filter and emits typed events per BLU device family (button, door/window, H&T, motion, etc.).
+**What:** see [R7 in Recommendations for Refactoring](recommendations-for-refactoring.md#r7-surface-blu-events-as-their-own-node-type) — this is the feature corollary of that refactor. A `shelly-blu` node type that wraps a gateway subscription with a MAC filter and emits typed events per BLU device family (button, door/window, H&T, motion, etc.).
 
 **Sketch:** new file [`shelly/nodes/blu-node.js`](../../shelly/nodes/blu-node.js), new registration in [`99-shelly.js`](../../shelly/99-shelly.js), new admin route for "what BLU devices is this gateway seeing right now?" (returns the MAC list from recent gateway events).
 
@@ -70,7 +70,7 @@ These are different from [Refactoring Recommendations](06-recommendations-for-re
 
 **Why it's appealing:** rotating a raw key today means editing every flow file. OAuth would handle it transparently.
 
-**Cost:** large. Requires the cloud server node to actually run a callback handler for the OAuth redirect, which conflicts with the current model where cloud-server is just a credential store ([ADR-007](adrs/007-server-config-node-owns-listener.md)).
+**Cost:** large. Requires the cloud server node to actually run a callback handler for the OAuth redirect, which conflicts with the current model where cloud-server is just a credential store ([ADR-007](adr/007-server-config-node-owns-listener.md)).
 
 ---
 
@@ -96,7 +96,7 @@ module.exports = {
 
 **Why it's appealing:** turns adding a new device family into a single-file change with no edits to dispatch tables. Encourages tests-per-family.
 
-**Cost:** large and disruptive. Probably only worth it if combined with [R1](06-recommendations-for-refactoring.md#r1-extract-the-per-device-type-input-parsers-into-one-file-each-m) anyway. Best treated as a 12.0.0 effort.
+**Cost:** large and disruptive. Probably only worth it if combined with [R1](recommendations-for-refactoring.md#r1-extract-the-per-device-type-input-parsers-into-one-file-each-m) anyway. Best treated as a 12.0.0 effort.
 
 ---
 

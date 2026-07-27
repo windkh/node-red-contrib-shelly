@@ -149,12 +149,12 @@ The two files in `shelly/scripts/` (345 LOC combined) are **not Node.js code**. 
 The current breakdown by generation:
 
 | Generation | Models in catalog |
-|---|---:|
-| Gen 1 | 34 |
-| Gen 2 | 52 |
-| Gen 3 | 24 |
-| Gen 4 | 13 |
-| **Total** | **123** |
+| ---------- | ----------------: |
+| Gen 1      |                34 |
+| Gen 2      |                52 |
+| Gen 3      |                24 |
+| Gen 4      |                13 |
+| **Total**  |           **123** |
 
 **This is the key architectural lever for extensibility:** adding a new Shelly model is almost always _just_ adding an entry here. New code is only needed when the device introduces a fundamentally new behaviour family (e.g. when "BluGateway" was added).
 

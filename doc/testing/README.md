@@ -25,13 +25,13 @@ This document is meant to be **acted on** in phases. Each phase is a single PR. 
 
 ## Tooling choice
 
-| Concern | Tool | Why |
-|---|---|---|
-| Test runner | `node:test` (built-in since Node 20) | Zero dependencies. We just bumped engines to `>=20`, so it's available. Real `describe` / `it` style. Watch mode, parallelism, filters, all built in. |
-| Assertions | `node:assert/strict` (built-in) | Same — no deps. Strict-mode by default is the right default. |
-| Coverage | `c8` (one dev dep) | Wraps V8's native coverage. The only mainstream coverage tool that pairs cleanly with `node:test`. Tiny dependency footprint. |
-| HTTP mocking | `nock` (one dev dep) | The standard for axios mocking. Lets us simulate Shelly device responses (including the digest 401-retry dance) without hitting hardware. |
-| CI runner | GitHub Actions | Already in use. |
+| Concern      | Tool                                 | Why                                                                                                                                                   |
+| ------------ | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Test runner  | `node:test` (built-in since Node 20) | Zero dependencies. We just bumped engines to `>=20`, so it's available. Real `describe` / `it` style. Watch mode, parallelism, filters, all built in. |
+| Assertions   | `node:assert/strict` (built-in)      | Same — no deps. Strict-mode by default is the right default.                                                                                          |
+| Coverage     | `c8` (one dev dep)                   | Wraps V8's native coverage. The only mainstream coverage tool that pairs cleanly with `node:test`. Tiny dependency footprint.                         |
+| HTTP mocking | `nock` (one dev dep)                 | The standard for axios mocking. Lets us simulate Shelly device responses (including the digest 401-retry dance) without hitting hardware.             |
+| CI runner    | GitHub Actions                       | Already in use.                                                                                                                                       |
 
 **Total new dependencies:** 2 dev deps (`c8`, `nock`). Both are mature, widely used, and small.
 
@@ -96,10 +96,10 @@ Each phase is one PR. Each phase produces a working `npm test` that's more capab
 
 - One test file per device family, asserting on the produced URL or RPC envelope.
 - Cover at least:
-  - Default path (no command parameters → no route returned).
-  - Each documented input field exercised.
-  - **Boundary checks** — the scheduleProfile bug was an out-of-range value silently passing through. Every range guard should have a test below, at, and above the bounds.
-  - The `on:true/false` ↔ `turn:'on'/'off'` translation.
+    - Default path (no command parameters → no route returned).
+    - Each documented input field exercised.
+    - **Boundary checks** — the scheduleProfile bug was an out-of-range value silently passing through. Every range guard should have a test below, at, and above the bounds.
+    - The `on:true/false` ↔ `turn:'on'/'off'` translation.
 
 **Why third:** these functions are pure but live inside the device-node IIFE. They need to be reachable for testing, which couples this phase to a small extraction (see "extraction" below).
 
@@ -140,7 +140,7 @@ const { inputParserRelay1Async } = require('../../shelly/nodes/gen1-node');
 
 Two options:
 
-**Option A — extract to standalone files** (preferred, aligns with [R1 in refactoring recommendations](../architecture/06-recommendations-for-refactoring.md#r1-extract-the-per-device-type-input-parsers-into-one-file-each-m)):
+**Option A — extract to standalone files** (preferred, aligns with [R1 in refactoring recommendations](../architecture/recommendations-for-refactoring.md#r1-extract-the-per-device-type-input-parsers-into-one-file-each-m)):
 
 ```
 shelly/nodes/gen1/parsers/
@@ -172,23 +172,23 @@ This proposal **assumes Option A** for Phases 3-5. Phase 1 and 2 (utils, config,
 
 ```jsonc
 {
-  "scripts": {
-    "prepare": "husky install",
-    "lint": "eslint shelly --ext .js --format unix --ignore-pattern scripts",
-    "postlint": "echo ✅ lint valid",
-    "test": "node --test test/unit",
-    "test:watch": "node --test --watch test/unit",
-    "coverage": "c8 --reporter=text --reporter=html --reporter=lcov node --test test/unit",
-    "coverage:check": "c8 --check-coverage --lines 10 --functions 10 --branches 8 node --test test/unit"
-  },
-  "devDependencies": {
-    "c8": "^10.1.3",
-    "eslint": "^8.20.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "husky": "^8.0.1",
-    "prettier": "^2.7.1"
-  }
+    "scripts": {
+        "prepare": "husky install",
+        "lint": "eslint shelly --ext .js --format unix --ignore-pattern scripts",
+        "postlint": "echo ✅ lint valid",
+        "test": "node --test test/unit",
+        "test:watch": "node --test --watch test/unit",
+        "coverage": "c8 --reporter=text --reporter=html --reporter=lcov node --test test/unit",
+        "coverage:check": "c8 --check-coverage --lines 10 --functions 10 --branches 8 node --test test/unit",
+    },
+    "devDependencies": {
+        "c8": "^10.1.3",
+        "eslint": "^8.20.0",
+        "eslint-config-prettier": "^8.5.0",
+        "eslint-plugin-prettier": "^4.2.1",
+        "husky": "^8.0.1",
+        "prettier": "^2.7.1",
+    },
 }
 ```
 
@@ -265,28 +265,28 @@ Add a `test` step to [`.github/workflows/node.js.yml`](../../.github/workflows/n
 
 ```yaml
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.x, 22.x]
-    steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-    - run: npm ci
-    - run: npm run lint
-    - run: npm test                       # ← new
-    - run: npm run coverage:check         # ← new (gates on the threshold)
-    - name: Upload coverage report        # ← new
-      if: matrix.node-version == '22.x'
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: coverage/
-        retention-days: 14
+    build:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [20.x, 22.x]
+        steps:
+            - uses: actions/checkout@v4
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node-version }}
+            - run: npm ci
+            - run: npm run lint
+            - run: npm test # ← new
+            - run: npm run coverage:check # ← new (gates on the threshold)
+            - name: Upload coverage report # ← new
+              if: matrix.node-version == '22.x'
+              uses: actions/upload-artifact@v4
+              with:
+                  name: coverage-report
+                  path: coverage/
+                  retention-days: 14
 ```
 
 `coverage:check` failing breaks the build. The HTML coverage report is uploaded as a CI artefact — downloadable from any run, useful for inspecting what's covered without running locally.
@@ -297,13 +297,13 @@ Each phase raises the thresholds in `coverage:check`:
 
 Actual progression once executed (matches the floors set in `package.json`'s `c8` block at each phase):
 
-| Phase | Lines | Functions | Branches | What was added | Tests |
-|---:|---:|---:|---:|---|---:|
-| 1 | 5 | 10 | 5 | `lib/utils.js` + `lib/configuration.js`. | 48 |
-| 2 | 10 | 50 | 80 | + status converters extracted to `shelly/nodes/gen{1,2}/`. | 73 |
-| 3 | 28 | 73 | 87 | + 7 per-family gen1 parsers extracted to `shelly/nodes/gen1/parsers/`, gen2 generic parser to `shelly/nodes/gen2/parsers/`. The 1342-line `gen1-node.js` shrinks to 696 LOC. | 153 |
-| 4 | 35 | 70 | 88 | + transport tests (`shellyRequestAsync` with nock, digest 401-retry, error-body enrichment) and `getCredentials` / `getShellyInfo`. Functions floor dipped because `shelly.js` (12 functions) entered the tested-files denominator with only 7 covered. | 175 |
-| 5 | 40 | 75 | 88 | + lifecycle: `shellyPing`, `tryCheckDeviceType`, `start` against nock + a fake-node harness. `shelly.js` went from 49% → 82% lines. | 193 |
+| Phase | Lines | Functions | Branches | What was added                                                                                                                                                                                                                                          | Tests |
+| ----: | ----: | --------: | -------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----: |
+|     1 |     5 |        10 |        5 | `lib/utils.js` + `lib/configuration.js`.                                                                                                                                                                                                                |    48 |
+|     2 |    10 |        50 |       80 | + status converters extracted to `shelly/nodes/gen{1,2}/`.                                                                                                                                                                                              |    73 |
+|     3 |    28 |        73 |       87 | + 7 per-family gen1 parsers extracted to `shelly/nodes/gen1/parsers/`, gen2 generic parser to `shelly/nodes/gen2/parsers/`. The 1342-line `gen1-node.js` shrinks to 696 LOC.                                                                            |   153 |
+|     4 |    35 |        70 |       88 | + transport tests (`shellyRequestAsync` with nock, digest 401-retry, error-body enrichment) and `getCredentials` / `getShellyInfo`. Functions floor dipped because `shelly.js` (12 functions) entered the tested-files denominator with only 7 covered. |   175 |
+|     5 |    40 |        75 |       88 | + lifecycle: `shellyPing`, `tryCheckDeviceType`, `start` against nock + a fake-node harness. `shelly.js` went from 49% → 82% lines.                                                                                                                     |   193 |
 
 The remaining uncovered ~58% lives mostly in the four files that need a fake Node-RED `RED` object to exercise (`99-shelly.js`, `cloud-node.js`, `gen1-node.js`, `gen2-node.js` — all at 0%). Their core logic — the input parsers, status converters, transport, polling lifecycle — is already tested in isolation. What remains uncovered in those files is mostly wiring (constructor field assignment, `RED.nodes.createNode`, event-handler registration, the EM-data download side path in `inputParserMeasure1Async`). Adding fake-RED tests for the constructors would lift line coverage roughly to 55-60% but with much lower value-per-test than Phases 1-5; left as future work.
 
@@ -322,8 +322,8 @@ If you want a coverage badge on the README and per-PR coverage delta comments:
   if: matrix.node-version == '22.x'
   uses: codecov/codecov-action@v4
   with:
-    files: ./coverage/lcov.info
-    fail_ci_if_error: false
+      files: ./coverage/lcov.info
+      fail_ci_if_error: false
 ```
 
 Requires signing up at [codecov.io](https://about.codecov.io/) and adding a `CODECOV_TOKEN` repo secret. Optional and additive — the local thresholds in `coverage:check` are the real gate.

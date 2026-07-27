@@ -23,7 +23,7 @@ module.exports = function (RED) {
     async function inputParserMeasure1Async(msg, node, credentials) {
         let route;
         if (utils.isMsgPayloadValid(msg)) {
-            let command = msg.payload;
+            const command = msg.payload;
 
             let relay = 0;
             if (command.relay !== undefined) {
@@ -67,16 +67,24 @@ module.exports = function (RED) {
 
             // special download code for EM devices that can store historical data.
             if (emetersToDownload) {
-                let data = [];
+                const data = [];
                 for (let i = 0; i < emetersToDownload.length; i++) {
-                    let emeter = emetersToDownload[i];
-                    let downloadRoute = '/emeter/' + emeter + '/em_data.csv';
+                    const emeter = emetersToDownload[i];
+                    const downloadRoute = '/emeter/' + emeter + '/em_data.csv';
 
                     node.status({ fill: 'green', shape: 'ring', text: 'Downloading CSV ' + emeter });
 
                     try {
-                        let timeout = 60000; // download can take very long of there is a lot of data.
-                        let body = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', downloadRoute, null, null, credentials, timeout);
+                        const timeout = 60000; // download can take very long of there is a lot of data.
+                        const body = await shelly.shellyRequestAsync(
+                            node.axiosInstance,
+                            'GET',
+                            downloadRoute,
+                            null,
+                            null,
+                            credentials,
+                            timeout
+                        );
                         data.push(body);
                     } catch (error) {
                         node.error('Downloading CSV failed ' + emeter + ': ' + error.message);
@@ -148,13 +156,20 @@ module.exports = function (RED) {
     async function initializerRGBW1Async(node, types) {
         let success = false;
 
-        let checkOK = await shelly.tryCheckDeviceType(node, types);
+        const checkOK = await shelly.tryCheckDeviceType(node, types);
         if (checkOK === true) {
             try {
-                let credentials = shelly.getCredentials(node);
+                const credentials = shelly.getCredentials(node);
 
-                let settingsRoute = '/settings';
-                let settings = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', settingsRoute, null, null, credentials);
+                const settingsRoute = '/settings';
+                const settings = await shelly.shellyRequestAsync(
+                    node.axiosInstance,
+                    'GET',
+                    settingsRoute,
+                    null,
+                    null,
+                    credentials
+                );
 
                 node.rgbwMode = settings.mode;
 
@@ -171,9 +186,9 @@ module.exports = function (RED) {
     async function initializer1(node, types) {
         let success = false;
 
-        let checkOK = await shelly.tryCheckDeviceType(node, types);
+        const checkOK = await shelly.tryCheckDeviceType(node, types);
         if (checkOK === true) {
-            let mode = node.mode;
+            const mode = node.mode;
             if (mode === 'polling') {
                 shelly.start(node, types);
                 success = true;
@@ -192,18 +207,18 @@ module.exports = function (RED) {
     async function initializer1WebhookAsync(node, types) {
         let success = false;
 
-        let checkOK = await shelly.tryCheckDeviceType(node, types);
+        const checkOK = await shelly.tryCheckDeviceType(node, types);
         if (checkOK === true) {
             const sender = node.hostname;
             await tryUninstallWebhook1Async(node, sender); // we ignore if it failed
 
-            let mode = node.mode;
+            const mode = node.mode;
             if (mode === 'polling') {
                 await shelly.startAsync(node, types);
                 success = true;
             } else if (mode === 'callback') {
-                let ipAddress = shelly.getIPAddress(node);
-                let webhookUrl = 'http://' + ipAddress + ':' + node.server.port + '/webhook';
+                const ipAddress = shelly.getIPAddress(node);
+                const webhookUrl = 'http://' + ipAddress + ':' + node.server.port + '/webhook';
                 success = await tryInstallWebhook1Async(node, webhookUrl, sender);
             } else {
                 // nothing to do.
@@ -222,7 +237,7 @@ module.exports = function (RED) {
         if (node.hostname !== '') {
             node.status({ fill: 'yellow', shape: 'ring', text: 'Installing webhook...' });
 
-            let credentials = shelly.getCredentials(node);
+            const credentials = shelly.getCredentials(node);
 
             let hookTypes = getHookTypes1(node.deviceType);
 
@@ -235,30 +250,59 @@ module.exports = function (RED) {
 
                 if (hookTypes.length !== 0) {
                     for (let i = 0; i < hookTypes.length; i++) {
-                        let hookType = hookTypes[i];
-                        let name = hookType.action;
-                        let index = hookType.index;
+                        const hookType = hookTypes[i];
+                        const name = hookType.action;
+                        const index = hookType.index;
 
-                        let url = webhookUrl + '?data=' + name + '?' + index + '?' + sender; // note that & can not be used in gen1!!!
-                        let deleteRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=false&urls[]=';
+                        const url = webhookUrl + '?data=' + name + '?' + index + '?' + sender; // note that & can not be used in gen1!!!
+                        const deleteRoute =
+                            '/settings/actions?index=' + index + '&name=' + name + '&enabled=false&urls[]=';
                         try {
-                            let timeout = node.pollInterval;
-                            let deleteResult = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', deleteRoute, null, null, credentials, timeout);
-                            let actionsAfterDelete = deleteResult.actions[name][0];
+                            const timeout = node.pollInterval;
+                            const deleteResult = await shelly.shellyRequestAsync(
+                                node.axiosInstance,
+                                'GET',
+                                deleteRoute,
+                                null,
+                                null,
+                                credentials,
+                                timeout
+                            );
+                            const actionsAfterDelete = deleteResult.actions[name][0];
                             if (actionsAfterDelete.enabled === false) {
                                 // 1st try to set the action using the standard method
-                                let createRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=true&urls[]=' + url;
-                                let createResult = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', createRoute, null, null, credentials, timeout);
-                                let actionsAfterCreate = createResult.actions[name][0];
+                                const createRoute =
+                                    '/settings/actions?index=' +
+                                    index +
+                                    '&name=' +
+                                    name +
+                                    '&enabled=true&urls[]=' +
+                                    url;
+                                const createResult = await shelly.shellyRequestAsync(
+                                    node.axiosInstance,
+                                    'GET',
+                                    createRoute,
+                                    null,
+                                    null,
+                                    credentials,
+                                    timeout
+                                );
+                                const actionsAfterCreate = createResult.actions[name][0];
 
                                 if (actionsAfterCreate.enabled === true && actionsAfterCreate.urls.indexOf(url) > -1) {
                                     node.status({ fill: 'green', shape: 'ring', text: 'Connected.' });
                                     success = true;
                                 } else {
                                     // 2nd: maybe the device supports intervals
-                                    let createRoute2 =
-                                        '/settings/actions?index=' + index + '&name=' + name + '&enabled=true&urls[0][url]=' + url + '&urls[0][int]=0000-0000';
-                                    let createResult2 = await shelly.shellyRequestAsync(
+                                    const createRoute2 =
+                                        '/settings/actions?index=' +
+                                        index +
+                                        '&name=' +
+                                        name +
+                                        '&enabled=true&urls[0][url]=' +
+                                        url +
+                                        '&urls[0][int]=0000-0000';
+                                    const createResult2 = await shelly.shellyRequestAsync(
                                         node.axiosInstance,
                                         'GET',
                                         createRoute2,
@@ -267,7 +311,7 @@ module.exports = function (RED) {
                                         credentials,
                                         timeout
                                     );
-                                    let actionsAfterCreate2 = createResult2.actions[name][0];
+                                    const actionsAfterCreate2 = createResult2.actions[name][0];
                                     if (actionsAfterCreate2.enabled === true) {
                                         if (actionsAfterCreate2.urls[0].url === url) {
                                             node.status({ fill: 'green', shape: 'ring', text: 'Connected.' });
@@ -288,7 +332,9 @@ module.exports = function (RED) {
                                 success = false;
                                 break;
                             }
-                        } catch (error) {
+                        } catch {
+                            // Gen 1 sensors wake only intermittently, so a failed webhook call
+                            // is expected — stay in "installing" and retry on the next wake.
                             node.status({ fill: 'yellow', shape: 'ring', text: 'Installing webhook....' });
                         }
                     }
@@ -315,7 +361,7 @@ module.exports = function (RED) {
         if (node.hostname !== '') {
             // node.status({ fill: "yellow", shape: "ring", text: "Uninstalling webhook..." });
 
-            let credentials = shelly.getCredentials(node);
+            const credentials = shelly.getCredentials(node);
 
             let hookTypes = getHookTypes1(node.deviceType);
 
@@ -327,21 +373,22 @@ module.exports = function (RED) {
 
                 if (hookTypes.length !== 0) {
                     for (let i = 0; i < hookTypes.length; i++) {
-                        let hookType = hookTypes[i];
-                        let name = hookType.action;
-                        let index = hookType.index;
-                        let urls = hookType.urls;
+                        const hookType = hookTypes[i];
+                        const name = hookType.action;
+                        const index = hookType.index;
+                        const urls = hookType.urls;
 
                         // We only delete the hook from us: find the sender url in the hook url.
                         for (let j = 0; j < urls.length; j++) {
-                            let url = urls[j];
+                            const url = urls[j];
 
                             // This is a vage assumption but it is the best we have at the moment to identify our hooks.
                             if (url.includes(sender)) {
-                                let deleteRoute = '/settings/actions?index=' + index + '&name=' + name + '&enabled=false&urls[]=';
+                                const deleteRoute =
+                                    '/settings/actions?index=' + index + '&name=' + name + '&enabled=false&urls[]=';
                                 try {
-                                    let timeout = node.pollInterval;
-                                    let deleteResult = await shelly.shellyRequestAsync(
+                                    const timeout = node.pollInterval;
+                                    const deleteResult = await shelly.shellyRequestAsync(
                                         node.axiosInstance,
                                         'GET',
                                         deleteRoute,
@@ -350,7 +397,7 @@ module.exports = function (RED) {
                                         credentials,
                                         timeout
                                     );
-                                    let actionsAfterDelete = deleteResult.actions[name][0];
+                                    const actionsAfterDelete = deleteResult.actions[name][0];
                                     if (actionsAfterDelete.enabled === false) {
                                         // failed
                                     } else {
@@ -410,7 +457,7 @@ module.exports = function (RED) {
 
     // convertStatus1 moved to ./gen1/status-converter.js (testable in isolation)
 
-    let gen1HookTypes = new Map([
+    const gen1HookTypes = new Map([
         ['Relay', [{ action: '*', index: 0 }]],
         ['Measure', [{ action: '*', index: 0 }]],
         ['Roller', [{ action: '*', index: 0 }]],
@@ -431,21 +478,28 @@ module.exports = function (RED) {
     }
 
     async function getHookTypesFromDevice1(node) {
-        let credentials = shelly.getCredentials(node);
+        const credentials = shelly.getCredentials(node);
 
-        let actionsRoute = '/settings/actions';
-        let result = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', actionsRoute, null, null, credentials);
+        const actionsRoute = '/settings/actions';
+        const result = await shelly.shellyRequestAsync(
+            node.axiosInstance,
+            'GET',
+            actionsRoute,
+            null,
+            null,
+            credentials
+        );
 
-        let hookTypes = [];
-        let actions = Object.keys(result.actions);
+        const hookTypes = [];
+        const actions = Object.keys(result.actions);
         for (let i = 0; i < actions.length; i++) {
-            let action = actions[i];
-            let actionItems = result.actions[action];
+            const action = actions[i];
+            const actionItems = result.actions[action];
             for (let j = 0; j < actionItems.length; j++) {
-                let item = actionItems[j];
-                let index = item.index;
+                const item = actionItems[j];
+                const index = item.index;
 
-                let hookType = {
+                const hookType = {
                     action: action,
                     index: index,
                     urls: item.urls,
@@ -458,22 +512,38 @@ module.exports = function (RED) {
     }
 
     async function executeCommand1(msg, route, node, credentials) {
-        let getStatusRoute = '/status';
+        const getStatusRoute = '/status';
         if (route && route !== '') {
             try {
                 let data;
                 let params;
-                let body = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', route, params, data, credentials, 5010);
+                const body = await shelly.shellyRequestAsync(
+                    node.axiosInstance,
+                    'GET',
+                    route,
+                    params,
+                    data,
+                    credentials,
+                    5010
+                );
 
                 if (node.getStatusOnCommand) {
                     try {
                         let data;
                         let params;
 
-                        let body = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', getStatusRoute, params, data, credentials, 5011);
+                        const body = await shelly.shellyRequestAsync(
+                            node.axiosInstance,
+                            'GET',
+                            getStatusRoute,
+                            params,
+                            data,
+                            credentials,
+                            5011
+                        );
                         node.status({ fill: 'green', shape: 'ring', text: 'Connected.' });
 
-                        let status = body;
+                        const status = body;
                         msg.status = status;
                         msg.payload = convertStatus1(status);
                         node.send([msg]);
@@ -506,11 +576,19 @@ module.exports = function (RED) {
             try {
                 let data;
                 let params;
-                let body = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', getStatusRoute, params, data, credentials, 5012);
+                const body = await shelly.shellyRequestAsync(
+                    node.axiosInstance,
+                    'GET',
+                    getStatusRoute,
+                    params,
+                    data,
+                    credentials,
+                    5012
+                );
 
                 node.status({ fill: 'green', shape: 'ring', text: 'Connected.' });
 
-                let status = body;
+                const status = body;
                 msg.status = status;
                 msg.payload = convertStatus1(status);
                 node.send([msg]);
@@ -530,12 +608,12 @@ module.exports = function (RED) {
         let success = false;
         if (settings !== undefined && Array.isArray(settings)) {
             for (let i = 0; i < settings.length; i++) {
-                let setting = settings[i];
+                const setting = settings[i];
 
-                let device = setting.device;
-                let index = setting.index;
-                let attribute = setting.attribute;
-                let value = setting.value;
+                const device = setting.device;
+                const index = setting.index;
+                const attribute = setting.attribute;
+                const value = setting.value;
 
                 if (device !== undefined && attribute !== undefined && value !== undefined) {
                     let settingRoute;
@@ -547,14 +625,24 @@ module.exports = function (RED) {
                     }
 
                     try {
-                        /*let body =*/ await shelly.shellyRequestAsync(node.axiosInstance, 'GET', settingRoute, null, null, credentials);
+                        /*let body =*/ await shelly.shellyRequestAsync(
+                            node.axiosInstance,
+                            'GET',
+                            settingRoute,
+                            null,
+                            null,
+                            credentials
+                        );
                         success = true;
                     } catch (error) {
                         node.status({ fill: 'red', shape: 'ring', text: 'Failed to set settings to: ' + settingRoute });
                         node.error('Failed to set settings to: ' + settingRoute + ': ' + error.message);
                     }
                 } else {
-                    node.error('Failed to set settings as input is not complete: device, attribute and value must be specified. ' + setting);
+                    node.error(
+                        'Failed to set settings as input is not complete: device, attribute and value must be specified. ' +
+                            setting
+                    );
                 }
             }
         }
@@ -566,7 +654,7 @@ module.exports = function (RED) {
     // The shelly node controls a shelly generation 1 device.
     function ShellyGen1Node(config) {
         RED.nodes.createNode(this, config);
-        let node = this;
+        const node = this;
 
         node.server = RED.nodes.getNode(config.server);
         node.outputMode = config.outputmode;
@@ -586,14 +674,16 @@ module.exports = function (RED) {
 
         node.rgbwMode = 'color';
 
-        let deviceType = config.devicetype;
+        const deviceType = config.devicetype;
         node.deviceTypeMustMatchExactly = config.devicetypemustmatchexactly || false;
 
         node.mode = config.mode;
         if (!node.mode) {
             node.mode = 'polling';
         } else if (node.mode === 'callback' && (node.server === undefined || node.server === null)) {
-            node.warn('Callback mode selected but no shelly-gen1-server config is bound on this node — falling back to polling.');
+            node.warn(
+                'Callback mode selected but no shelly-gen1-server config is bound on this node — falling back to polling.'
+            );
             node.status({ fill: 'yellow', shape: 'ring', text: 'No server: polling' });
             node.mode = 'polling';
         }
@@ -620,22 +710,25 @@ module.exports = function (RED) {
             node.inputParser = getInputParser1(node.deviceType);
 
             (async () => {
-                let initialized = await node.initializer(node, node.types);
+                const initialized = await node.initializer(node, node.types);
                 if (node.closing) return;
 
                 // if the device is not online, then we wait until it is available and try again.
                 if (!initialized) {
-                    let msg = {
+                    const msg = {
                         error: {
                             hostname: node.hostname,
-                            message: 'Device is not reachable. Retrying to connect every ' + node.initializeRetryInterval / 1000 + ' seconds.',
+                            message:
+                                'Device is not reachable. Retrying to connect every ' +
+                                node.initializeRetryInterval / 1000 +
+                                ' seconds.',
                         },
                     };
                     node.send([msg]);
 
                     node.initializeTimer = setInterval(async function () {
                         if (node.closing) return;
-                        let initialized = await node.initializer(node, node.types);
+                        const initialized = await node.initializer(node, node.types);
                         if (node.closing) return;
                         if (initialized) {
                             clearInterval(node.initializeTimer);
@@ -645,12 +738,12 @@ module.exports = function (RED) {
             })();
 
             this.on('input', async function (msg) {
-                let credentials = shelly.getCredentials(node, msg);
+                const credentials = shelly.getCredentials(node, msg);
 
-                let settings = msg.settings;
+                const settings = msg.settings;
                 /*let success =*/ await applySettings1Async(settings, node, credentials);
 
-                let route = await node.inputParser(msg, node, credentials);
+                const route = await node.inputParser(msg, node, credentials);
                 executeCommand1(msg, route, node, credentials);
             });
 
@@ -659,7 +752,7 @@ module.exports = function (RED) {
                 node.onCallback = function (data) {
                     if (data.sender === node.hostname) {
                         if (node.outputMode === 'event') {
-                            let msg = {
+                            const msg = {
                                 payload: data.event,
                             };
                             node.send([msg]);

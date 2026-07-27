@@ -28,7 +28,9 @@ const HOST = 'shellydevice.test';
 describe('shellyPing', () => {
     it('returns true and reports green status on a matching gen 1 device', async () => {
         const harness = makeFakeNode({ type: 'shelly-gen1', hostname: HOST });
-        nock('http://' + HOST).get('/shelly').reply(200, { type: 'SHSW-1' });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { type: 'SHSW-1' });
 
         const found = await shellyPing(harness.node, { hostname: HOST }, ['SHSW-']);
 
@@ -41,7 +43,9 @@ describe('shellyPing', () => {
 
     it('returns true on a matching gen 2 device', async () => {
         const harness = makeFakeNode({ type: 'shelly-gen2', hostname: HOST });
-        nock('http://' + HOST).get('/shelly').reply(200, { model: 'SNSW-001X16EU', gen: 2 });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { model: 'SNSW-001X16EU', gen: 2 });
 
         const found = await shellyPing(harness.node, { hostname: HOST }, ['SNSW-']);
 
@@ -51,7 +55,9 @@ describe('shellyPing', () => {
     it('returns true for a gen 3 device when configured node type is shelly-gen2', async () => {
         // ADR-009: gens 3/4 reuse the gen 2 code path.
         const harness = makeFakeNode({ type: 'shelly-gen2', hostname: HOST });
-        nock('http://' + HOST).get('/shelly').reply(200, { model: 'S3SW-001X16EU', gen: 3 });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { model: 'S3SW-001X16EU', gen: 3 });
 
         const found = await shellyPing(harness.node, { hostname: HOST }, ['S3SW-']);
 
@@ -60,7 +66,9 @@ describe('shellyPing', () => {
 
     it('returns true for a gen 4 device under the shelly-gen2 node type', async () => {
         const harness = makeFakeNode({ type: 'shelly-gen2', hostname: HOST });
-        nock('http://' + HOST).get('/shelly').reply(200, { model: 'S4SW-001X16EU', gen: 4 });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { model: 'S4SW-001X16EU', gen: 4 });
 
         const found = await shellyPing(harness.node, { hostname: HOST }, ['S4SW-']);
 
@@ -70,7 +78,9 @@ describe('shellyPing', () => {
     it('returns false on a device-type mismatch and reports red status', async () => {
         // Device is a Dimmer but caller passed Relay prefixes.
         const harness = makeFakeNode({ type: 'shelly-gen1', hostname: HOST });
-        nock('http://' + HOST).get('/shelly').reply(200, { type: 'SHDM-1' });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { type: 'SHDM-1' });
 
         const found = await shellyPing(harness.node, { hostname: HOST }, ['SHSW-']);
 
@@ -82,7 +92,9 @@ describe('shellyPing', () => {
 
     it('returns false on a node-type mismatch (gen2 node querying a gen1 device)', async () => {
         const harness = makeFakeNode({ type: 'shelly-gen2', hostname: HOST });
-        nock('http://' + HOST).get('/shelly').reply(200, { type: 'SHSW-1' });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { type: 'SHSW-1' });
 
         const found = await shellyPing(harness.node, { hostname: HOST }, ['SNSW-']);
 
@@ -98,11 +110,7 @@ describe('shellyPing', () => {
         const harness = makeFakeNode({ type: 'shelly-gen1', hostname: 'no-such-host.invalid' });
         nock('http://no-such-host.invalid').get('/shelly').replyWithError('ENOTFOUND');
 
-        const found = await shellyPing(
-            harness.node,
-            { hostname: 'no-such-host.invalid' },
-            ['SHSW-'],
-        );
+        const found = await shellyPing(harness.node, { hostname: 'no-such-host.invalid' }, ['SHSW-']);
 
         assert.equal(found, false);
         const last = harness.statuses[harness.statuses.length - 1];
@@ -123,7 +131,9 @@ describe('shellyPing', () => {
 describe('tryCheckDeviceType', () => {
     it('returns true on a matching gen 1 device and shows the device type in the status', async () => {
         const harness = makeFakeNode({ type: 'shelly-gen1', hostname: HOST });
-        nock('http://' + HOST).get('/shelly').reply(200, { type: 'SHSW-1' });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { type: 'SHSW-1' });
 
         const success = await tryCheckDeviceType(harness.node, ['SHSW-']);
 
@@ -135,7 +145,9 @@ describe('tryCheckDeviceType', () => {
 
     it('returns false on a device-type mismatch and surfaces the issue link', async () => {
         const harness = makeFakeNode({ type: 'shelly-gen1', hostname: HOST });
-        nock('http://' + HOST).get('/shelly').reply(200, { type: 'SHDM-1' });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { type: 'SHDM-1' });
 
         const success = await tryCheckDeviceType(harness.node, ['SHSW-']);
 
@@ -146,7 +158,9 @@ describe('tryCheckDeviceType', () => {
 
     it('returns false on a node-type mismatch', async () => {
         const harness = makeFakeNode({ type: 'shelly-gen2', hostname: HOST });
-        nock('http://' + HOST).get('/shelly').reply(200, { type: 'SHSW-1' });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { type: 'SHSW-1' });
 
         const success = await tryCheckDeviceType(harness.node, ['SNSW-']);
 
@@ -156,7 +170,9 @@ describe('tryCheckDeviceType', () => {
 
     it('yields a "Waiting for device..." status when the device is unreachable', async () => {
         const harness = makeFakeNode({ type: 'shelly-gen1', hostname: HOST });
-        nock('http://' + HOST).get('/shelly').replyWithError('connect ECONNREFUSED');
+        nock('http://' + HOST)
+            .get('/shelly')
+            .replyWithError('connect ECONNREFUSED');
 
         const success = await tryCheckDeviceType(harness.node, ['SHSW-']);
 
@@ -169,11 +185,15 @@ describe('tryCheckDeviceType', () => {
     it('returns true for gen 3 and gen 4 devices when typed as shelly-gen2', async () => {
         // One assert per generation to stay independent.
         let harness = makeFakeNode({ type: 'shelly-gen2', hostname: HOST });
-        nock('http://' + HOST).get('/shelly').reply(200, { model: 'S3SW-001X16EU', gen: 3 });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { model: 'S3SW-001X16EU', gen: 3 });
         assert.equal(await tryCheckDeviceType(harness.node, ['S3SW-']), true);
 
         harness = makeFakeNode({ type: 'shelly-gen2', hostname: HOST });
-        nock('http://' + HOST).get('/shelly').reply(200, { model: 'S4SW-001X16EU', gen: 4 });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { model: 'S4SW-001X16EU', gen: 4 });
         assert.equal(await tryCheckDeviceType(harness.node, ['S4SW-']), true);
     });
 });
@@ -193,7 +213,9 @@ describe('start (polling lifecycle)', () => {
     it('shows yellow "Polling is turned off" when pollInterval is 0', async () => {
         const harness = makeFakeNode({ type: 'shelly-gen1', hostname: HOST, pollInterval: 0 });
         // start() still issues the initial shellyPing, so nock for that.
-        nock('http://' + HOST).get('/shelly').reply(200, { type: 'SHSW-1' });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { type: 'SHSW-1' });
 
         await start(harness.node, ['SHSW-']);
 
@@ -204,7 +226,9 @@ describe('start (polling lifecycle)', () => {
 
     it('sets up a pollingTimer when hostname and pollInterval > 0', async () => {
         const harness = makeFakeNode({ type: 'shelly-gen1', hostname: HOST, pollInterval: 60000 });
-        nock('http://' + HOST).get('/shelly').reply(200, { type: 'SHSW-1' });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { type: 'SHSW-1' });
 
         await start(harness.node, ['SHSW-']);
 
@@ -219,7 +243,9 @@ describe('start (polling lifecycle)', () => {
     it('initial reachability sets node.online = false when device responds with wrong type', async () => {
         const harness = makeFakeNode({ type: 'shelly-gen1', hostname: HOST, pollInterval: 60000 });
         // Returns a Dimmer when we asked for a Relay → found=false.
-        nock('http://' + HOST).get('/shelly').reply(200, { type: 'SHDM-1' });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { type: 'SHDM-1' });
 
         await start(harness.node, ['SHSW-']);
 

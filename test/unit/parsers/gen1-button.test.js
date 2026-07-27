@@ -15,31 +15,19 @@ describe('inputParserButton1Async', () => {
     });
 
     it('emits the provided event', async () => {
-        assert.equal(
-            await inputParserButton1Async({ payload: { event: 'L' } }),
-            '/input/0?event=L',
-        );
-        assert.equal(
-            await inputParserButton1Async({ payload: { event: 'SS' } }),
-            '/input/0?event=SS',
-        );
-        assert.equal(
-            await inputParserButton1Async({ payload: { event: 'SSS' } }),
-            '/input/0?event=SSS',
-        );
+        assert.equal(await inputParserButton1Async({ payload: { event: 'L' } }), '/input/0?event=L');
+        assert.equal(await inputParserButton1Async({ payload: { event: 'SS' } }), '/input/0?event=SS');
+        assert.equal(await inputParserButton1Async({ payload: { event: 'SSS' } }), '/input/0?event=SSS');
     });
 
     it('selects the given input index', async () => {
-        assert.equal(
-            await inputParserButton1Async({ payload: { input: 2, event: 'S' } }),
-            '/input/2?event=S',
-        );
+        assert.equal(await inputParserButton1Async({ payload: { input: 2, event: 'S' } }), '/input/2?event=S');
     });
 
     it('appends event_cnt when eventCount provided', async () => {
         assert.equal(
             await inputParserButton1Async({ payload: { event: 'S', eventCount: 3 } }),
-            '/input/0?event=S&event_cnt=3',
+            '/input/0?event=S&event_cnt=3'
         );
     });
 });

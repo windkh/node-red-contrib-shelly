@@ -6,7 +6,7 @@ const { combineUrl } = require('./util.js');
 async function inputParserRelay1Async(msg) {
     let route;
     if (utils.isMsgPayloadValid(msg)) {
-        let command = msg.payload;
+        const command = msg.payload;
 
         let relay = 0;
         if (command.relay !== undefined) {

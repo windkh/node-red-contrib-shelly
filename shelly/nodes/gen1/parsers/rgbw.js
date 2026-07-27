@@ -8,9 +8,9 @@ const utils = require('../../../lib/utils.js');
 async function inputParserRGBW1Async(msg, node /*, credentials */) {
     let route;
     if (utils.isMsgPayloadValid(msg)) {
-        let command = msg.payload;
+        const command = msg.payload;
 
-        let nodeMode = node.rgbwMode;
+        const nodeMode = node.rgbwMode;
         if (nodeMode === 'color') {
             let red;
             if (command.red !== undefined) {

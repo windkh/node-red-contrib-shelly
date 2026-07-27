@@ -27,24 +27,52 @@ module.exports = function (RED) {
         if (node.hostname !== '') {
             node.status({ fill: 'yellow', shape: 'ring', text: 'Uploading script...' });
 
-            let credentials = shelly.getCredentials(node);
+            const credentials = shelly.getCredentials(node);
 
             try {
                 // Remove all old scripts first
-                let scriptListResponse = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', '/rpc/Script.List', null, null, credentials);
-                for (let scriptItem of scriptListResponse.scripts) {
+                const scriptListResponse = await shelly.shellyRequestAsync(
+                    node.axiosInstance,
+                    'GET',
+                    '/rpc/Script.List',
+                    null,
+                    null,
+                    credentials
+                );
+                for (const scriptItem of scriptListResponse.scripts) {
                     if (scriptItem.name == scriptName) {
-                        let stopParams = { id: scriptItem.id };
-                        await shelly.shellyRequestAsync(node.axiosInstance, 'POST', '/rpc/Script.Stop', null, stopParams, credentials);
+                        const stopParams = { id: scriptItem.id };
+                        await shelly.shellyRequestAsync(
+                            node.axiosInstance,
+                            'POST',
+                            '/rpc/Script.Stop',
+                            null,
+                            stopParams,
+                            credentials
+                        );
 
-                        let deleteParams = { id: scriptItem.id };
-                        await shelly.shellyRequestAsync(node.axiosInstance, 'POST', '/rpc/Script.Delete', null, deleteParams, credentials);
+                        const deleteParams = { id: scriptItem.id };
+                        await shelly.shellyRequestAsync(
+                            node.axiosInstance,
+                            'POST',
+                            '/rpc/Script.Delete',
+                            null,
+                            deleteParams,
+                            credentials
+                        );
                     }
                 }
 
-                let createParams = { name: scriptName };
-                let createScriptResonse = await shelly.shellyRequestAsync(node.axiosInstance, 'POST', '/rpc/Script.Create', null, createParams, credentials);
-                let scriptId = createScriptResonse.id;
+                const createParams = { name: scriptName };
+                const createScriptResonse = await shelly.shellyRequestAsync(
+                    node.axiosInstance,
+                    'POST',
+                    '/rpc/Script.Create',
+                    null,
+                    createParams,
+                    credentials
+                );
+                const scriptId = createScriptResonse.id;
 
                 const chunkSize = 1024;
                 let done = false;
@@ -59,30 +87,58 @@ module.exports = function (RED) {
                         done = true;
                     }
 
-                    let putParams = {
+                    const putParams = {
                         id: scriptId,
                         code: codeToSend,
                         append: !first,
                     };
-                    await shelly.shellyRequestAsync(node.axiosInstance, 'POST', '/rpc/Script.PutCode', null, putParams, credentials);
+                    await shelly.shellyRequestAsync(
+                        node.axiosInstance,
+                        'POST',
+                        '/rpc/Script.PutCode',
+                        null,
+                        putParams,
+                        credentials
+                    );
                     first = false;
                 } while (!done);
 
-                let configParams = {
+                const configParams = {
                     id: scriptId,
                     config: { enable: true },
                 };
-                await shelly.shellyRequestAsync(node.axiosInstance, 'POST', '/rpc/Script.SetConfig', null, configParams, credentials);
+                await shelly.shellyRequestAsync(
+                    node.axiosInstance,
+                    'POST',
+                    '/rpc/Script.SetConfig',
+                    null,
+                    configParams,
+                    credentials
+                );
 
-                let startParams = {
+                const startParams = {
                     id: scriptId,
                 };
-                await shelly.shellyRequestAsync(node.axiosInstance, 'POST', '/rpc/Script.Start', null, startParams, credentials);
+                await shelly.shellyRequestAsync(
+                    node.axiosInstance,
+                    'POST',
+                    '/rpc/Script.Start',
+                    null,
+                    startParams,
+                    credentials
+                );
 
-                let statusParams = {
+                const statusParams = {
                     id: scriptId,
                 };
-                let status = await shelly.shellyRequestAsync(node.axiosInstance, 'POST', '/rpc/Script.GetStatus', null, statusParams, credentials);
+                const status = await shelly.shellyRequestAsync(
+                    node.axiosInstance,
+                    'POST',
+                    '/rpc/Script.GetStatus',
+                    null,
+                    statusParams,
+                    credentials
+                );
 
                 if (status.running === true) {
                     node.status({ fill: 'green', shape: 'ring', text: 'Connected.' });
@@ -92,8 +148,14 @@ module.exports = function (RED) {
                     node.status({ fill: 'red', shape: 'ring', text: 'Script not running.' });
                 }
             } catch (error) {
-                node.error('Uploading script ' + scriptName + ' failed: ' + error.request._currentUrl + ' --> ' + error.message);
-                node.status({ fill: 'red', shape: 'ring', text: 'Uploading script ' + scriptName + ' failed ' + error.message });
+                node.error(
+                    'Uploading script ' + scriptName + ' failed: ' + error.request._currentUrl + ' --> ' + error.message
+                );
+                node.status({
+                    fill: 'red',
+                    shape: 'ring',
+                    text: 'Uploading script ' + scriptName + ' failed ' + error.message,
+                });
             }
         } else {
             node.status({ fill: 'red', shape: 'ring', text: 'Hostname not configured' });
@@ -103,25 +165,53 @@ module.exports = function (RED) {
     }
 
     async function tryUninstallScriptAsync(node, scriptName) {
-        let success = false;
+        const success = false;
         if (node.hostname !== '') {
-            let credentials = shelly.getCredentials(node);
+            const credentials = shelly.getCredentials(node);
 
             try {
-                let scriptListResponse = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', '/rpc/Script.List', null, null, credentials);
+                const scriptListResponse = await shelly.shellyRequestAsync(
+                    node.axiosInstance,
+                    'GET',
+                    '/rpc/Script.List',
+                    null,
+                    null,
+                    credentials
+                );
 
-                for (let scriptItem of scriptListResponse.scripts) {
+                for (const scriptItem of scriptListResponse.scripts) {
                     if (scriptItem.name == scriptName) {
-                        let params = {
+                        const params = {
                             id: scriptItem.id,
                         };
-                        let status = await shelly.shellyRequestAsync(node.axiosInstance, 'POST', '/rpc/Script.GetStatus', null, params, credentials);
+                        const status = await shelly.shellyRequestAsync(
+                            node.axiosInstance,
+                            'POST',
+                            '/rpc/Script.GetStatus',
+                            null,
+                            params,
+                            credentials
+                        );
 
                         if (status.running === true) {
-                            await shelly.shellyRequestAsync(node.axiosInstance, 'POST', '/rpc/Script.Stop', null, params, credentials);
+                            await shelly.shellyRequestAsync(
+                                node.axiosInstance,
+                                'POST',
+                                '/rpc/Script.Stop',
+                                null,
+                                params,
+                                credentials
+                            );
                         }
 
-                        await shelly.shellyRequestAsync(node.axiosInstance, 'POST', '/rpc/Script.Delete', null, params, credentials);
+                        await shelly.shellyRequestAsync(
+                            node.axiosInstance,
+                            'POST',
+                            '/rpc/Script.Delete',
+                            null,
+                            params,
+                            credentials
+                        );
                     }
                 }
             } catch (error) {
@@ -143,14 +233,21 @@ module.exports = function (RED) {
         if (node.hostname !== '') {
             node.status({ fill: 'yellow', shape: 'ring', text: 'Installing webhook...' });
 
-            let credentials = shelly.getCredentials(node);
+            const credentials = shelly.getCredentials(node);
 
             try {
                 // Remove all old webhooks async.
-                let webhookListResponse = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', '/rpc/Webhook.List', null, null, credentials);
-                for (let webhookItem of webhookListResponse.hooks) {
+                const webhookListResponse = await shelly.shellyRequestAsync(
+                    node.axiosInstance,
+                    'GET',
+                    '/rpc/Webhook.List',
+                    null,
+                    null,
+                    credentials
+                );
+                for (const webhookItem of webhookListResponse.hooks) {
                     if (webhookItem.name == webhookName) {
-                        let deleteParams = { id: webhookItem.id };
+                        const deleteParams = { id: webhookItem.id };
                         /*let deleteWebhookResonse =*/ await shelly.shellyRequestAsync(
                             node.axiosInstance,
                             'POST',
@@ -163,13 +260,20 @@ module.exports = function (RED) {
                 }
 
                 // Create new webhooks.
-                let supportedEventsResponse = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', '/rpc/Webhook.ListSupported', null, null, credentials);
+                const supportedEventsResponse = await shelly.shellyRequestAsync(
+                    node.axiosInstance,
+                    'GET',
+                    '/rpc/Webhook.ListSupported',
+                    null,
+                    null,
+                    credentials
+                );
                 let hookTypes = supportedEventsResponse.hook_types; // before fw 1.0
                 if (hookTypes) {
-                    for (let hookType of hookTypes) {
-                        let sender = node.hostname;
-                        let url = webhookUrl + '?hookType=' + hookType + '&sender=' + sender;
-                        let createParams = {
+                    for (const hookType of hookTypes) {
+                        const sender = node.hostname;
+                        const url = webhookUrl + '?hookType=' + hookType + '&sender=' + sender;
+                        const createParams = {
                             name: webhookName,
                             event: hookType,
                             cid: 0,
@@ -190,11 +294,11 @@ module.exports = function (RED) {
                     }
                 } else {
                     hookTypes = supportedEventsResponse.types; // after fw 1.0
-                    for (let hookType in hookTypes) {
+                    for (const hookType in hookTypes) {
                         if (Object.prototype.hasOwnProperty.call(hookTypes, hookType)) {
-                            let sender = node.hostname;
-                            let url = webhookUrl + '?hookType=' + hookType + '&sender=' + sender;
-                            let createParams = {
+                            const sender = node.hostname;
+                            const url = webhookUrl + '?hookType=' + hookType + '&sender=' + sender;
+                            const createParams = {
                                 name: webhookName,
                                 event: hookType,
                                 cid: 0,
@@ -230,18 +334,25 @@ module.exports = function (RED) {
 
     // Uninstalls a webhook.
     async function tryUninstallWebhook2Async(node, webhookName) {
-        let success = false;
+        const success = false;
         if (node.hostname !== '') {
             // node.status({ fill: "yellow", shape: "ring", text: "Uninstalling webhook..." });
 
-            let credentials = shelly.getCredentials(node);
+            const credentials = shelly.getCredentials(node);
 
             try {
-                let webhookListResponse = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', '/rpc/Webhook.List', null, null, credentials);
+                const webhookListResponse = await shelly.shellyRequestAsync(
+                    node.axiosInstance,
+                    'GET',
+                    '/rpc/Webhook.List',
+                    null,
+                    null,
+                    credentials
+                );
 
-                for (let webhookItem of webhookListResponse.hooks) {
+                for (const webhookItem of webhookListResponse.hooks) {
                     if (webhookItem.name == webhookName) {
-                        let deleteParams = { id: webhookItem.id };
+                        const deleteParams = { id: webhookItem.id };
                         /*let deleteWebhookResonse =*/ await shelly.shellyRequestAsync(
                             node.axiosInstance,
                             'POST',
@@ -269,7 +380,7 @@ module.exports = function (RED) {
 
     // returns an empty array.
     function inputParserEmptyArray2(/*msg*/) {
-        let requests = [];
+        const requests = [];
         return requests;
     }
 
@@ -298,9 +409,9 @@ module.exports = function (RED) {
     async function initializer2(node, types) {
         let success = false;
 
-        let checkOK = await shelly.tryCheckDeviceType(node, types);
+        const checkOK = await shelly.tryCheckDeviceType(node, types);
         if (checkOK === true) {
-            let mode = node.mode;
+            const mode = node.mode;
             if (mode === 'polling') {
                 shelly.start(node, types);
                 success = true;
@@ -320,25 +431,25 @@ module.exports = function (RED) {
     async function initializer2CallbackAsync(node, types) {
         let success = false;
 
-        let checkOK = await shelly.tryCheckDeviceType(node, types);
+        const checkOK = await shelly.tryCheckDeviceType(node, types);
         if (checkOK === true) {
             const scriptName = 'node-red-contrib-shelly';
             await tryUninstallScriptAsync(node, scriptName); // we ignore if it failed.
 
-            let mode = node.mode;
+            const mode = node.mode;
             if (mode === 'polling') {
                 await shelly.startAsync(node, types);
                 success = true;
             } else if (mode === 'callback') {
-                let scriptPath = path.resolve(__dirname, callbackScript);
+                const scriptPath = path.resolve(__dirname, callbackScript);
                 const buffer = fs.readFileSync(scriptPath);
                 // const buffer = await readFile(scriptPath); #96 nodejs V19
                 let script = buffer.toString();
 
-                let ipAddress = shelly.getIPAddress(node);
-                let url = 'http://' + ipAddress + ':' + node.server.port + '/callback';
+                const ipAddress = shelly.getIPAddress(node);
+                const url = 'http://' + ipAddress + ':' + node.server.port + '/callback';
                 script = utils.replace(script, '%URL%', url);
-                let sender = node.hostname;
+                const sender = node.hostname;
                 script = utils.replace(script, '%SENDER%', sender);
 
                 success = await tryInstallScriptAsync(node, script, scriptName);
@@ -356,17 +467,17 @@ module.exports = function (RED) {
     async function initializer2BluCallbackAsync(node, types) {
         let success = false;
 
-        let checkOK = await shelly.tryCheckDeviceType(node, types);
+        const checkOK = await shelly.tryCheckDeviceType(node, types);
         if (checkOK === true) {
             const scriptName = 'node-red-contrib-shelly-blu';
             await tryUninstallScriptAsync(node, scriptName); // we ignore if it failed.
 
-            let mode = node.mode;
+            const mode = node.mode;
             if (mode === 'callback') {
-                let scriptPath = path.resolve(__dirname, bluCallbackScript);
+                const scriptPath = path.resolve(__dirname, bluCallbackScript);
                 const buffer = fs.readFileSync(scriptPath);
                 // const buffer = await readFile(scriptPath); #96 nodejs V19
-                let script = buffer.toString();
+                const script = buffer.toString();
                 success = await tryInstallScriptAsync(node, script, scriptName);
             } else {
                 // nothing to do.
@@ -385,18 +496,18 @@ module.exports = function (RED) {
     async function initializer2WebhookAsync(node, types) {
         let success = false;
 
-        let checkOK = await shelly.tryCheckDeviceType(node, types);
+        const checkOK = await shelly.tryCheckDeviceType(node, types);
         if (checkOK === true) {
             const webhookName = 'node-red-contrib-shelly';
             await tryUninstallWebhook2Async(node, webhookName); // we ignore if it failed.
 
-            let mode = node.mode;
+            const mode = node.mode;
             if (mode === 'polling') {
                 await shelly.startAsync(node, types);
                 success = true;
             } else if (mode === 'callback') {
-                let ipAddress = shelly.getIPAddress(node);
-                let webhookUrl = 'http://' + ipAddress + ':' + node.server.port + '/webhook';
+                const ipAddress = shelly.getIPAddress(node);
+                const webhookUrl = 'http://' + ipAddress + ':' + node.server.port + '/webhook';
                 success = await tryInstallWebhook2Async(node, webhookUrl, webhookName);
             } else {
                 // nothing to do.
@@ -409,7 +520,7 @@ module.exports = function (RED) {
 
     // Gets a function that initialize the device.
     function getInitializer2(node) {
-        let deviceType = node.deviceType;
+        const deviceType = node.deviceType;
         let result;
 
         switch (deviceType) {
@@ -442,25 +553,41 @@ module.exports = function (RED) {
     // convertStatus2 moved to ./gen2/status-converter.js (testable in isolation)
 
     async function executeCommand2(msg, request, node, credentials) {
-        let getStatusRoute = '/rpc/Shelly.GetStatus';
+        const getStatusRoute = '/rpc/Shelly.GetStatus';
         let route = getStatusRoute;
 
         try {
             if (request !== undefined && request.route !== undefined && request.route !== '') {
                 route = request.route;
-                let method = request.method;
-                let data = request.data;
-                let params = request.params;
-                let body = await shelly.shellyRequestAsync(node.axiosInstance, method, route, params, data, credentials, 5020);
+                const method = request.method;
+                const data = request.data;
+                const params = request.params;
+                const body = await shelly.shellyRequestAsync(
+                    node.axiosInstance,
+                    method,
+                    route,
+                    params,
+                    data,
+                    credentials,
+                    5020
+                );
 
                 if (node.getStatusOnCommand) {
                     route = getStatusRoute;
                     let data;
                     let params;
-                    let body = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', route, params, data, credentials, 5021);
+                    const body = await shelly.shellyRequestAsync(
+                        node.axiosInstance,
+                        'GET',
+                        route,
+                        params,
+                        data,
+                        credentials,
+                        5021
+                    );
                     node.status({ fill: 'green', shape: 'ring', text: 'Connected.' });
 
-                    let status = body;
+                    const status = body;
                     msg.status = status;
                     msg.payload = convertStatus2(status);
                     node.send([msg]);
@@ -474,10 +601,18 @@ module.exports = function (RED) {
                 route = getStatusRoute;
                 let data;
                 let params;
-                let body = await shelly.shellyRequestAsync(node.axiosInstance, 'GET', route, params, data, credentials, 5022);
+                const body = await shelly.shellyRequestAsync(
+                    node.axiosInstance,
+                    'GET',
+                    route,
+                    params,
+                    data,
+                    credentials,
+                    5022
+                );
                 node.status({ fill: 'green', shape: 'ring', text: 'Connected.' });
 
-                let status = body;
+                const status = body;
                 msg.status = status;
                 msg.payload = convertStatus2(status);
                 node.send([msg]);
@@ -501,7 +636,7 @@ module.exports = function (RED) {
 
     function ShellyGen2Node(config) {
         RED.nodes.createNode(this, config);
-        let node = this;
+        const node = this;
 
         node.server = RED.nodes.getNode(config.server);
         node.outputMode = config.outputmode;
@@ -519,7 +654,7 @@ module.exports = function (RED) {
         node.pollStatus = config.pollstatus;
         node.getStatusOnCommand = config.getstatusoncommand;
 
-        let deviceType = config.devicetype;
+        const deviceType = config.devicetype;
         node.deviceTypeMustMatchExactly = config.devicetypemustmatchexactly || false;
         node.captureBlutooth = config.captureblutooth || false;
 
@@ -527,7 +662,9 @@ module.exports = function (RED) {
         if (!node.mode) {
             node.mode = 'polling';
         } else if (node.mode === 'callback' && (node.server === undefined || node.server === null)) {
-            node.warn('Callback mode selected but no shelly-gen2-server config is bound on this node — falling back to polling.');
+            node.warn(
+                'Callback mode selected but no shelly-gen2-server config is bound on this node — falling back to polling.'
+            );
             node.status({ fill: 'yellow', shape: 'ring', text: 'No server: polling' });
             node.mode = 'polling';
         }
@@ -554,22 +691,25 @@ module.exports = function (RED) {
             node.inputParser = getInputParser2(node.deviceType);
 
             (async () => {
-                let initialized = await node.initializer(node, node.types);
+                const initialized = await node.initializer(node, node.types);
                 if (node.closing) return;
 
                 // if the device is not online, then we wait until it is available and try again.
                 if (!initialized) {
-                    let msg = {
+                    const msg = {
                         error: {
                             hostname: node.hostname,
-                            message: 'Device is not reachable. Retrying to connect every ' + node.initializeRetryInterval / 1000 + ' seconds.',
+                            message:
+                                'Device is not reachable. Retrying to connect every ' +
+                                node.initializeRetryInterval / 1000 +
+                                ' seconds.',
                         },
                     };
                     node.send([msg]);
 
                     node.initializeTimer = setInterval(async function () {
                         if (node.closing) return;
-                        let initialized = await node.initializer(node, node.types);
+                        const initialized = await node.initializer(node, node.types);
                         if (node.closing) return;
                         if (initialized) {
                             clearInterval(node.initializeTimer);
@@ -579,8 +719,8 @@ module.exports = function (RED) {
             })();
 
             this.on('input', async function (msg) {
-                let credentials = shelly.getCredentials(node, msg);
-                let requests = await node.inputParser(msg, node, credentials);
+                const credentials = shelly.getCredentials(node, msg);
+                const requests = await node.inputParser(msg, node, credentials);
 
                 if (requests.length == 0) {
                     let request; // here the request is undefined to trigger a simple get status.
@@ -597,7 +737,7 @@ module.exports = function (RED) {
                 node.onCallback = function (data) {
                     if (data.sender === node.hostname) {
                         if (node.outputMode === 'event') {
-                            let msg = {
+                            const msg = {
                                 payload: data.event,
                             };
                             node.send([msg]);

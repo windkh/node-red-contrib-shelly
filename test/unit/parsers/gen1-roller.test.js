@@ -23,7 +23,7 @@ describe('inputParserRoller1Async', () => {
     it('go to position appends roller_pos', async () => {
         assert.equal(
             await inputParserRoller1Async({ payload: { go: 'to_pos', roller_pos: 50 } }),
-            '/roller/0?go=to_pos&roller_pos=50',
+            '/roller/0?go=to_pos&roller_pos=50'
         );
     });
 
@@ -41,9 +41,6 @@ describe('inputParserRoller1Async', () => {
     });
 
     it('go takes precedence over relay fallback', async () => {
-        assert.equal(
-            await inputParserRoller1Async({ payload: { go: 'open', on: true } }),
-            '/roller/0?go=open',
-        );
+        assert.equal(await inputParserRoller1Async({ payload: { go: 'open', on: true } }), '/roller/0?go=open');
     });
 });

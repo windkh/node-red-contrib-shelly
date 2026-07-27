@@ -6,7 +6,7 @@ const { combineUrl } = require('./util.js');
 async function inputParserButton1Async(msg) {
     let route;
     if (utils.isMsgPayloadValid(msg)) {
-        let command = msg.payload;
+        const command = msg.payload;
 
         let input = 0;
         if (command.input !== undefined) {

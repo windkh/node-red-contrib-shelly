@@ -2,7 +2,6 @@ const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 const { getCredentials, getShellyInfo } = require('../../shelly/lib/shelly.js');
 const nock = require('nock');
-const axios = require('axios').default;
 
 // Helper: build a minimal "node" shape that getCredentials expects.
 function fakeNode({ hostname = '', authType, username = '', password = '' } = {}) {

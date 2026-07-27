@@ -69,11 +69,11 @@ Out of scope:
 
 ## Quick-orient cheat sheet
 
-| You want to … | Look at |
-|---|---|
-| Add support for a new model | [shelly/config/config.json](../../shelly/config/config.json) — usually an entry plus a model-prefix tag |
-| Understand the Node-RED entry point | [shelly/99-shelly.js](../../shelly/99-shelly.js) |
-| Trace a gen1 input command | `inputParserRelay1Async` etc. in [shelly/nodes/gen1-node.js](../../shelly/nodes/gen1-node.js) |
-| Trace a gen2+ input command | `inputParserGeneric2` in [shelly/nodes/gen2-node.js](../../shelly/nodes/gen2-node.js) |
-| Understand auth handling | `shellyRequestAsync` + `getDigestAuthorization` in [shelly/lib/shelly.js](../../shelly/lib/shelly.js) |
-| Understand callback-mode scripts | [shelly/scripts/callback.js](../../shelly/scripts/callback.js) and [shelly/scripts/ble-shelly-blu.js](../../shelly/scripts/ble-shelly-blu.js) |
+| You want to …                       | Look at                                                                                                                                       |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Add support for a new model         | [shelly/config/config.json](../../shelly/config/config.json) — usually an entry plus a model-prefix tag                                       |
+| Understand the Node-RED entry point | [shelly/99-shelly.js](../../shelly/99-shelly.js)                                                                                              |
+| Trace a gen1 input command          | `inputParserRelay1Async` etc. in [shelly/nodes/gen1-node.js](../../shelly/nodes/gen1-node.js)                                                 |
+| Trace a gen2+ input command         | `inputParserGeneric2` in [shelly/nodes/gen2-node.js](../../shelly/nodes/gen2-node.js)                                                         |
+| Understand auth handling            | `shellyRequestAsync` + `getDigestAuthorization` in [shelly/lib/shelly.js](../../shelly/lib/shelly.js)                                         |
+| Understand callback-mode scripts    | [shelly/scripts/callback.js](../../shelly/scripts/callback.js) and [shelly/scripts/ble-shelly-blu.js](../../shelly/scripts/ble-shelly-blu.js) |

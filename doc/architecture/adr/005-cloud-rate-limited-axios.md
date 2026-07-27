@@ -15,7 +15,9 @@ Use a **single rate-limited axios instance** shared by all cloud nodes in the sa
 
 ```js
 const cloudAxios = rateLimit(axios.create(), {
-    maxRequests: 1, perMilliseconds: 1000, maxRPS: 1
+    maxRequests: 1,
+    perMilliseconds: 1000,
+    maxRPS: 1,
 });
 ```
 

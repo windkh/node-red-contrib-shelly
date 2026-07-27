@@ -5,7 +5,7 @@ const utils = require('../../../lib/utils.js');
 async function inputParserRoller1Async(msg) {
     let route;
     if (utils.isMsgPayloadValid(msg)) {
-        let command = msg.payload;
+        const command = msg.payload;
 
         let roller = 0;
         if (command.roller !== undefined) {

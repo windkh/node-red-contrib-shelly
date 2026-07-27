@@ -6,9 +6,9 @@ const { combineUrl } = require('./util.js');
 async function inputParserThermostat1Async(msg) {
     let route;
     if (utils.isMsgPayloadValid(msg)) {
-        let command = msg.payload;
+        const command = msg.payload;
 
-        let thermostat = 0;
+        const thermostat = 0;
 
         let position;
         if (command.position !== undefined) {

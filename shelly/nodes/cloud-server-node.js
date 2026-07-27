@@ -6,7 +6,7 @@ module.exports = function (RED) {
     function ShellyCloudServerNode(config) {
         RED.nodes.createNode(this, config);
 
-        let node = this;
+        const node = this;
 
         node.serverUri = utils.trim(node.credentials.serveruri);
         node.authKey = utils.trim(node.credentials.authkey);

@@ -1,631 +1,873 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
+## [11.11.5] - 2026-07-25
+
+### Adopted the shared node-red-standards toolchain
+
+Rollout of [node-red-standards](https://github.com/windkh/node-red-standards) via `nrstd sync`. No runtime behaviour changes — configuration, docs and formatting only.
+
+- **ESLint 9 flat config.** `eslint.config.js` replaces `.eslintrc.yaml`; ESLint 8 → 9, Prettier 2 → 3, `eslint-config-prettier` 8 → 9, plus `@eslint/js` and `globals`. The `lint` script dropped ESLint 9's removed `--ext` flag (and `--format unix`, whose formatter is no longer in core) and now lints the whole repo, tests included. `shelly/scripts/` and `coverage/` are ignored in the flat config — the former runs on the device's mJS runtime and includes a vendored file.
+- **Prettier standalone.** `.prettierrc.json` (120 print width, was 160) replaces `.prettierrc`, with `format` / `format:check` scripts. Prettier is no longer wired in as an ESLint rule. Reformatted 35 files; `shelly/99-shelly.html` was additionally normalised from CRLF to LF, the only file still stored with CRLF. A new `.prettierignore` excludes `coverage/`, `package-lock.json`, `examples/` (Node-RED flow exports), `shelly/scripts/` (device runtime + vendored), and `shelly/config/config.json` — the catalog is hand-aligned data and letting Prettier explode it would have turned 165 lines into 1110 and destroyed the tabular layout that makes a device-catalog diff reviewable.
+- **`AGENTS.md` is now the single source of coding rules**, with the shared block managed by `nrstd sync` and everything project-specific (architecture, the three communication paths, polling vs. callback, BLU, catalog conventions) below the marker. `CLAUDE.md` is a thin `@AGENTS.md` adapter, so the rules are portable across AI tools instead of Claude-only.
+- **Architecture docs renamed** to the standard layout: `01-overview.md` → `overview.md` and so on for all eight chapters, `adrs/` → `adr/`. All 47 cross-references were updated and verified to resolve.
+- **Dependabot config added** (`.github/dependabot.yml`, weekly npm + github-actions).
+- **CI and release both gate on `format:check`** now, and CI caches npm downloads.
+- **The publish trigger moved from `release: created` to `release: published`.** `created` also fires when a _draft_ release is saved, which would have published unreleased code to npm.
+- **Coverage line threshold 40% → 38%.** Reflowing to 120 columns split long lines in sparsely covered files, so line coverage fell 42.25% → 39.61% purely as a denominator artifact. Branch (90.98%) and function (78.26%) coverage are unchanged, and no test was touched.
+- **Lint is clean: 253 warnings → 0.** The new config's `prefer-const` flagged 249 `let` bindings that are never reassigned, all fixed mechanically by `lint:fix` (including `for (let x of …)` → `for (const x of …)`). The remaining four were `no-unused-vars`: three `catch (error)` blocks that deliberately swallow the error now use the optional catch binding (`catch {`) with a comment explaining why the failure is expected, and an unused `axios` import was dropped from `test/unit/credentials.test.js`.
+- `AGENTS.md` is listed in `.prettierignore`. `nrstd sync` writes the managed block verbatim and marks it "do not edit", but that block is not Prettier-clean, so formatting it locally would make the next `sync` revert it and flip `format:check` back to red.
+
+`nrstd audit` reports 10/10, `nrstd sync` is idempotent, and `lint` / `format:check` / `test` / `coverage:check` are all green.
+
 ## [11.11.4] - 2026-07-25
+
 ### Publish path is now test-gated, and the tarball ships only runtime files
+
 - The npm publish workflow had its `npm test` step commented out from before a test suite existed, so releases were cut without the suite ever running in CI — the husky pre-commit hook was the only gate, and that protects committers rather than the release. `build` now runs `npm run lint` and `npm test`, and `publish-npm` already depends on it, so a red suite blocks the publish. (The CI workflow on push/PR already ran lint, tests and the coverage gate; only the release path was unguarded.)
-- Added a `files` allowlist to `package.json`. The package had none, so every consumer received `test/`, `doc/`, `.github/`, `.husky/`, `CLAUDE.md` and the lint/prettier configs. The tarball goes from 106 files / 564.5 kB unpacked to 60 files / 368.6 kB. `shelly/` (including `config/config.json`, `icons/` and the device-side `scripts/`) and `examples/` are both kept — Node-RED reads `examples/` to populate the editor's *Import → Examples* menu, so dropping it would have removed the shipped example flows. Verified by loading the packed tarball with a stub `RED`: all six node types register and the device catalog resolves.
+- Added a `files` allowlist to `package.json`. The package had none, so every consumer received `test/`, `doc/`, `.github/`, `.husky/`, `CLAUDE.md` and the lint/prettier configs. The tarball goes from 106 files / 564.5 kB unpacked to 60 files / 368.6 kB. `shelly/` (including `config/config.json`, `icons/` and the device-side `scripts/`) and `examples/` are both kept — Node-RED reads `examples/` to populate the editor's _Import → Examples_ menu, so dropping it would have removed the shipped example flows. Verified by loading the packed tarball with a stub `RED`: all six node types register and the device catalog resolves.
 
 ## [11.11.3] - 2026-07-25
+
 ### Accept `params` as well as `parameters` on gen 2+ commands - [#195](https://github.com/windkh/node-red-contrib-shelly/issues/195)
+
 - `inputParserGeneric2` only read `command.parameters`. Shelly's own gen 2 RPC documentation — which the README explicitly sends users to for "further rpc commands" — spells the field `params`, so a payload written that way (or a JSON-RPC frame copied verbatim from those docs) had its arguments silently dropped. The node then posted `{"id":1,"method":"Switch.Set"}` with no arguments, the device rejected it with HTTP 400 (`{"error":{"code":-103,"message":"Argument 'id' is missing"}}`), and the user saw exactly the two symptoms in [#195](https://github.com/windkh/node-red-contrib-shelly/issues/195): the switch does not change state, and `Request failed with status code 400` appears in the console. Both spellings are now accepted (`parameters` wins if both are present), so the failure is no longer reachable from a docs-shaped payload.
 - The four gen 2+ payload examples in the README were missing the comma after the `method` line, so copying them into a function node was a syntax error. Fixed, and the `params`/`parameters` equivalence is now documented.
 
 ## [11.11.2] - 2026-05-15
+
 ### Fixed RGBW family selection on gen 2/3/4 devices
-- The `gen2DeviceTypes` map had no entry for `RGBW`, so selecting **RGBW** as the *family* (rather than picking an exact model) returned an empty prefix list and produced a "Shelly type mismatch" error. Specific RGBW models still worked when selected by exact name; only the family-level selection was broken.
+
+- The `gen2DeviceTypes` map had no entry for `RGBW`, so selecting **RGBW** as the _family_ (rather than picking an exact model) returned an empty prefix list and produced a "Shelly type mismatch" error. Specific RGBW models still worked when selected by exact name; only the family-level selection was broken.
 - Added `["RGBW", ["SNDC-", "SPDC-", "S3BL-C"]]` to `gen2DeviceTypes`. The longer `S3BL-C` prefix matches the Multicolor Bulb E27 Gen3 (`S3BL-C010007AEU`) but keeps the Duo Bulb (`S3BL-D010009AEU`, a Dimmer) out of the RGBW bucket. This bug pre-dated 11.11.0 — `SNDC-0D4P10WW` and `SPDC-0D5PE16EU` had been affected since gen 2 launched.
 
 ## [11.11.1] - 2026-05-15
+
 ### Catalog cleanup
+
 - Renamed the second "Shelly Pro 3EM" entry (`SPEM-003CEBEU120`) to "Shelly Pro 3EM-120" so the editor dropdown can distinguish it from `SPEM-003CEBEU`. Matches the existing "Shelly Pro 3EM-400" naming pattern.
 - Normalised the Shelly Plus Plug S (`SNPL-00112EU`) `helpLink` from `/shelly-plus-plug-s` to `/shelly-plus-plug-s-1` (the canonical destination — Shelly's KB now redirects the former to the latter).
 
 ## [11.11.0] - 2026-05-15
+
 ### Added 9 new devices from the Shelly KB audit
+
 - Gen 2:
-  - Shelly Pro 3EM-3CT63 (`SPEM-003CEBEU63`)
-  - Shelly Wall Display XL (`SAWD-3A1XE10EU2`)
-  - Shelly Wall Display X2i (`SAWD-5A1XX10EU0`)
+    - Shelly Pro 3EM-3CT63 (`SPEM-003CEBEU63`)
+    - Shelly Wall Display XL (`SAWD-3A1XE10EU2`)
+    - Shelly Wall Display X2i (`SAWD-5A1XX10EU0`)
 - Gen 3:
-  - Shelly AZ H&T Gen3 (`S3SN-1U12A`)
-  - Shelly Duo Bulb E27 Gen3 (`S3BL-D010009AEU`) — first device with the new `S3BL-` (bulb) SKU prefix. Routed as `Dimmer` (warm/cool tunable white).
-  - Shelly Multicolor Bulb E27 Gen3 (`S3BL-C010007AEU`) — routed as `RGBW`.
+    - Shelly AZ H&T Gen3 (`S3SN-1U12A`)
+    - Shelly Duo Bulb E27 Gen3 (`S3BL-D010009AEU`) — first device with the new `S3BL-` (bulb) SKU prefix. Routed as `Dimmer` (warm/cool tunable white).
+    - Shelly Multicolor Bulb E27 Gen3 (`S3BL-C010007AEU`) — routed as `RGBW`.
 - Gen 4:
-  - Shelly EM Gen4 (`S4EM-002CXCEU`)
-  - Shelly Dimmer 0/1-10V PM Gen4 (`S4DM-0010WW`)
-  - Shelly Dimmer Gen4 US (`S4DM-0A102US`)
+    - Shelly EM Gen4 (`S4EM-002CXCEU`)
+    - Shelly Dimmer 0/1-10V PM Gen4 (`S4DM-0010WW`)
+    - Shelly Dimmer Gen4 US (`S4DM-0A102US`)
 
 The two `S3BL-` bulbs are not added to the `gen2DeviceTypes` family prefix lists, because the same prefix spans both Dimmer (Duo) and RGBW (Multicolor) variants — same convention as existing gen 2 RGBW devices (`SNDC-`, `SPDC-`), which are selected by exact model name in the editor rather than via a family lookup.
 
 ## [11.10.3] - 2026-05-15
+
 ### Fixed SHSW-21 "Shelly 2 Roller" entry mistakenly typed as Relay
+
 - The Shelly 2 Roller (gen 1, model `SHSW-21` in roller mode) was registered with `"type": "Relay"` in the catalog, while the same `SHSW-21` prefix is listed under `gen1DeviceTypes.Roller`. The internal disagreement meant picking this device family in the editor wired the wrong input parser. Now `"type": "Roller"`.
 
 ## [11.10.2] - 2026-05-12
+
 ### Added Shelly Presence Gen4 (S4SN-0U61X) — [#253](https://github.com/windkh/node-red-contrib-shelly/issues/253)
+
 - Catalog-only edit. The `S4SN-` prefix was already mapped to the Sensor family in `gen2DeviceTypes`, so the device routes through the existing gen 2+ sensor path (webhook install on wake, callback events forwarded by the device-side script).
 
 ## [11.10.1] - 2026-05-11
+
 ### Surface the device's error body so failures are self-diagnosing
+
 - `shellyRequestAsync` now folds `error.response.data` into the thrown error when axios rejects on a non-2xx. Shelly gen2 RPC errors carry the real diagnostic in the body (e.g. `{"error":{"code":-103,"message":"..."}}`); without this enrichment users only saw axios's generic `"Request failed with status code 400"` — which is the symptom in [#195](https://github.com/windkh/node-red-contrib-shelly/issues/195).
 - Drop a trailing slash on the generic gen2 envelope route (`/rpc/` → `/rpc`). Most gen2 docs use the un-slashed form; defensive change for stricter firmware revisions.
 
 ## [11.10.0] - 2026-05-11
+
 ### Plugged a redeploy timer leak and surfaced callback-mode misconfiguration
+
 - **Closing race fixed.** If a flow was redeployed while a node's `initializer` was still awaiting (slow network, sleeping sensor, etc.), the IIFE could resolve _after_ the `close` handler had already run `clearInterval`, then schedule a fresh `setInterval` that no one ever cleared. The dangling timer kept calling `node.initializer` on the orphaned node forever, leaking N timers per N redeploys and filling logs with status/send calls on a closed node. Both `gen1-node.js` and `gen2-node.js` now set `node.closing = true` in their `close` handler and short-circuit the init IIFE, its retry interval, and the polling loop in `shelly/lib/shelly.js` when that flag is set.
 - **Callback-mode misconfiguration is now visible.** Selecting "callback" mode in the UI without binding a `shelly-gen*-server` config node used to silently downgrade to polling. The node now emits `node.warn(...)` and shows a yellow "No server: polling" status badge before falling back, so the misconfiguration is debuggable instead of mysterious. (Gen 2 used to crash later on `node.server.port` access; that path is now caught up front.)
 
 ## [11.9.4] - 2026-05-11
+
 ### Re-enabled the husky pre-commit lint gate
+
 - The project was upgraded to husky v8 in devDependencies but kept the husky v4-style `"husky": { "hooks": { ... } }` block in `package.json`, which v8 ignores. There was no `.husky/` directory and no `prepare` script, so the pre-commit lint gate had been silently disabled — which is why formatting drift accumulated on master.
 - Added a `prepare` script that runs `husky install` on `npm install`, dropped the obsolete v4 config block, and committed `.husky/pre-commit` so contributors get the gate automatically after a fresh clone + install.
 
 ## [11.9.3] - 2026-05-11
+
 ### Cleanup: restored lint, fixed misleading error reporting
+
 - `npm run lint` is green again. Removed an unused `const { hostname } = require('os')` import in `gen2-node.js` and applied prettier across the package (whitespace / line-ending drift had accumulated on master, bypassing the husky pre-commit gate).
 - `ShellyGen2ServerNode` reported "Shelly gen1 server failed to start" on port errors (copy-paste). Now says gen2.
 - The cloud node status badge displayed `[object Object]` on errors. Now shows `error.message`.
 - Three `node.error(text, error)` call sites passed the error as a second arg, which Node-RED silently drops. They now concatenate `error.message` into the message string so it actually surfaces.
 
 ## [11.9.2] - 2026-05-11
+
 ### Fixed three logic bugs in the gen 1 node
+
 - Webhook uninstall was scanning the wrong index: the inner URL loop used the outer hook index (`urls[i]` instead of `urls[j]`), so when a hook had more than one URL, own-webhook detection failed and stale webhooks accumulated on the device after every redeploy.
 - RGBW init reported success regardless of webhook install result because `initializer1WebhookAsync` was called without `await`, so the retry-on-failure path was never taken for RGBW devices.
 - TRV `scheduleProfile` range check was `>=1 || <=5` (always true). Out-of-range values were forwarded to the device. Changed to `&&`.
 
 ## [11.9.1] - 2026-05-11
+
 ### Fixed missed online/offline transition on first poll cycle
+
 - `start()` in `shelly/lib/shelly.js` called `shellyPing` without awaiting it, so `node.online` was assigned a Promise. The subsequent `node.online === false` / `=== true` comparisons were never true, so the first reachability transition (and its `msg.error` notification when the device first goes offline) was silently dropped.
 
 ## [11.9.0] - 2026-05-11
+
 ### Dropped EOL Node versions and removed deprecated dependency shims
+
 - Bumped minimum Node.js to >=20 (Node 16 and 18 are EOL).
 - Updated CI matrix to Node 20.x and 22.x (the previous matrix had a `20,x` typo that broke the Node 20 entry).
 - Bumped npm-publish workflow to Node 20.
 - Removed the `crypto` and `path` dependencies. Both are deprecated userland shims of built-in Node modules; the code already uses the built-ins via `require('crypto')` / `require('path')`.
 
 ## [11.8.0] - 2026-03-15
+
 ### On error the node will send a msg.error (polling) - [#168](https://github.com/windkh/node-red-contrib-shelly/issues/168)
 
 ## [11.7.6] - 2026-03-15
+
 ### Fixed polling output for gen1 when offline - [#232](https://github.com/windkh/node-red-contrib-shelly/issues/232)
 
 ## [11.7.5] - 2026-02-15
+
 ### Added S3PL-30110EU - [#241](https://github.com/windkh/node-red-contrib-shelly/issues/241)
 
 ## [11.7.4] - 2026-01-21
+
 ### Add exception handling to callback script - [#239](https://github.com/windkh/node-red-contrib-shelly/pull/239)
 
 ## [11.7.3] - 2026-01-14
+
 ### Code Cleanup - added missing devices
 
 ## [11.7.2] - 2026-01-11
-###  fixed wrong script path - [#236](https://github.com/windkh/node-red-contrib-shelly/issues/236)
+
+### fixed wrong script path - [#236](https://github.com/windkh/node-red-contrib-shelly/issues/236)
 
 ## [11.7.1] - 2026-01-11
-###  added Shelly Plus US - [#235](https://github.com/windkh/node-red-contrib-shelly/issues/235)
+
+### added Shelly Plus US - [#235](https://github.com/windkh/node-red-contrib-shelly/issues/235)
 
 ## [11.7.0] - 2025-12-14
+
 ### Refactored code: split code into several files. Warning this is a beta! Testing is required!
 
 ## [11.6.9] - 2025-09-28
-###  added Pro 4pm V3 - [#226](https://github.com/windkh/node-red-contrib-shelly/issues/226)
+
+### added Pro 4pm V3 - [#226](https://github.com/windkh/node-red-contrib-shelly/issues/226)
 
 ## [11.6.8] - 2025-09-28
-###  added gen 4 devices - [#223](https://github.com/windkh/node-red-contrib-shelly/issues/223)
+
+### added gen 4 devices - [#223](https://github.com/windkh/node-red-contrib-shelly/issues/223)
 
 ## [11.6.7] - 2025-09-01
-###  fixed Shelly Walldisplay X2 gen - [#221](https://github.com/windkh/node-red-contrib-shelly/issues/221)
+
+### fixed Shelly Walldisplay X2 gen - [#221](https://github.com/windkh/node-red-contrib-shelly/issues/221)
 
 ## [11.6.6] - 2025-08-25
-###  added Shelly Walldisplay X2 - [#221](https://github.com/windkh/node-red-contrib-shelly/issues/221)
+
+### added Shelly Walldisplay X2 - [#221](https://github.com/windkh/node-red-contrib-shelly/issues/221)
 
 ## [11.6.5] - 2025-08-11
-###  added Shelly Ogemray 25A - [#220](https://github.com/windkh/node-red-contrib-shelly/issues/220)
-###  added Shelly 2PM Gen4 - [#219](https://github.com/windkh/node-red-contrib-shelly/issues/219)
+
+### added Shelly Ogemray 25A - [#220](https://github.com/windkh/node-red-contrib-shelly/issues/220)
+
+### added Shelly 2PM Gen4 - [#219](https://github.com/windkh/node-red-contrib-shelly/issues/219)
 
 ## [11.6.4] - 2025-07-06
-###  added Shelly 2L Gen3 - [#215](https://github.com/windkh/node-red-contrib-shelly/issues/215)
-###  added Shelly Shelly Pro RGBWW PM - [#217](https://github.com/windkh/node-red-contrib-shelly/issues/217)
+
+### added Shelly 2L Gen3 - [#215](https://github.com/windkh/node-red-contrib-shelly/issues/215)
+
+### added Shelly Shelly Pro RGBWW PM - [#217](https://github.com/windkh/node-red-contrib-shelly/issues/217)
 
 ## [11.6.3] - 2025-07-02
-###  added Shelly Gen3 shutter
+
+### added Shelly Gen3 shutter
 
 ## [11.6.2] - 2025-06-27
-###  filtered more events in callback script - [#214](https://github.com/windkh/node-red-contrib-shelly/issues/214)
+
+### filtered more events in callback script - [#214](https://github.com/windkh/node-red-contrib-shelly/issues/214)
 
 ## [11.6.1] - 2025-05-20
-###  fixed Shelly Gen4 devices - [#211](https://github.com/windkh/node-red-contrib-shelly/issues/211)
+
+### fixed Shelly Gen4 devices - [#211](https://github.com/windkh/node-red-contrib-shelly/issues/211)
 
 ## [11.6.0] - 2025-05-18
-###  added Shelly Gen4 devices - [#211](https://github.com/windkh/node-red-contrib-shelly/issues/211)
+
+### added Shelly Gen4 devices - [#211](https://github.com/windkh/node-red-contrib-shelly/issues/211)
 
 ## [11.5.10] - 2025-05-01
-###  added Shelly Outdoor Plug S Gen3 - [#208](https://github.com/windkh/node-red-contrib-shelly/issues/208)
+
+### added Shelly Outdoor Plug S Gen3 - [#208](https://github.com/windkh/node-red-contrib-shelly/issues/208)
 
 ## [11.5.9] - 2025-04-17
-###  added Shelly AZ Plug - [#206](https://github.com/windkh/node-red-contrib-shelly/issues/206)
+
+### added Shelly AZ Plug - [#206](https://github.com/windkh/node-red-contrib-shelly/issues/206)
 
 ## [11.5.8] - 2025-04-17
-###  added Shelly Pro Dimmer 0/1-10V PM - [#207](https://github.com/windkh/node-red-contrib-shelly/issues/207)
+
+### added Shelly Pro Dimmer 0/1-10V PM - [#207](https://github.com/windkh/node-red-contrib-shelly/issues/207)
 
 ## [11.5.7] - 2025-03-30
-###  added Shelly 3EM-63 Gen3 - [#203](https://github.com/windkh/node-red-contrib-shelly/issues/203)
+
+### added Shelly 3EM-63 Gen3 - [#203](https://github.com/windkh/node-red-contrib-shelly/issues/203)
 
 ## [11.5.6] - 2025-01-10
-###  fixed config - [#198](https://github.com/windkh/node-red-contrib-shelly/issues/198)
-###  fixed config - [#199](https://github.com/windkh/node-red-contrib-shelly/issues/199)
+
+### fixed config - [#198](https://github.com/windkh/node-red-contrib-shelly/issues/198)
+
+### fixed config - [#199](https://github.com/windkh/node-red-contrib-shelly/issues/199)
 
 ## [11.5.5] - 2025-01-05
-###  added Shelly EM Gen3 - [#196](https://github.com/windkh/node-red-contrib-shelly/issues/196)
+
+### added Shelly EM Gen3 - [#196](https://github.com/windkh/node-red-contrib-shelly/issues/196)
 
 ## [11.5.4] - 2024-11-23
-###  tried to fix crash with gen2 empty input - [#194](https://github.com/windkh/node-red-contrib-shelly/issues/194)
+
+### tried to fix crash with gen2 empty input - [#194](https://github.com/windkh/node-red-contrib-shelly/issues/194)
 
 ## [11.5.3] - 2024-11-23
-###  added Shelly Blu Gateways Gen3 - [#191](https://github.com/windkh/node-red-contrib-shelly/issues/191)
+
+### added Shelly Blu Gateways Gen3 - [#191](https://github.com/windkh/node-red-contrib-shelly/issues/191)
 
 ## [11.5.2] - 2024-11-11
-###  added Shelly 2PM Gen3 - [#190](https://github.com/windkh/node-red-contrib-shelly/issues/190)
-###  improved readme for RGBW - [#189](https://github.com/windkh/node-red-contrib-shelly/issues/189)
+
+### added Shelly 2PM Gen3 - [#190](https://github.com/windkh/node-red-contrib-shelly/issues/190)
+
+### improved readme for RGBW - [#189](https://github.com/windkh/node-red-contrib-shelly/issues/189)
 
 ## [11.5.1] - 2024-11-04
-###  added Shelly Pro 1 UL - [#188](https://github.com/windkh/node-red-contrib-shelly/issues/188)
+
+### added Shelly Pro 1 UL - [#188](https://github.com/windkh/node-red-contrib-shelly/issues/188)
 
 ## [11.5.0] - 2024-10-20
-###  msg.payload can be an array of commands (gen2 only) - [#184](https://github.com/windkh/node-red-contrib-shelly/issues/184)
+
+### msg.payload can be an array of commands (gen2 only) - [#184](https://github.com/windkh/node-red-contrib-shelly/issues/184)
 
 ## [11.4.2] - 2024-10-20
-###  support for shelly bulb rgbw - [#185](https://github.com/windkh/node-red-contrib-shelly/issues/185)
+
+### support for shelly bulb rgbw - [#185](https://github.com/windkh/node-red-contrib-shelly/issues/185)
 
 ## [11.4.0] - 2024-10-04
-###  support for shelly RC button 4 - [#181](https://github.com/windkh/node-red-contrib-shelly/issues/181)
+
+### support for shelly RC button 4 - [#181](https://github.com/windkh/node-red-contrib-shelly/issues/181)
 
 ## [11.3.0] - 2024-09-27
-###  removed all promises 
+
+### removed all promises
 
 ## [11.2.0] - 2024-09-19
-###  all gen2+ devices can act as blu gateway - [#164](https://github.com/windkh/node-red-contrib-shelly/issues/164)
+
+### all gen2+ devices can act as blu gateway - [#164](https://github.com/windkh/node-red-contrib-shelly/issues/164)
 
 ## [11.1.1] - 2024-09-19
-###  added Shelly Pro 2 UL - [#179](https://github.com/windkh/node-red-contrib-shelly/issues/179)
+
+### added Shelly Pro 2 UL - [#179](https://github.com/windkh/node-red-contrib-shelly/issues/179)
 
 ## [11.1.0] - 2024-09-19
-###  fixed callback - [#178](https://github.com/windkh/node-red-contrib-shelly/issues/178)
+
+### fixed callback - [#178](https://github.com/windkh/node-red-contrib-shelly/issues/178)
 
 ## [11.0.0] - 2024-09-16
-###  updated dependencies - [#176](https://github.com/windkh/node-red-contrib-shelly/issues/176)
+
+### updated dependencies - [#176](https://github.com/windkh/node-red-contrib-shelly/issues/176)
 
 ## [10.29.0] - 2024-09-08
-###  added suport for shelly plus RGBW PM - [#167](https://github.com/windkh/node-red-contrib-shelly/issues/167)
+
+### added suport for shelly plus RGBW PM - [#167](https://github.com/windkh/node-red-contrib-shelly/issues/167)
 
 ## [10.28.4] - 2024-09-08
-###  fixed port number validation - [#170](https://github.com/windkh/node-red-contrib-shelly/issues/170)
+
+### fixed port number validation - [#170](https://github.com/windkh/node-red-contrib-shelly/issues/170)
 
 ## [10.28.3] - 2024-08-07
-###  added new device type SPSW-201PE15UL - [#173](https://github.com/windkh/node-red-contrib-shelly/issues/173)
+
+### added new device type SPSW-201PE15UL - [#173](https://github.com/windkh/node-red-contrib-shelly/issues/173)
 
 ## [10.28.2] - 2024-08-07
-###  fixed Error Connection reset when status is sent after a command - [#172](https://github.com/windkh/node-red-contrib-shelly/issues/172)
+
+### fixed Error Connection reset when status is sent after a command - [#172](https://github.com/windkh/node-red-contrib-shelly/issues/172)
 
 ## [10.28.1] - 2024-07-12
-###  fixed initializers - [#165](https://github.com/windkh/node-red-contrib-shelly/issues/165)
+
+### fixed initializers - [#165](https://github.com/windkh/node-red-contrib-shelly/issues/165)
 
 ## [10.27.3] - 2024-07-08
-###  2nd attempt to fix - [#163](https://github.com/windkh/node-red-contrib-shelly/issues/163)
+
+### 2nd attempt to fix - [#163](https://github.com/windkh/node-red-contrib-shelly/issues/163)
 
 ## [10.27.2] - 2024-07-08
-###  fixed combobox in config dialog
+
+### fixed combobox in config dialog
 
 ## [10.27.1] - 2024-07-08
-###  Fixed gen 1 strict mode - [#163](https://github.com/windkh/node-red-contrib-shelly/issues/163)
+
+### Fixed gen 1 strict mode - [#163](https://github.com/windkh/node-red-contrib-shelly/issues/163)
 
 ## [10.27.0] - 2024-07-07
-###  refactored requests to avoid unhandled exceptions 
-###  added auto detect feature in the configuration dialog
+
+### refactored requests to avoid unhandled exceptions
+
+### added auto detect feature in the configuration dialog
 
 ## [10.26.2] - 2024-07-07
-###  added SPSW-201PE16EU - [#162](https://github.com/windkh/node-red-contrib-shelly/issues/162)
-###  added SNSW-102P16EU  - [#161](https://github.com/windkh/node-red-contrib-shelly/issues/161)
+
+### added SPSW-201PE16EU - [#162](https://github.com/windkh/node-red-contrib-shelly/issues/162)
+
+### added SNSW-102P16EU - [#161](https://github.com/windkh/node-red-contrib-shelly/issues/161)
 
 ## [10.26.0] - 2024-06-30
-###  added verbose logging - [#130](https://github.com/windkh/node-red-contrib-shelly/issues/130)
-###  every node has an own axios instance now to fix #157
+
+### added verbose logging - [#130](https://github.com/windkh/node-red-contrib-shelly/issues/130)
+
+### every node has an own axios instance now to fix #157
 
 ## [10.25.2] - 2024-06-24
-###  fixed gen 3 problems: device was not detected correctly - [#159](https://github.com/windkh/node-red-contrib-shelly/issues/159)
+
+### fixed gen 3 problems: device was not detected correctly - [#159](https://github.com/windkh/node-red-contrib-shelly/issues/159)
 
 ## [10.25.1] - 2024-06-15
-###  added unique timeouts to hunt down issue 157 - [#157](https://github.com/windkh/node-red-contrib-shelly/issues/157)
+
+### added unique timeouts to hunt down issue 157 - [#157](https://github.com/windkh/node-red-contrib-shelly/issues/157)
 
 ## [10.25.0] - 2024-06-02
-###  added strict mode for device mode detection.
+
+### added strict mode for device mode detection.
 
 ## [10.24.1] - 2024-06-01
-###  support for shelly wall display (relay) - [#155](https://github.com/windkh/node-red-contrib-shelly/issues/155)
-###  devices are checked for their type during start up
+
+### support for shelly wall display (relay) - [#155](https://github.com/windkh/node-red-contrib-shelly/issues/155)
+
+### devices are checked for their type during start up
 
 ## [10.24.0] - 2024-06-01
-###  added support for dimmer plus 0-10V - [#154](https://github.com/windkh/node-red-contrib-shelly/issues/154)
-###  added configuration file for all known shelly types
+
+### added support for dimmer plus 0-10V - [#154](https://github.com/windkh/node-red-contrib-shelly/issues/154)
+
+### added configuration file for all known shelly types
 
 ## [10.23.0] - 2024-04-19
-###  fixed roller problems when position is 0 - [#153](https://github.com/windkh/node-red-contrib-shelly/issues/153)
+
+### fixed roller problems when position is 0 - [#153](https://github.com/windkh/node-red-contrib-shelly/issues/153)
 
 ## [10.22.0] - 2024-04-07
-###  fixed dimmer problems when brightness is 0 - [#150](https://github.com/windkh/node-red-contrib-shelly/issues/150)
+
+### fixed dimmer problems when brightness is 0 - [#150](https://github.com/windkh/node-red-contrib-shelly/issues/150)
 
 ## [10.21.0] - 2024-03-17
-###  added support for shelly wall display
+
+### added support for shelly wall display
 
 ## [10.20.0] - 2024-03-17
-###  added support for shelly uni plus - [#144](https://github.com/windkh/node-red-contrib-shelly/issues/144)
+
+### added support for shelly uni plus - [#144](https://github.com/windkh/node-red-contrib-shelly/issues/144)
 
 ## [10.19.0] - 2024-03-16
-###  support for gen 3 shelly 1PM Mini and H&T gen3
+
+### support for gen 3 shelly 1PM Mini and H&T gen3
 
 ## [10.18.0] - 2024-03-12
-###  improved msg.payload checking - [#143](https://github.com/windkh/node-red-contrib-shelly/issues/143)
+
+### improved msg.payload checking - [#143](https://github.com/windkh/node-red-contrib-shelly/issues/143)
 
 ## [10.17.0] - 2024-03-12
-###  gen 2 script ignores power and current changes - [#142](https://github.com/windkh/node-red-contrib-shelly/issues/142)
+
+### gen 2 script ignores power and current changes - [#142](https://github.com/windkh/node-red-contrib-shelly/issues/142)
 
 ## [10.16.1] - 2023-12-03
-###  Improved uninstalling script from blu gateway
+
+### Improved uninstalling script from blu gateway
 
 ## [10.16.0] - 2023-12-03
-###  gen 2 fixed deleting script - [#137](https://github.com/windkh/node-red-contrib-shelly/issues/137)
+
+### gen 2 fixed deleting script - [#137](https://github.com/windkh/node-red-contrib-shelly/issues/137)
 
 ## [10.15.0] - 2023-10-31
-###  added support blu gateway - [#136](https://github.com/windkh/node-red-contrib-shelly/issues/136)
+
+### added support blu gateway - [#136](https://github.com/windkh/node-red-contrib-shelly/issues/136)
 
 ## [10.14.3] - 2023-10-31
-###  2nd attempt to fix webhook problems next gen 2 fw - [#129](https://github.com/windkh/node-red-contrib-shelly/issues/129)
+
+### 2nd attempt to fix webhook problems next gen 2 fw - [#129](https://github.com/windkh/node-red-contrib-shelly/issues/129)
 
 ## [10.14.2] - 2023-10-05
-###  added support for shelly plus wall dimmer - [#131](https://github.com/windkh/node-red-contrib-shelly/issues/131)
+
+### added support for shelly plus wall dimmer - [#131](https://github.com/windkh/node-red-contrib-shelly/issues/131)
 
 ## [10.14.1] - 2023-10-05
-###  install webhook problems fixed with next gen 2 fw - [#129](https://github.com/windkh/node-red-contrib-shelly/issues/129)
+
+### install webhook problems fixed with next gen 2 fw - [#129](https://github.com/windkh/node-red-contrib-shelly/issues/129)
 
 ## [10.14.0] - 2023-10-04
-###  upload script problems fixed with next gen 2 fw - [#128](https://github.com/windkh/node-red-contrib-shelly/issues/128)
+
+### upload script problems fixed with next gen 2 fw - [#128](https://github.com/windkh/node-red-contrib-shelly/issues/128)
 
 ## [10.13.8] - 2023-09-29
-###  added support for shelly plus 1 mini - [#127](https://github.com/windkh/node-red-contrib-shelly/issues/127)
+
+### added support for shelly plus 1 mini - [#127](https://github.com/windkh/node-red-contrib-shelly/issues/127)
 
 ## [10.13.7] - 2023-08-30
-###  added further properties to all_status
+
+### added further properties to all_status
 
 ## [10.13.6] - 2023-08-..
-###  added support for the shelly cloud "status_all" command which gives a listing of all devices with their status
+
+### added support for the shelly cloud "status_all" command which gives a listing of all devices with their status
 
 ## [10.13.5] - 2023-06-13
+
 ## [10.13.4] - 2023-06-13
-###  added support for shelly plus wall dimmer - [#115](https://github.com/windkh/node-red-contrib-shelly/issues/115)
+
+### added support for shelly plus wall dimmer - [#115](https://github.com/windkh/node-red-contrib-shelly/issues/115)
 
 ## [10.13.3] - 2023-04-11
-###  added support for shelly pro EM - [#112](https://github.com/windkh/node-red-contrib-shelly/issues/112)
+
+### added support for shelly pro EM - [#112](https://github.com/windkh/node-red-contrib-shelly/issues/112)
 
 ## [10.13.2] - 2023-03-27
-###  added timer for dimmer - [#113](https://github.com/windkh/node-red-contrib-shelly/issues/113)
+
+### added timer for dimmer - [#113](https://github.com/windkh/node-red-contrib-shelly/issues/113)
 
 ## [10.13.1] - 2023-02-21
-###  added support for Plus Plug S, Plus Smoke
+
+### added support for Plus Plug S, Plus Smoke
 
 ## [10.13.0] - 2023-02-19
-###  fixed Basic auth header for TRV - [#108](https://github.com/windkh/node-red-contrib-shelly/issues/108)
+
+### fixed Basic auth header for TRV - [#108](https://github.com/windkh/node-red-contrib-shelly/issues/108)
 
 ## [10.12.1] - 2023-02-18
-###  replaced replace function - [#108](https://github.com/windkh/node-red-contrib-shelly/issues/108)
+
+### replaced replace function - [#108](https://github.com/windkh/node-red-contrib-shelly/issues/108)
 
 ## [10.12.0] - 2022-28-12
-###  Added support gen 2 add on
+
+### Added support gen 2 add on
 
 ## [10.11.0] - 2022-12-08
-###  Added support for IP detection in server nodes
+
+### Added support for IP detection in server nodes
 
 ## [10.10.0] - 2022-11-27
-###  added new porperty ext for shelly gen 1 - [#90](https://github.com/windkh/node-red-contrib-shelly/issues/90)
-###  added new porperty ext for shelly gen 1 - [#104](https://github.com/windkh/node-red-contrib-shelly/issues/104)
+
+### added new porperty ext for shelly gen 1 - [#90](https://github.com/windkh/node-red-contrib-shelly/issues/90)
+
+### added new porperty ext for shelly gen 1 - [#104](https://github.com/windkh/node-red-contrib-shelly/issues/104)
 
 ## [10.9.1] - 2022-11-01
-###  fixed package.json
+
+### fixed package.json
 
 ## [10.9.0] - 2022-11-01
-###  reverted path require from 10.7.0 - [#101](https://github.com/windkh/node-red-contrib-shelly/issues/101)
+
+### reverted path require from 10.7.0 - [#101](https://github.com/windkh/node-red-contrib-shelly/issues/101)
 
 ## [10.8.0] - 2022-10-31
-###  partially reverted changes from 10.7.0 - [#101](https://github.com/windkh/node-red-contrib-shelly/issues/101)
+
+### partially reverted changes from 10.7.0 - [#101](https://github.com/windkh/node-red-contrib-shelly/issues/101)
 
 ## [10.7.0] - 2022-10-29
-###  replaced crypto package - [#99](https://github.com/windkh/node-red-contrib-shelly/issues/99)
-###  replaced fs package - [#96](https://github.com/windkh/node-red-contrib-shelly/issues/96)
+
+### replaced crypto package - [#99](https://github.com/windkh/node-red-contrib-shelly/issues/99)
+
+### replaced fs package - [#96](https://github.com/windkh/node-red-contrib-shelly/issues/96)
 
 ## [10.6.0] - 2022-10-28
-###  added try catch when axios is called - [#98](https://github.com/windkh/node-red-contrib-shelly/issues/98)
+
+### added try catch when axios is called - [#98](https://github.com/windkh/node-red-contrib-shelly/issues/98)
 
 ## [10.5.0] - 2022-10-15
-###  Webhooks and scripts are automatically removed when switchingback to polling or none - [#83](https://github.com/windkh/node-red-contrib-shelly/issues/83)
+
+### Webhooks and scripts are automatically removed when switchingback to polling or none - [#83](https://github.com/windkh/node-red-contrib-shelly/issues/83)
 
 ## [10.4.0] - 2022-10-08
-###  Added throttle mode to cloud node - [#92](https://github.com/windkh/node-red-contrib-shelly/issues/92)
-###  Status can be polled using cloud node
+
+### Added throttle mode to cloud node - [#92](https://github.com/windkh/node-red-contrib-shelly/issues/92)
+
+### Status can be polled using cloud node
 
 ## [10.3.0] - 2022-10-08
-###  SHEM3 can be used as relay
-###  Gen2 Switches fixed
+
+### SHEM3 can be used as relay
+
+### Gen2 Switches fixed
 
 ## [10.2.0] - 2022-10-08
-###  Added SHPLG2-1 - [#95](https://github.com/windkh/node-red-contrib-shelly/issues/95)
+
+### Added SHPLG2-1 - [#95](https://github.com/windkh/node-red-contrib-shelly/issues/95)
 
 ## [10.1.0] - 2022-10-09
-###  Fixed webhook problem - [#94](https://github.com/windkh/node-red-contrib-shelly/issues/94)
-###  Fixed EM problems 
+
+### Fixed webhook problem - [#94](https://github.com/windkh/node-red-contrib-shelly/issues/94)
+
+### Fixed EM problems
 
 ## [10.0.0] - 2022-10-07
-###  Breaking change in cloud API - [#29](https://github.com/windkh/node-red-contrib-shelly/issues/29)
+
+### Breaking change in cloud API - [#29](https://github.com/windkh/node-red-contrib-shelly/issues/29)
 
 ## [9.17.0] - 2022-10-06
-###  Added support for cloud API - [#29](https://github.com/windkh/node-red-contrib-shelly/issues/29)
+
+### Added support for cloud API - [#29](https://github.com/windkh/node-red-contrib-shelly/issues/29)
 
 ## [9.16.1] - 2022-10-04
-###  First version of cloud node: status can be retrieved now
+
+### First version of cloud node: status can be retrieved now
 
 ## [9.16.0] - 2022-09-18
-###  fixed webhook for TRV and Motion: the devices support intervals and must be configured in a different way.
+
+### fixed webhook for TRV and Motion: the devices support intervals and must be configured in a different way.
 
 ## [9.15.0] - 2022-09-16
-###  fixed examples - [#89](https://github.com/windkh/node-red-contrib-shelly/issues/89)
+
+### fixed examples - [#89](https://github.com/windkh/node-red-contrib-shelly/issues/89)
 
 ## [9.14.0] - 2022-09-05
-###  fixed RGBW2: mode removed - [#88](https://github.com/windkh/node-red-contrib-shelly/issues/88)
+
+### fixed RGBW2: mode removed - [#88](https://github.com/windkh/node-red-contrib-shelly/issues/88)
 
 ## [9.13.0] - 2022-09-04
-###  added callback support for I3 - [#69](https://github.com/windkh/node-red-contrib-shelly/issues/69)
+
+### added callback support for I3 - [#69](https://github.com/windkh/node-red-contrib-shelly/issues/69)
 
 ## [9.12.0] - 2022-09-04
-###  fixed gen 2 authentication: Digest auth is used now - [#79](https://github.com/windkh/node-red-contrib-shelly/issues/79)
-###  fixed - [#87](https://github.com/windkh/node-red-contrib-shelly/issues/87)
+
+### fixed gen 2 authentication: Digest auth is used now - [#79](https://github.com/windkh/node-red-contrib-shelly/issues/79)
+
+### fixed - [#87](https://github.com/windkh/node-red-contrib-shelly/issues/87)
 
 ## [9.11.0] - 2022-09-03
-###  added webhook support for Shelly Button 1 - [#85](https://github.com/windkh/node-red-contrib-shelly/issues/85)
+
+### added webhook support for Shelly Button 1 - [#85](https://github.com/windkh/node-red-contrib-shelly/issues/85)
 
 ## [9.10.0] - 2022-09-03
-###  fixed - [#84](https://github.com/windkh/node-red-contrib-shelly/issues/84)
+
+### fixed - [#84](https://github.com/windkh/node-red-contrib-shelly/issues/84)
 
 ## [9.9.0] - 2022-09-02
-###  fixed bug in 9.8.0
+
+### fixed bug in 9.8.0
 
 ## [9.8.0] - 2022-09-02
-###  added webhook support for gen1 sensors to avoid polling - [#60](https://github.com/windkh/node-red-contrib-shelly/issues/60)
+
+### added webhook support for gen1 sensors to avoid polling - [#60](https://github.com/windkh/node-red-contrib-shelly/issues/60)
 
 ## [9.7.0] - 2022-09-02
-###  added support for Shelly Plus H&T - [#71](https://github.com/windkh/node-red-contrib-shelly/issues/71)
+
+### added support for Shelly Plus H&T - [#71](https://github.com/windkh/node-red-contrib-shelly/issues/71)
 
 ## [9.6.0] - 2022-08-26
-###  fixed - [#81](https://github.com/windkh/node-red-contrib-shelly/issues/81)
+
+### fixed - [#81](https://github.com/windkh/node-red-contrib-shelly/issues/81)
 
 ## [9.5.0] - 2022-07-18
-###  added support for SNPL US version - [#78](https://github.com/windkh/node-red-contrib-shelly/issues/78)
+
+### added support for SNPL US version - [#78](https://github.com/windkh/node-red-contrib-shelly/issues/78)
 
 ## [9.4.0] - 2022-06-30
-###  fixed - [#77](https://github.com/windkh/node-red-contrib-shelly/issues/77)
+
+### fixed - [#77](https://github.com/windkh/node-red-contrib-shelly/issues/77)
 
 ## [9.3.1] - 2022-06-06
+
 ### added hostname to gen 2 server to support node-red running insode docker.
 
 ## [9.2.0] - 2022-04-30
+
 ### fixed - [#74](https://github.com/windkh/node-red-contrib-shelly/issues/74)
 
 ## [9.1.0] - 2022-04-30
+
 ### fixed - [#74](https://github.com/windkh/node-red-contrib-shelly/issues/74)
 
 ## [9.0.0] - 2022-05-29
+
 ### added callback support for Plus I4
 
 ## [8.2.0] - 2022-04-27
+
 ### added support for Plus I4 - [#56](https://github.com/windkh/node-red-contrib-shelly/issues/56)
 
 ## [8.1.0] - 2022-04-18
+
 ### added pro models to supported gen 2 devices - [#66](https://github.com/windkh/node-red-contrib-shelly/issues/66)
 
 ## [8.0.0] - 2022-03-31
+
 ### full shelly gen 2 rpc protocol support. See example in examples folder.
 
 ## [7.3.0] - 2022-03-26
+
 ### fixed emeters output - [#63](https://github.com/windkh/node-red-contrib-shelly/issues/63)
 
 ## [7.2.0] - 2022-03-23
+
 ### added support for setting attributes - [#62](https://github.com/windkh/node-red-contrib-shelly/issues/62)
 
 ## [7.1.1] - 2022-03-11
+
 ### code cleanup.
 
 ## [7.1.0] - 2022-03-11
+
 ### fixed bug when username and password was set.
 
 ## [7.0.0] - 2022-03-11
+
 ### Merged Shelly Plus 1PM node into new GEN 2 node - [#59](https://github.com/windkh/node-red-contrib-shelly/issues/59)
 
 ## [6.0.0] - 2022-03-10
+
 ### Merged RGBW node into new GEN 1 node - [#58](https://github.com/windkh/node-red-contrib-shelly/issues/58)
 
 ## [5.0.0] - 2022-03-10
+
 ### major refactoring - shelly gen 1 node replaces all relays and woller shutter nodes
 
 ## [4.8.0] - 2022-02-22
+
 ### username and password can be passed via msg.payload (like hostname)
 
 ## [4.7.1] - 2022-02-21
+
 ### fixed RGBW2 node - [#53](https://github.com/windkh/node-red-contrib-shelly/issues/53)
 
 ## [4.6.0] - 2022-02-20
+
 ### timer support for uni - [#35](https://github.com/windkh/node-red-contrib-shelly/issues/35)
 
 ## [4.5.0] - 2022-02-20
+
 ### timer is stopped after redeploy - [#46](https://github.com/windkh/node-red-contrib-shelly/issues/46)
 
 ## [4.4.0] - 2022-02-19
+
 ### added support for button I3 - [#50](https://github.com/windkh/node-red-contrib-shelly/issues/50)
-### experimental 
+
+### experimental
 
 ## [4.3.1] - 2022-02-13
+
 ### updated lock file
 
 ## [4.3.0] - 2022-02-13
+
 ### updated axios to 0.26.0
 
 ## [4.2.0] - 2022-02-09
+
 ### added support for shelly TRV - [#48](https://github.com/windkh/node-red-contrib-shelly/issues/48)
-### removed node red tags in package json 
+
+### removed node red tags in package json
 
 ## [4.1.4] - 2022-02-03
+
 ### changed node red to 1.3.7 and nodejs to 12.0.0
 
 ## [4.1.3] - 2022-02-03
+
 ### changed node red to 1.0 and nodejs to 10.0
 
 ## [4.1.2] - 2022-02-01
+
 ### updated axios dependency to 0.25.0
 
 ## [4.1.1] - 2022-02-01
+
 ### added missing node-red tags
 
 ## [4.1.0] - 2021-12-23
+
 ### Cyclically sending of status can be turned off - [#47](https://github.com/windkh/node-red-contrib-shelly/issues/47)
 
 ## [4.0.0] - 2021-12-22
+
 ### fixed - [#46](https://github.com/windkh/node-red-contrib-shelly/issues/46)
-All nodes will now send the status to the output when polling. Not only the color of the node is updated, 
-but also an object is sent. 
+
+All nodes will now send the status to the output when polling. Not only the color of the node is updated,
+but also an object is sent.
 
 ## [3.4.0] - 2021-12-12
+
 ### Motion sensor configuration adapted - [#45](https://github.com/windkh/node-red-contrib-shelly/issues/45)
 
 ## [3.3.0] - 2021-12-08
+
 ### RGBW2 mode can be dynamically switched - [#44](https://github.com/windkh/node-red-contrib-shelly/issues/44)
 
 ## [3.2.0] - 2021-11-28
+
 ### hostname can be passed via msg.payload - [#42](https://github.com/windkh/node-red-contrib-shelly/issues/42)
 
 ## [3.1.0] - 2021-11-28
+
 ### replaced deprecated dependency request with axios - [#39](https://github.com/windkh/node-red-contrib-shelly/issues/39)
 
 ## [2.2.0] - 2021-11-28
+
 ### Shelly 2.5 supports relay mode - [#43](https://github.com/windkh/node-red-contrib-shelly/issues/43)
 
 ## [2.1.1] - 2021-11-21
+
 ### Shelly (PM) 1 plus support (first generation 2 device) - [#41](https://github.com/windkh/node-red-contrib-shelly/issues/41)
 
 ## [2.0.1] - 2021-11-21
+
 ### ping does not crash node-red for gen 2 devices like Shelly PM 1 plus - [#41](https://github.com/windkh/node-red-contrib-shelly/issues/41)
 
 ## [2.0.0] - 2021-11-14
+
 ### removed config option sendFullStatus for motion and door - [#36](https://github.com/windkh/node-red-contrib-shelly/issues/36)
 
 ## [1.16.0] - 2021-11-14
+
 ### added support for downloading CSV files from Shelly EM - [#37](https://github.com/windkh/node-red-contrib-shelly/issues/37)
 
 ## [1.15.0] - 2021-11-11
+
 ### added support for shelly UNI - [#34](https://github.com/windkh/node-red-contrib-shelly/issues/34)
 
 ## [1.14.0] - 2021-11-09
+
 ### added support for shelly bulb Duo - [#32](https://github.com/windkh/node-red-contrib-shelly/issues/32)
 
 ## [1.13.0] - 2021-11-09
+
 ### added support for shelly bulb RGBW - [#32](https://github.com/windkh/node-red-contrib-shelly/issues/32)
 
 ## [1.12.0] - 2021-10-25
+
 ### fixed RGBW2 node: when empty payload is received then status is polled from device.
 
 ## [1.11.0] - 2021-10-08
+
 ### fixed auth problem with motion sensor - [#31](https://github.com/windkh/node-red-contrib-shelly/issues/31)
 
 ## [1.10.1] - 2021-09-09
+
 ### new release
 
 ## [1.10.0] - 2021-09-09
+
 ### Beta support for shelly EM. - [#26](https://github.com/windkh/node-red-contrib-shelly/issues/26)
 
 ## [1.9.5] - 2021-07-18
+
 ### reworked Motion node now supports extra outputs for motion detected and vibration detected.
 
 ## [1.9.4] - 2021-07-17
+
 ### reworked RGBW2 node now supports setting white and color mode from within the config node.
 
 ## [1.9.2] - 2021-07-13
+
 ### reworked RGBW2 node: white mode supported. - [#25](https://github.com/windkh/node-red-contrib-shelly/issues/25)
 
 ## [1.8.2] - 2021-07-11
+
 ### Beta support for shelly motion. - [#17](https://github.com/windkh/node-red-contrib-shelly/issues/17)
 
 ## [1.8.1] - 2021-07-11
+
 ### Added missing section in Shelly-RGBW2 html
 
 ## [1.8.0] - 2021-07-11
+
 ### Beta support for ShellyRGBW2 node (not fully tested). - [#25](https://github.com/windkh/node-red-contrib-shelly/issues/25)
 
 ## [1.7.2] - 2021-06-07
+
 ### Connection status is polled now. - [#12](https://github.com/windkh/node-red-contrib-shelly/issues/12)
 
 ## [1.7.1] - 2021-06-07
+
 ### Code cleanup, enhanced readme for RGBW2 node.
 
 ## [1.7.0] - 2021-05-30
+
 ### Added experimental RGBW node - [#14](https://github.com/windkh/node-red-contrib-shelly/issues/14)
 
 ## [1.6.1] - 2021-05-30
-### Added git workflows 
+
+### Added git workflows
 
 ## [1.6.0] - 2021-05-30
+
 ### Get status can be suppressed in hig hperformance scenarios: e.g. dimmer - [#21](https://github.com/windkh/node-red-contrib-shelly/issues/21)
 
 ## [1.5.3] - 2020-12-22
+
 ### Added status to msg when polling status - [#9](https://github.com/windkh/node-red-contrib-shelly/issues/9)
 
 ## [1.5.2] - 2020-12-22
+
 ### Added lternative toggle notation for switch - [#10](https://github.com/windkh/node-red-contrib-shelly/issues/10)
 
 ## [1.5.1] - 2020-12-22
+
 ### Added UNI support - [#11](https://github.com/windkh/node-red-contrib-shelly/issues/11)
 
 ## [1.5.0] - 2020-11-07
+
 ### Moved examples to correct folder.
 
 ## [1.4.0] - 2020-08-23
+
 ### removed check box in dimmer node for sending the full status object.
 
 ## [1.3.5] - 2020-08-23
+
 ### msg.status contains the original status now (for experts)
 
 ## [1.3.4] - 2020-08-23
+
 ### updated to latest request 2.88.2
 
 ## [1.3.3] - 2020-08-23
+
 ### merged pull request
- - msg properties are not lost. - [#7](https://github.com/windkh/node-red-contrib-shelly/issues/7)
- 
+
+- msg properties are not lost. - [#7](https://github.com/windkh/node-red-contrib-shelly/issues/7)
+
 ## [1.3.2]
+
 ### Added dimmer
 
 ## [1.3.1]
+
 ### Added roller shutter.
 
 ## [1.2.0]
+
 ### Added more options in configuration dialog.
 
 ## [1.2.0]
+
 ### Fixed bug when closing node on redeploy.
 
 ## [1.1.0]
+
 ### Added shelly door node.
 
 ## [1.0.0]
+
 ### Added shelly switch node with example flow.
 
 ## [0.1.0]
+
 ### Initial version: simple status node added.
 
 **Note:** The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).

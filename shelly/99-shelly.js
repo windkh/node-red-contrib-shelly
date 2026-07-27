@@ -14,14 +14,14 @@ module.exports = function (RED) {
     // ------------------------------------------------------------------------------------
     // Web server routes for the web configuration.
     RED.httpAdmin.get('/node-red-contrib-shelly-getidevicetypesgen1', function (req, res) {
-        let deviceTypeInfos = configuration.getDeviceTypeInfos('1');
+        const deviceTypeInfos = configuration.getDeviceTypeInfos('1');
         res.json(deviceTypeInfos);
     });
 
     RED.httpAdmin.get('/node-red-contrib-shelly-getidevicetypesgen2', function (req, res) {
-        let deviceTypeInfos2 = configuration.getDeviceTypeInfos('2');
-        let deviceTypeInfos3 = configuration.getDeviceTypeInfos('3');
-        let deviceTypeInfos4 = configuration.getDeviceTypeInfos('4');
+        const deviceTypeInfos2 = configuration.getDeviceTypeInfos('2');
+        const deviceTypeInfos3 = configuration.getDeviceTypeInfos('3');
+        const deviceTypeInfos4 = configuration.getDeviceTypeInfos('4');
         let deviceTypeInfos = deviceTypeInfos2;
         deviceTypeInfos = deviceTypeInfos.concat(deviceTypeInfos3);
         deviceTypeInfos = deviceTypeInfos.concat(deviceTypeInfos4);
@@ -29,14 +29,14 @@ module.exports = function (RED) {
     });
 
     RED.httpAdmin.get('/node-red-contrib-shelly-getipaddresses', function (req, res) {
-        let ipAddresses = shelly.getIPAddresses();
+        const ipAddresses = shelly.getIPAddresses();
         res.json(ipAddresses);
     });
 
     RED.httpAdmin.get('/node-red-contrib-shelly-getshellyinfo', async function (req, res) {
         let shellyInfo;
         try {
-            let hostname = utils.trim(req.query.hostname);
+            const hostname = utils.trim(req.query.hostname);
             shellyInfo = await shelly.getShellyInfo(hostname);
 
             // Generation 1 devices are mapped to gen2+ schema
@@ -45,11 +45,13 @@ module.exports = function (RED) {
                 shellyInfo.model = shellyInfo.type;
             }
 
-            let device = configuration.getDevice(shellyInfo.model);
+            const device = configuration.getDevice(shellyInfo.model);
             if (device) {
                 shellyInfo.device = device;
             }
-        } catch (error) {
+        } catch {
+            // Probing an arbitrary hostname from the config UI: unreachable or non-Shelly
+            // is the normal case, so report "nothing found" rather than surfacing an error.
             shellyInfo = {};
         }
 

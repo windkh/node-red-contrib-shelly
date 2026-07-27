@@ -19,7 +19,7 @@ describe('inputParserDimmer1Async', () => {
     it('appends brightness in range', async () => {
         assert.equal(
             await inputParserDimmer1Async({ payload: { on: true, brightness: 50 } }),
-            '/light/0?turn=on&brightness=50',
+            '/light/0?turn=on&brightness=50'
         );
     });
 
@@ -27,18 +27,18 @@ describe('inputParserDimmer1Async', () => {
         // Per the source: range is 1..100; out-of-range defaults to 100.
         assert.equal(
             await inputParserDimmer1Async({ payload: { on: true, brightness: 0 } }),
-            '/light/0?turn=on&brightness=100',
+            '/light/0?turn=on&brightness=100'
         );
         assert.equal(
             await inputParserDimmer1Async({ payload: { on: true, brightness: 200 } }),
-            '/light/0?turn=on&brightness=100',
+            '/light/0?turn=on&brightness=100'
         );
     });
 
     it('appends temp in valid range (2700..6500)', async () => {
         assert.equal(
             await inputParserDimmer1Async({ payload: { on: true, temp: 4000 } }),
-            '/light/0?turn=on&temp=4000',
+            '/light/0?turn=on&temp=4000'
         );
     });
 
@@ -51,7 +51,7 @@ describe('inputParserDimmer1Async', () => {
     it('appends transition in range', async () => {
         assert.equal(
             await inputParserDimmer1Async({ payload: { on: true, transition: 1000 } }),
-            '/light/0?turn=on&transition=1000',
+            '/light/0?turn=on&transition=1000'
         );
     });
 
@@ -61,14 +61,8 @@ describe('inputParserDimmer1Async', () => {
     });
 
     it('appends timer when >= 0', async () => {
-        assert.equal(
-            await inputParserDimmer1Async({ payload: { on: true, timer: 0 } }),
-            '/light/0?turn=on&timer=0',
-        );
-        assert.equal(
-            await inputParserDimmer1Async({ payload: { on: true, timer: 5 } }),
-            '/light/0?turn=on&timer=5',
-        );
+        assert.equal(await inputParserDimmer1Async({ payload: { on: true, timer: 0 } }), '/light/0?turn=on&timer=0');
+        assert.equal(await inputParserDimmer1Async({ payload: { on: true, timer: 5 } }), '/light/0?turn=on&timer=5');
     });
 
     it('skips timer when negative', async () => {
@@ -77,17 +71,11 @@ describe('inputParserDimmer1Async', () => {
     });
 
     it('appends dim and step', async () => {
-        assert.equal(
-            await inputParserDimmer1Async({ payload: { dim: 'up', step: 10 } }),
-            '/light/0?step=10&dim=up',
-        );
+        assert.equal(await inputParserDimmer1Async({ payload: { dim: 'up', step: 10 } }), '/light/0?step=10&dim=up');
     });
 
     it('selects the given light index', async () => {
-        assert.equal(
-            await inputParserDimmer1Async({ payload: { light: 1, on: true } }),
-            '/light/1?turn=on',
-        );
+        assert.equal(await inputParserDimmer1Async({ payload: { light: 1, on: true } }), '/light/1?turn=on');
     });
 
     it('builds the full bulb-duo style payload', async () => {
@@ -95,7 +83,7 @@ describe('inputParserDimmer1Async', () => {
             await inputParserDimmer1Async({
                 payload: { on: true, brightness: 80, white: 50, temp: 3000, transition: 200, timer: 60 },
             }),
-            '/light/0?turn=on&brightness=80&white=50&temp=3000&transition=200&timer=60',
+            '/light/0?turn=on&brightness=80&white=50&temp=3000&transition=200&timer=60'
         );
     });
 
