@@ -67,7 +67,7 @@
         "eslint": "^9.0.0",
         "eslint-config-prettier": "^9.0.0",
         "globals": "^17.8.0",
-        "husky": "^8.0.1",
+        "husky": "^9.1.7",
         "nock": "^14.0.10",
         "node-red-node-test-helper": "^0.3.4",
         "node-red-standards": "github:windkh/node-red-standards",
