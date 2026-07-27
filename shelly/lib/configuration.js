@@ -119,7 +119,8 @@ function isExactTypeGen1(deviceType) {
 const gen2DeviceTypes = new Map(config.gen2DeviceTypes);
 
 function getDeviceTypes2(deviceType, exactMatch) {
-    let deviceTypes = [];
+    // Both branches below assign, and the undefined case is normalised to [] afterwards.
+    let deviceTypes;
     if (exactMatch === true) {
         const deviceTypes2 = getDeviceModels('2', deviceType);
         const deviceTypes3 = getDeviceModels('3', deviceType);

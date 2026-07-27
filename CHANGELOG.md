@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [11.11.8] - 2026-07-27
+
+### ESLint 10, and the code cleanups it asked for
+
+The shared standard raised its baseline to ESLint 10 (node-red-standards 0.3.3), so `nrstd sync` now lifts `eslint`, `@eslint/js` and `eslint-config-prettier` to `^10`. ESLint 10's recommended set adds three rules that flagged 17 spots in `shelly/`; all are fixed, none changes behaviour.
+
+- **`no-unassigned-vars` (14×)** — the `let data; let params;` idiom that existed only to hand `undefined` to `shellyRequestAsync`'s optional `params`/`data` arguments, in [lib/shelly.js](shelly/lib/shelly.js), [gen1-node.js](shelly/nodes/gen1-node.js) and [gen2-node.js](shelly/nodes/gen2-node.js). Those call sites now pass `null` directly, matching the two call sites that always did. Verified against a mock device that the GET on the wire is byte-identical either way (method, URL, `Content-Type`, `Content-Length`, body). Also [parsers/sensor.js](shelly/nodes/gen1/parsers/sensor.js), which declared a `route` it never assigned; it now returns `undefined` explicitly, and its unused `utils` import and no-op `if` are gone.
+- **`no-useless-assignment` (2×)** — a dead `[]` initialiser in `getDeviceTypes2` ([configuration.js](shelly/lib/configuration.js)), where both branches assign and the undefined case is normalised afterwards; and a redundant `else { success = false; }` in `initializer1WebhookAsync` ([gen1-node.js](shelly/nodes/gen1-node.js)) that repeated the initialiser.
+- **`preserve-caught-error` (1×)** — the gen 2 error enrichment added in 11.10.1 built a new `Error` from a caught axios error and dropped the original. It now passes `{ cause: error }`, so the response, config and original stack stay reachable. The message is byte-identical, so anything reading `msg.error.error` is unaffected.
+
+`.gitattributes` was replaced with the standard's template version — same rules, and `nrstd sync` now reports it `unchanged` instead of drifting.
+
+Closes [#269](https://github.com/windkh/node-red-contrib-shelly/pull/269) and [#267](https://github.com/windkh/node-red-contrib-shelly/pull/267), which could not be merged individually: `@eslint/js@10` peers on `eslint@^10` so it alone would not install, while `eslint@10` alone stayed green only because the recommended set still came from `@eslint/js@9`.
+
+Note ESLint 10 requires Node `^20.19.0 || ^22.13.0 || >=24`. It is a devDependency, so this affects contributors only — `engines.node` stays at `>=20.0.0` and the runtime requirement is unchanged.
+
 ## [11.11.7] - 2026-07-27
 
 ### Dependency updates, husky 9, and LF normalisation

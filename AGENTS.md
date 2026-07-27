@@ -16,7 +16,12 @@
 
 ## Shared: Code style
 
-- Lint: ESLint flat config (`eslint.config.js`), ESLint >= 9. Run the lint script before committing.
+- Lint: ESLint flat config (`eslint.config.js`), ESLint >= 10. Run the lint script before committing.
+  `eslint` and `@eslint/js` must stay on the same major: `@eslint/js@10` peers on `eslint@^10`, and
+  pairing `eslint@10` with `@eslint/js@9` silently keeps the v9 recommended rule set.
+- ESLint 10's recommended set adds `no-unassigned-vars` and `no-useless-assignment`. Both are errors:
+  don't declare a binding only to pass `undefined` around, and don't assign a value no later
+  statement reads.
 - Format: Prettier (`.prettierrc.json`) — 4-space indent, single quotes, es5 trailing commas.
 - Target Node.js >= 20.
 - Avoid `var` — use `const`, or `let` only when the binding is reassigned (enforced by `no-var` / `prefer-const`).

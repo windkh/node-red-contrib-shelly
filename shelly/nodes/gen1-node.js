@@ -224,8 +224,6 @@ module.exports = function (RED) {
                 // nothing to do.
                 success = true;
             }
-        } else {
-            success = false;
         }
 
         return success;
@@ -515,29 +513,24 @@ module.exports = function (RED) {
         const getStatusRoute = '/status';
         if (route && route !== '') {
             try {
-                let data;
-                let params;
                 const body = await shelly.shellyRequestAsync(
                     node.axiosInstance,
                     'GET',
                     route,
-                    params,
-                    data,
+                    null,
+                    null,
                     credentials,
                     5010
                 );
 
                 if (node.getStatusOnCommand) {
                     try {
-                        let data;
-                        let params;
-
                         const body = await shelly.shellyRequestAsync(
                             node.axiosInstance,
                             'GET',
                             getStatusRoute,
-                            params,
-                            data,
+                            null,
+                            null,
                             credentials,
                             5011
                         );
@@ -574,14 +567,12 @@ module.exports = function (RED) {
             }
         } else {
             try {
-                let data;
-                let params;
                 const body = await shelly.shellyRequestAsync(
                     node.axiosInstance,
                     'GET',
                     getStatusRoute,
-                    params,
-                    data,
+                    null,
+                    null,
                     credentials,
                     5012
                 );

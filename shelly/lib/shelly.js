@@ -168,7 +168,9 @@ async function shellyRequestAsync(axiosInstance, method, route, params, data, cr
         if (error.response && error.response.data !== undefined) {
             const body =
                 typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data);
-            throw new Error(error.message + ' (' + config.url + '): ' + body);
+            // `cause` keeps the original axios error (response, config, stack) reachable instead of
+            // discarding it; the message stays byte-identical for callers that surface msg.error.
+            throw new Error(error.message + ' (' + config.url + '): ' + body, { cause: error });
         }
         throw error;
     }
@@ -239,14 +241,12 @@ async function shellyPing(node, credentials, types) {
 
     // gen 1 and gen 2 devices support this endpoint (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
     try {
-        let data;
-        let params;
         const body = await shellyRequestAsync(
             node.axiosInstance,
             'GET',
             '/shelly',
-            params,
-            data,
+            null,
+            null,
             credentials,
             node.pollInterval
         );

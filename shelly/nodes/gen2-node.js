@@ -574,14 +574,12 @@ module.exports = function (RED) {
 
                 if (node.getStatusOnCommand) {
                     route = getStatusRoute;
-                    let data;
-                    let params;
                     const body = await shelly.shellyRequestAsync(
                         node.axiosInstance,
                         'GET',
                         route,
-                        params,
-                        data,
+                        null,
+                        null,
                         credentials,
                         5021
                     );
@@ -599,14 +597,12 @@ module.exports = function (RED) {
                 }
             } else {
                 route = getStatusRoute;
-                let data;
-                let params;
                 const body = await shelly.shellyRequestAsync(
                     node.axiosInstance,
                     'GET',
                     route,
-                    params,
-                    data,
+                    null,
+                    null,
                     credentials,
                     5022
                 );
@@ -723,8 +719,8 @@ module.exports = function (RED) {
                 const requests = await node.inputParser(msg, node, credentials);
 
                 if (requests.length == 0) {
-                    let request; // here the request is undefined to trigger a simple get status.
-                    executeCommand2(msg, request, node, credentials);
+                    // undefined request triggers a plain get-status in executeCommand2.
+                    executeCommand2(msg, undefined, node, credentials);
                 } else {
                     requests.forEach((request) => {
                         executeCommand2(msg, request, node, credentials);
