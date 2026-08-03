@@ -26,16 +26,21 @@
 - Target Node.js >= 20.
 - Avoid `var` — use `const`, or `let` only when the binding is reassigned (enforced by `no-var` / `prefer-const`).
 - One statement per line — don't pack multiple instructions onto a single line; keep lines simple to read (enforced by `max-statements-per-line`).
-- Keep functions short, and read top to bottom in order of likelihood:
-    - **Preconditions first.** Check arguments at the top and leave immediately — throw where the
-      caller is code, or call the error path where the caller is a Node-RED flow.
-    - **Then the most likely case.** The happy path belongs directly after the preconditions, not at
-      the bottom behind every exceptional branch. A reader should not have to scroll past the rare
-      cases to find out what the function is for.
-    - **One exit from the body.** Once real work has started, do not return from the middle of it.
-      Assign to a single result and return it as the last statement.
+- Keep functions short, with a single exit:
+    - **One exit per function.** A function leaves in exactly one place: its last statement. This
+      includes guard clauses — an early `return` in a precondition check is still a second exit and is
+      not allowed. Assign to a single result and return it as the last statement. `throw` is the one
+      permitted exception, because it is not a return and a `finally` still runs.
+    - **Validate by nesting, not by leaving.** State the precondition as the condition that must hold
+      and put the work inside it, with the error path in the `else`. Where the caller is code, `throw`
+      instead; where the caller is a Node-RED flow, the `else` calls the error path.
+    - **Keep functions short enough that the nesting does not matter.** The objection to nesting is
+      really an objection to long functions — at a readable length, one or two levels of indentation
+      cost nothing. If the nesting starts to hurt, extract a function; never add a second exit.
+    - **Most likely case first within each branch**, so a reader meets what the function normally does
+      before the exceptions.
     - **If every path must do trailing work, put that work in `finally`** rather than repeating it
-      before each exit — an exit that skips the epilogue is the defect this rule exists to prevent.
+      before each exit — combined with the single exit this makes the epilogue unskippable.
 - No defensive programming. Do not check for states that cannot occur, and do not guard against
   hypothetical future changes to code you control. Validate input at the boundary and then trust it.
 
