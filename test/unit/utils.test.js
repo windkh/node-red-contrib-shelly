@@ -94,6 +94,46 @@ describe('utils.trim', () => {
     });
 });
 
+describe('utils.trimHostname', () => {
+    it('returns undefined for undefined and for an empty string', () => {
+        assert.equal(utils.trimHostname(undefined), undefined);
+        assert.equal(utils.trimHostname(''), undefined);
+    });
+
+    it('leaves a bare hostname or IP address unchanged', () => {
+        assert.equal(utils.trimHostname('shelly1-a4cf12.local'), 'shelly1-a4cf12.local');
+        assert.equal(utils.trimHostname('192.168.1.5'), '192.168.1.5');
+    });
+
+    it('strips surrounding whitespace', () => {
+        assert.equal(utils.trimHostname('  192.168.1.5  '), '192.168.1.5');
+    });
+
+    it('strips a pasted scheme — the "ENOTFOUND http" of #277', () => {
+        // 'http://' + 'http://shelly1.local' parses with the host 'http'.
+        assert.equal(utils.trimHostname('http://shelly1-a4cf12.local'), 'shelly1-a4cf12.local');
+        assert.equal(utils.trimHostname('HTTP://shelly1-a4cf12.local'), 'shelly1-a4cf12.local');
+        assert.equal(utils.trimHostname('https://192.168.1.5'), '192.168.1.5');
+    });
+
+    it('strips a trailing slash and any path', () => {
+        assert.equal(utils.trimHostname('http://shelly1-a4cf12.local/'), 'shelly1-a4cf12.local');
+        assert.equal(utils.trimHostname('shelly1-a4cf12.local/relay/0'), 'shelly1-a4cf12.local');
+    });
+
+    it('keeps a port', () => {
+        assert.equal(utils.trimHostname('http://192.168.1.5:8080/'), '192.168.1.5:8080');
+    });
+
+    it('keeps a bracketed IPv6 literal', () => {
+        assert.equal(utils.trimHostname('[fe80::1]'), '[fe80::1]');
+    });
+
+    it('reduces a scheme-only value to an empty string', () => {
+        assert.equal(utils.trimHostname('http://'), '');
+    });
+});
+
 describe('utils.replace', () => {
     it('returns undefined for falsy input', () => {
         assert.equal(utils.replace(undefined, /x/g, 'y'), undefined);

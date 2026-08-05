@@ -644,7 +644,10 @@ module.exports = function (RED) {
         }
 
         node.verbose = config.verbose;
-        node.hostname = utils.trim(config.hostname);
+        // utils.trimHostname maps an empty string to undefined, so normalise back to ''
+        // — every "is a hostname configured" guard in this file and in lib/shelly.js
+        // compares against '', and undefined would slip past all of them.
+        node.hostname = utils.trimHostname(config.hostname) || '';
         node.authType = 'Digest';
         node.pollInterval = parseInt(config.pollinginterval);
         node.pollStatus = config.pollstatus;
@@ -695,6 +698,7 @@ module.exports = function (RED) {
                     const msg = {
                         error: {
                             hostname: node.hostname,
+                            reason: node.lastError,
                             message:
                                 'Device is not reachable. Retrying to connect every ' +
                                 node.initializeRetryInterval / 1000 +

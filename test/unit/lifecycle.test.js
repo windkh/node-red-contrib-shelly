@@ -2,7 +2,7 @@ const { describe, it, beforeEach, afterEach, after } = require('node:test');
 const assert = require('node:assert/strict');
 const nock = require('nock');
 
-const { shellyPing, tryCheckDeviceType, start } = require('../../shelly/lib/shelly.js');
+const { shellyPing, tryCheckDeviceType, start, describeError } = require('../../shelly/lib/shelly.js');
 const { makeFakeNode } = require('../../test-helpers/fake-node.js');
 
 nock.disableNetConnect();
@@ -182,6 +182,46 @@ describe('tryCheckDeviceType', () => {
         assert.match(last.text, /Waiting for device/);
     });
 
+    it('reports "Hostname not configured" without a request when the hostname is blank', async () => {
+        // nock.disableNetConnect() plus the afterEach unmet-mock check means any
+        // request attempt here would fail the test.
+        const harness = makeFakeNode({ type: 'shelly-gen1', hostname: '' });
+
+        const success = await tryCheckDeviceType(harness.node, ['SHSW-']);
+
+        assert.equal(success, false);
+        const last = harness.statuses[harness.statuses.length - 1];
+        assert.equal(last.fill, 'red');
+        assert.match(last.text, /Hostname not configured/);
+    });
+
+    it('names the reason in the status and in node.lastError when the host does not resolve', async () => {
+        // #277: a name that resolves in the browser but not for the Node-RED process
+        // used to be indistinguishable from a wrong IP or a sleeping device.
+        const harness = makeFakeNode({ type: 'shelly-gen1', hostname: HOST });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .replyWithError('getaddrinfo ENOTFOUND ' + HOST);
+
+        await tryCheckDeviceType(harness.node, ['SHSW-']);
+
+        const last = harness.statuses[harness.statuses.length - 1];
+        assert.match(last.text, /ENOTFOUND/);
+        assert.match(harness.node.lastError, /ENOTFOUND/);
+    });
+
+    it('clears node.lastError once the device answers again', async () => {
+        const harness = makeFakeNode({ type: 'shelly-gen1', hostname: HOST });
+        harness.node.lastError = 'getaddrinfo ENOTFOUND ' + HOST;
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { type: 'SHSW-1' });
+
+        await tryCheckDeviceType(harness.node, ['SHSW-']);
+
+        assert.equal(harness.node.lastError, undefined);
+    });
+
     it('returns true for gen 3 and gen 4 devices when typed as shelly-gen2', async () => {
         // One assert per generation to stay independent.
         let harness = makeFakeNode({ type: 'shelly-gen2', hostname: HOST });
@@ -254,5 +294,50 @@ describe('start (polling lifecycle)', () => {
         } finally {
             clearInterval(harness.node.pollingTimer);
         }
+    });
+
+    it('puts the transport reason on msg.error.reason when a poll loses the device', async () => {
+        const harness = makeFakeNode({ type: 'shelly-gen1', hostname: HOST, pollInterval: 20 });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .reply(200, { type: 'SHSW-1' });
+        nock('http://' + HOST)
+            .get('/shelly')
+            .replyWithError('getaddrinfo ENOTFOUND ' + HOST);
+
+        await start(harness.node, ['SHSW-']);
+
+        try {
+            // One poll tick: online true → false, which is the transition that sends.
+            await new Promise((resolve) => setTimeout(resolve, 60));
+            const sent = harness.sends.map((s) => s[0]).find((m) => m && m.error);
+            assert.ok(sent, 'expected an error message on the offline transition');
+            assert.match(sent.error.reason, /ENOTFOUND/);
+            assert.match(sent.error.message, /Device is not reachable/);
+        } finally {
+            clearInterval(harness.node.pollingTimer);
+        }
+    });
+});
+
+describe('describeError', () => {
+    it('leaves the message alone when it already names the code', () => {
+        const error = new Error('getaddrinfo ENOTFOUND shelly.local');
+        error.code = 'ENOTFOUND';
+
+        assert.equal(describeError(error), 'getaddrinfo ENOTFOUND shelly.local');
+    });
+
+    it('appends the code when the message does not carry it', () => {
+        // axios timeouts read "timeout of 5000ms exceeded" and never say which layer
+        // gave up; ECONNABORTED is the part that distinguishes them.
+        const error = new Error('timeout of 5000ms exceeded');
+        error.code = 'ECONNABORTED';
+
+        assert.equal(describeError(error), 'timeout of 5000ms exceeded (ECONNABORTED)');
+    });
+
+    it('falls back to the bare message when there is no code', () => {
+        assert.equal(describeError(new Error('Not Found /shelly')), 'Not Found /shelly');
     });
 });

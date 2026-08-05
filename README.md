@@ -233,6 +233,23 @@ the msg.payload.hostname. This can be useful, if you want to use one node for se
 }
 ```
 
+## Hostname or IP address
+
+The hostname field takes either an IP address or a name. Enter the bare host (shelly1-a4cf12.local or
+192.168.1.5), optionally with a port. A URL pasted from the browser address bar (http://shelly1-a4cf12.local/)
+is accepted too: the scheme and the path are stripped before the request is built. This also applies to
+msg.payload.hostname and to the hostname of the callback server configuration node, and leading and trailing
+spaces are always removed.
+
+A name only works if the machine running node-red can resolve it — not merely the browser you have the
+node-red editor open in. The usual pitfall is the device's mDNS name (something like shelly1-a4cf12.local):
+Windows and macOS resolve those in the operating system, but a Linux host resolves them only with nss-mdns
+installed, and a docker container normally does not resolve them at all and also uses docker's DNS instead
+of your router's. If the name works in your browser but not in the node, the node status names the reason:
+"getaddrinfo ENOTFOUND shelly1-a4cf12.local" is a name resolution problem (use the IP address, or add the
+name to your DNS server or to /etc/hosts), while "connect ECONNREFUSED" or a timeout means the name resolved
+and the device did not answer.
+
 ## callback mode vs polling mode
 
 Unlike generation 2 devices which support scripts the older generation 1 supports only webhooks which are very limited. You can always use polling mode, but some devices like sensors and buttons

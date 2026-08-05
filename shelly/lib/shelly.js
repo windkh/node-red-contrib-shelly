@@ -45,6 +45,20 @@ function getIPAddress(node) {
     return ipAddress;
 }
 
+// Describes a failed request in one line, for the node status and msg.error.
+// axios puts the syscall and the host in the message ("getaddrinfo ENOTFOUND
+// shelly.local"), but for a timeout the message alone ("timeout of 5000ms
+// exceeded") does not say which layer gave up, so the code is appended when it
+// is not already part of the message.
+function describeError(error) {
+    let description = error.message;
+    if (error.code && !description.includes(error.code)) {
+        description = description + ' (' + error.code + ')';
+    }
+
+    return description;
+}
+
 // Gets a header with the authorization property for the request.
 function getHeaders(credentials) {
     const headers = {};
@@ -203,12 +217,17 @@ function getCredentials(node, msg) {
     let username;
     let password;
     if (utils.isMsgPayloadValid(msg)) {
-        hostname = msg.payload.hostname;
+        // Normalised like the configured hostname: a value that arrives from a template
+        // or a UI upstream easily carries whitespace or a pasted 'http://' prefix, and
+        // neither survives concatenation into a URL. See #277.
+        hostname = utils.trimHostname(msg.payload.hostname);
         username = msg.payload.username;
         password = msg.payload.password;
     }
 
-    if (hostname === undefined) {
+    // Empty or whitespace-only is not an address, so it falls back to the node's own
+    // hostname instead of producing a request to 'http://'.
+    if (hostname === undefined || hostname === '') {
         hostname = node.hostname;
     }
 
@@ -252,6 +271,7 @@ async function shellyPing(node, credentials, types) {
         );
 
         node.shellyInfo = body;
+        node.lastError = undefined;
 
         let requiredNodeType;
         let deviceType;
@@ -304,7 +324,8 @@ async function shellyPing(node, credentials, types) {
             node.warn('Wrong node type. Please use ' + requiredNodeType);
         }
     } catch (error) {
-        node.status({ fill: 'red', shape: 'ring', text: 'Ping: ' + error.message });
+        node.lastError = describeError(error);
+        node.status({ fill: 'red', shape: 'ring', text: 'Ping: ' + node.lastError });
         if (node.verbose) {
             node.warn(error.message);
         }
@@ -315,12 +336,21 @@ async function shellyPing(node, credentials, types) {
 
 // checks if the device is the configured one.
 async function tryCheckDeviceType(node, types) {
+    // A node whose hostname field is blank takes its address per message instead, so
+    // there is nothing to check here: report it like start() does rather than issuing
+    // a request to 'http://'.
+    if (node.hostname === '') {
+        node.status({ fill: 'red', shape: 'ring', text: 'Hostname not configured' });
+        return false;
+    }
+
     let success = false;
     const credentials = getCredentials(node);
 
     // (gen 2 return the same info for /rpc/Shelly.GetDeviceInfo)
     try {
         const shellyInfo = await shellyRequestAsync(node.axiosInstance, 'GET', '/shelly', null, null, credentials);
+        node.lastError = undefined;
 
         let requiredNodeType;
         let deviceType;
@@ -375,7 +405,11 @@ async function tryCheckDeviceType(node, types) {
             node.warn('Wrong node type. Please use ' + requiredNodeType);
         }
     } catch (error) {
-        node.status({ fill: 'yellow', shape: 'ring', text: 'Waiting for device...' });
+        // The reason belongs in the status: this is the callback-mode path, where a
+        // bare "Waiting for device..." made a name that does not resolve (ENOTFOUND)
+        // look exactly like a wrong IP or a sleeping device. See #277.
+        node.lastError = describeError(error);
+        node.status({ fill: 'yellow', shape: 'ring', text: 'Waiting for device: ' + node.lastError });
         if (node.verbose) {
             node.warn(error.message);
         }
@@ -412,6 +446,7 @@ async function start(node, types) {
                         const msg = {
                             error: {
                                 hostname: node.hostname,
+                                reason: node.lastError,
                                 message:
                                     'Device is not reachable. Retrying to connect every ' +
                                     node.initializeRetryInterval / 1000 +
@@ -437,6 +472,7 @@ async function startAsync(node, types) {
 }
 
 module.exports = {
+    describeError,
     getIPAddress,
     getIPAddresses,
     getShellyInfo,

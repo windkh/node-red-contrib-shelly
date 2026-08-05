@@ -36,7 +36,7 @@ module.exports = function (RED) {
     RED.httpAdmin.get('/node-red-contrib-shelly-getshellyinfo', async function (req, res) {
         let shellyInfo;
         try {
-            const hostname = utils.trim(req.query.hostname);
+            const hostname = utils.trimHostname(req.query.hostname);
             shellyInfo = await shelly.getShellyInfo(hostname);
 
             // Generation 1 devices are mapped to gen2+ schema

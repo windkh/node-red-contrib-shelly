@@ -67,6 +67,30 @@ describe('getCredentials', () => {
         assert.equal(result.password, 'override'); // password override does take effect
     });
 
+    it('trims surrounding whitespace off a hostname taken from msg.payload', () => {
+        // 'http:// 10.0.0.5' does not resolve, so a padded value from a template or
+        // a UI upstream would fail exactly like a wrong address. See #277.
+        const node = fakeNode({ hostname: 'shelly.local' });
+        const msg = { payload: { hostname: '  10.0.0.5  ' } };
+
+        assert.equal(getCredentials(node, msg).hostname, '10.0.0.5');
+    });
+
+    it('strips a scheme pasted into msg.payload.hostname', () => {
+        // 'http://' + 'http://10.0.0.5' is looked up as the host 'http'. See #277.
+        const node = fakeNode({ hostname: 'shelly.local' });
+        const msg = { payload: { hostname: 'http://10.0.0.5/' } };
+
+        assert.equal(getCredentials(node, msg).hostname, '10.0.0.5');
+    });
+
+    it('falls back to the node hostname when msg.payload.hostname is only whitespace', () => {
+        const node = fakeNode({ hostname: 'shelly.local' });
+        const msg = { payload: { hostname: '   ' } };
+
+        assert.equal(getCredentials(node, msg).hostname, 'shelly.local');
+    });
+
     it('msg.payload partial override leaves other fields from node', () => {
         const node = fakeNode({ hostname: 'shelly.local', username: 'node-user', password: 'node-pw' });
         const msg = { payload: { hostname: '10.0.0.5' } };

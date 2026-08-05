@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [11.11.9] - 2026-08-05
+
+### The hostname field now accepts a pasted URL - [#277](https://github.com/windkh/node-red-contrib-shelly/issues/277)
+
+The hostname is concatenated into `'http://' + hostname` in [lib/shelly.js](shelly/lib/shelly.js), so entering what the browser address bar shows — `http://shelly1-a4cf12.local` — produced `http://http://shelly1-a4cf12.local`, in which the URL parser reads the host as **`http`**. That is precisely the `getaddrinfo ENOTFOUND http` from the report, and it explains why the same device worked when its IP address was typed in bare and failed when the name was pasted in: the name is not the difference, the scheme in front of it is. Nothing else in the package ever distinguished a hostname from an IP — there is no parsing, no regex and no editor validator, and a request against a local server is byte-identical for `127.0.0.1`, `localhost`, `[::1]` and a DNS name.
+
+- **New `utils.trimHostname`** drops surrounding whitespace, a leading scheme and any path, keeping a port and a bracketed IPv6 literal. It is applied to the configured hostname in both device nodes, to `msg.payload.hostname`, to the config UI's "get device type" probe, and to the callback server nodes' hostname (which is baked into the callback URL handed to the device, so a scheme there broke the return path rather than the outbound request). The editor applies the same normalisation on save, so the stored flow and the node label show the bare host.
+- A whitespace-only `msg.payload.hostname` now falls back to the node's configured hostname instead of producing a request to `http://`.
+
+### Say why a device is unreachable
+
+Diagnosing the above took a round trip because the node did not report the reason.
+
+- **The reason is now part of the status and of `msg.error`.** In callback mode `tryCheckDeviceType` reported a bare `Waiting for device...` and only warned when `verbose` was on, so a name that does not resolve looked exactly like a wrong IP, a firewall or a sleeping sensor. The status now reads `Waiting for device: getaddrinfo ENOTFOUND shelly1-a4cf12.local`, and the "Device is not reachable. Retrying…" message that both device nodes emit — on init failure and on the polling online → offline transition — carries the transport failure in a new `msg.error.reason`. `msg.error.message` is unchanged, so existing flows that match on it keep working. A new `describeError` appends the error code when the message does not already contain it, because an axios timeout otherwise reads only `timeout of 5000ms exceeded` without saying which layer gave up.
+
+### A blank hostname is a blank hostname again
+
+`utils.trim('')` returns `undefined`, so `node.hostname = utils.trim(config.hostname)` turned an empty hostname field into `undefined` — and every `if (node.hostname !== '')` guard in [gen1-node.js](shelly/nodes/gen1-node.js), [gen2-node.js](shelly/nodes/gen2-node.js) and [lib/shelly.js](shelly/lib/shelly.js) then let it through. The documented "leave the hostname empty and pass `msg.payload.hostname` per message" setup (useful in subflows) therefore polled `http://undefined/shelly` every 5 seconds and showed a red `getaddrinfo ENOTFOUND undefined`, while the `Hostname not configured` branches written for exactly this case were unreachable. Both nodes now normalise back to `''`, and `tryCheckDeviceType` gained the same precondition, so such a node reports `Hostname not configured` and issues no requests of its own. Sending it a message with `msg.payload.hostname` works as before.
+
+18 tests added (219 total, up from 201).
+
 ## [11.11.8] - 2026-07-27
 
 ### ESLint 10, and the code cleanups it asked for

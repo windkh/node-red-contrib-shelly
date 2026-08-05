@@ -191,6 +191,13 @@ msg.settings = [{ device: 'ext_temperature', index: 0, attribute: 'overtemp_act'
 | `msg.status`  | Full unfiltered status object from `/status` (gen 1) or `Shelly.GetStatus` (gen 2). Only present when `getStatusOnCommand` is on                            |
 | `msg.error`   | `{hostname, error: error.message}` on any device-side failure (network, auth, 4xx, 5xx)                                                                     |
 
+When the node reports an unreachable device — the initial init failure and the online → offline
+polling transition — `msg.error` is `{hostname, reason, message}` instead. `message` is the
+retry notice; `reason` is the transport failure that caused it, e.g. `getaddrinfo ENOTFOUND
+shelly1.local`, `connect ECONNREFUSED 192.168.1.9:80` or `timeout of 5000ms exceeded
+(ECONNABORTED)`. The same string is shown in the node status, so a name that does not resolve
+for the Node-RED process is distinguishable from a wrong address or a sleeping device.
+
 ## State machines
 
 The node has two implicit state machines:

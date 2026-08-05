@@ -3,13 +3,18 @@ module.exports = function (RED) {
 
     const fastify = require('fastify');
 
+    const utils = require('../lib/utils.js');
+
     function ShellyGen1ServerNode(config) {
         RED.nodes.createNode(this, config);
 
         const node = this;
         this.port = parseInt(config.port);
-        this.hostname = config.hostname;
-        this.hostip = config.hostip;
+        // Both end up in the callback URL that the device is told to call back on, so
+        // whitespace or a pasted scheme here breaks the webhook rather than the request
+        // to the device. hostip is either a detected address or the literal 'hostname'.
+        this.hostname = utils.trimHostname(config.hostname);
+        this.hostip = utils.trim(config.hostip);
         this.server = fastify({
             logger: false, // set to true when debugging.
         });

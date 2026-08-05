@@ -229,6 +229,16 @@
                 getdevicetype();
             });
         },
+        oneditsave: function () {
+            // Store the bare host: the value is concatenated into 'http://' + hostname at
+            // runtime, so a URL pasted from the browser address bar would end up as
+            // 'http://http://shelly.local/' and be looked up as the host 'http'. Mirrors
+            // utils.trimHostname in shelly/lib/utils.js. See #277.
+            let hostname = $('#node-input-hostname').val().trim();
+            hostname = hostname.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '');
+            hostname = hostname.split('/')[0];
+            $('#node-input-hostname').val(hostname);
+        },
     });
 </script>
 
@@ -604,6 +614,16 @@
             $('#getdevicetypebutton').click(function () {
                 getdevicetype();
             });
+        },
+        oneditsave: function () {
+            // Store the bare host: the value is concatenated into 'http://' + hostname at
+            // runtime, so a URL pasted from the browser address bar would end up as
+            // 'http://http://shelly.local/' and be looked up as the host 'http'. Mirrors
+            // utils.trimHostname in shelly/lib/utils.js. See #277.
+            let hostname = $('#node-input-hostname').val().trim();
+            hostname = hostname.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '');
+            hostname = hostname.split('/')[0];
+            $('#node-input-hostname').val(hostname);
         },
     });
 </script>
