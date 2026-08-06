@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [11.11.10] - 2026-08-06
+
+### BLU devices work again on firmware 2.0.0 and newer - [#261](https://github.com/windkh/node-red-contrib-shelly/issues/261)
+
+Since Shelly firmware 2.0.0 no BLU event reached node-red. Every BLU device behind the bluetooth checkbox was affected, not just the BLU TRV of the report. Root cause analysis by [@mepetmir](https://github.com/mepetmir) in [#261](https://github.com/windkh/node-red-contrib-shelly/issues/261) — thank you.
+
+The gen2+ changelog for [2.0.0 (2026-07-13)](https://shelly-api-docs.shelly.cloud/gen2/changelog/) lists, under _Removed_: "BLE: Remove global enable flag from config (auto-activate/deactivate scanning) **BREAKING CHANGE**". Scanning is now activated automatically when a script needs it, and the [BLE component docs](https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/BLE) confirm only `rpc.enable` survives in the config.
+
+[ble-shelly-blu.js](shelly/scripts/ble-shelly-blu.js) opened `init()` with the upstream check `if (!BLEConfig.enable)`. On 2.0.0 the flag is simply absent, `!undefined` is `true`, and the script returned — before reaching `BLE.Scanner.Subscribe()`. That subscription is the only route to the scan callback, which is the only caller of `emitData`, which is the only place the `node-red-contrib-shelly-blu` event is emitted, so nothing arrived downstream. What made this hard to spot is that the device still reported the script as `running`: it had started, printed `Error: The Bluetooth is not enabled, please enable it from settings` to the device console, and quietly done nothing. Any `ble.scan_result` frames still showing up in node-red came from the device's own gateway component, forwarded by [callback.js](shelly/scripts/callback.js), not from this script.
+
+The guard now fires only on an explicit `false`, which covers both firmware generations — on 1.x the flag is a real boolean and behaves exactly as before, on 2.0.0+ its absence no longer aborts the script. It is also strictly safer than the old line, which dereferenced the config unconditionally and would have thrown on a device that reports no `ble` config at all.
+
+Two notes for the future. The file is vendored from `ALLTERCO/shelly-script-examples`, where the same broken guard is still present (that copy was last touched 2026-02-03, five months before the firmware change), so this is a deliberate local deviation: it is marked `LOCAL PATCH` in place and recorded in [AGENTS.md](AGENTS.md) so a later re-vendor does not silently revert it. And [test/unit/ble-blu-script.test.js](test/unit/ble-blu-script.test.js) now runs the device script in node under stubbed `Shelly` / `BLE` globals and asserts that `init()` reaches the scanner subscription for both config shapes, so the regression cannot come back unnoticed. Verified that the test fails against the previous version of the script for the 2.0.0 shape and passes for 1.x.
+
+**Nothing to do on the device:** the node deletes and re-uploads its scripts by name on every init, so updating the package and restarting node-red is enough.
+
 ## [11.11.9] - 2026-08-05
 
 ### The hostname field now accepts a pasted URL - [#277](https://github.com/windkh/node-red-contrib-shelly/issues/277)

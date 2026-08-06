@@ -178,6 +178,13 @@ Payloads are decoded BTHomeV2.
 
 - The `shelly/scripts/` JS runs on the Shelly device's mJS runtime, not Node — do not import Node
   modules there or apply Node idioms.
+- [ble-shelly-blu.js](shelly/scripts/ble-shelly-blu.js) is vendored from
+  `ALLTERCO/shelly-script-examples` but is **not** a verbatim copy: it carries a local patch to the
+  BLE-enabled check in `init()`, marked `LOCAL PATCH` in place, because firmware 2.0.0 removed the
+  `ble.enable` flag the upstream guard tests and upstream has not adapted
+  ([#261](https://github.com/windkh/node-red-contrib-shelly/issues/261)). Re-vendoring the file means
+  re-applying that patch — [test/unit/ble-blu-script.test.js](test/unit/ble-blu-script.test.js) runs
+  the script under stubbed device globals and fails if it is dropped.
 - When adding a new device, prefer extending
   [shelly/config/config.json](shelly/config/config.json) and reusing an existing `type` so the input
   parser is already wired. If a genuinely new behavior is needed, add a parser in the matching
