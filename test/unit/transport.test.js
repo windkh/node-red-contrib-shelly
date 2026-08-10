@@ -201,6 +201,23 @@ describe('shellyRequestAsync — error body enrichment (11.10.1)', () => {
 
         await assert.rejects(shellyRequestAsync(axios, 'GET', '/zero-body', null, null, { hostname: HOST }));
     });
+
+    it('drops .request from the enriched error and keeps the axios original as .cause', async () => {
+        // #261: the enriched error is a fresh Error, so it carries none of axios's own
+        // properties — callers that read error.request must not dereference it blindly.
+        // A 429 mid-upload is the case that took node-red down in the field.
+        nock(URL).post('/rpc/Script.PutCode').reply(429, 'Too Many Requests');
+
+        await assert.rejects(
+            shellyRequestAsync(axios, 'POST', '/rpc/Script.PutCode', null, { id: 1 }, { hostname: HOST }),
+            (error) => {
+                assert.equal(error.request, undefined, 'enriched error must not be assumed to carry .request');
+                assert.ok(error.cause, 'the axios original stays reachable as .cause');
+                assert.ok(error.cause.request, 'and it is the one that actually has .request');
+                return true;
+            }
+        );
+    });
 });
 
 describe('shellyRequestAsync — timeouts', () => {

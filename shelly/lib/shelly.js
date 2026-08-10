@@ -59,6 +59,23 @@ function describeError(error) {
     return description;
 }
 
+// Reports an error that escaped an initializer.
+// Both device nodes drive their initializer from an async IIFE and from a setInterval callback, and
+// neither observes a rejection. Anything thrown in there — including from a catch block that assumed
+// a property the error does not carry — therefore became an unhandled rejection, which node kills the
+// process for, taking every unrelated flow down with it. See #261.
+function reportInitializationError(node, error) {
+    const reason = describeError(error);
+    node.status({ fill: 'red', shape: 'ring', text: 'Initialization failed: ' + reason });
+
+    // The initializer retries on a timer, so an unchanged reason would otherwise be logged once
+    // per initializeRetryInterval for as long as the device stays broken.
+    if (node.lastInitializationError !== reason) {
+        node.lastInitializationError = reason;
+        node.error('Initialization failed: ' + reason);
+    }
+}
+
 // Gets a header with the authorization property for the request.
 function getHeaders(credentials) {
     const headers = {};
@@ -473,6 +490,7 @@ async function startAsync(node, types) {
 
 module.exports = {
     describeError,
+    reportInitializationError,
     getIPAddress,
     getIPAddresses,
     getShellyInfo,

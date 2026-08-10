@@ -148,8 +148,18 @@ module.exports = function (RED) {
                     node.status({ fill: 'red', shape: 'ring', text: 'Script not running.' });
                 }
             } catch (error) {
+                // Not every rejection carries .request: shellyRequestAsync rethrows a fresh Error
+                // whenever the device answered with a body (keeping the axios original as .cause),
+                // and a TypeError raised inside the try has no .request either. Dereferencing it
+                // unconditionally made this handler throw, which is far worse than the error it
+                // was reporting — see #261.
                 node.error(
-                    'Uploading script ' + scriptName + ' failed: ' + error.request._currentUrl + ' --> ' + error.message
+                    'Uploading script ' +
+                        scriptName +
+                        ' failed: ' +
+                        error.request?._currentUrl +
+                        ' --> ' +
+                        error.message
                 );
                 node.status({
                     fill: 'red',
@@ -690,31 +700,41 @@ module.exports = function (RED) {
             node.inputParser = getInputParser2(node.deviceType);
 
             (async () => {
-                const initialized = await node.initializer(node, node.types);
-                if (node.closing) return;
+                try {
+                    const initialized = await node.initializer(node, node.types);
+                    if (node.closing) return;
 
-                // if the device is not online, then we wait until it is available and try again.
-                if (!initialized) {
-                    const msg = {
-                        error: {
-                            hostname: node.hostname,
-                            reason: node.lastError,
-                            message:
-                                'Device is not reachable. Retrying to connect every ' +
-                                node.initializeRetryInterval / 1000 +
-                                ' seconds.',
-                        },
-                    };
-                    node.send([msg]);
+                    // if the device is not online, then we wait until it is available and try again.
+                    if (!initialized) {
+                        const msg = {
+                            error: {
+                                hostname: node.hostname,
+                                reason: node.lastError,
+                                message:
+                                    'Device is not reachable. Retrying to connect every ' +
+                                    node.initializeRetryInterval / 1000 +
+                                    ' seconds.',
+                            },
+                        };
+                        node.send([msg]);
 
-                    node.initializeTimer = setInterval(async function () {
-                        if (node.closing) return;
-                        const initialized = await node.initializer(node, node.types);
-                        if (node.closing) return;
-                        if (initialized) {
-                            clearInterval(node.initializeTimer);
-                        }
-                    }, node.initializeRetryInterval);
+                        node.initializeTimer = setInterval(async function () {
+                            if (node.closing) return;
+                            try {
+                                const initialized = await node.initializer(node, node.types);
+                                if (node.closing) return;
+                                if (initialized) {
+                                    clearInterval(node.initializeTimer);
+                                }
+                            } catch (error) {
+                                // Keep retrying: the timer is the recovery path, and letting this
+                                // reject would kill the process instead of the connection attempt.
+                                shelly.reportInitializationError(node, error);
+                            }
+                        }, node.initializeRetryInterval);
+                    }
+                } catch (error) {
+                    shelly.reportInitializationError(node, error);
                 }
             })();
 

@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [11.11.11] - 2026-08-10
+
+### A failing script upload no longer takes node-red down - [#261](https://github.com/windkh/node-red-contrib-shelly/issues/261)
+
+Reported by [@mepetmir](https://github.com/mepetmir) in [#261](https://github.com/windkh/node-red-contrib-shelly/issues/261) while diagnosing the BLU regression — thank you. A single unreachable or rate-limiting device could crash the whole node-red process, every unrelated flow included, and because the node retries on `uploadretryinterval` and service managers restart node-red, it became a crash loop: 1465 restarts in the field report.
+
+Three things had to line up, and all three are fixed.
+
+**The error handler threw.** The catch in `tryInstallScriptAsync` ([gen2-node.js](shelly/nodes/gen2-node.js)) built its message from `error.request._currentUrl` without checking that `.request` exists. It usually does not: since 11.10.1 [lib/shelly.js](shelly/lib/shelly.js) rethrows a **fresh** `Error` whenever the device answered with a body, so that the gen2 RPC reason reaches the user instead of axios's generic status text — and a fresh `Error` carries none of axios's own properties. The original is still reachable as `.cause`, but `.request` on the enriched error is `undefined`. Any `TypeError` raised inside the `try` (say `scriptListResponse.scripts` being absent) has no `.request` either. So the handler replaced the real diagnostic with `TypeError: Cannot read properties of undefined (reading '_currentUrl')`. Optional chaining, as proposed in the issue.
+
+**Nothing was watching for the rejection.** That `TypeError` escaped `tryInstallScriptAsync` into `initializer2BluCallbackAsync`, and from there into two call sites that observe no rejection at all: an async IIFE with no `.catch()`, and an `async function` handed to `setInterval`, whose returned promise nobody holds. An unhandled rejection is fatal by default in node, so the process died. Both device nodes had the identical shape, so both are fixed — this was never gen2-only, any throw from a gen1 initializer would have done the same.
+
+**The reason was lost in the noise.** New `shelly.reportInitializationError` puts the failure in the node status and logs it once, so the retry timer keeps retrying instead of exiting the process, and a device that stays broken does not emit one log line per interval. It reuses `describeError`, so an axios timeout still reads `timeout of 5000ms exceeded (ECONNABORTED)` rather than dropping the code.
+
+Worth knowing for anyone hitting the underlying rate limit: `ble-shelly-blu.js` is ~10 kB and `Script.PutCode` sends it in 1024-byte chunks, so one upload attempt is ~17 RPC calls — at the default 5000 ms retry interval that is roughly 200 calls/min against a single device, which is what trips the limiter. Backoff on repeated failures is not in this release; raise `uploadretryinterval` if a device answers 429.
+
+If you saw node-red exit with an unhandled rejection during startup, this is a likely cause — and note that on node-red 3.x under node 24 the real message is destroyed by node-red's own `uncaughtException` handler (it calls `util.log`, removed in node 24), leaving only `TypeError: util.log is not a function`.
+
+5 tests added (228 total, up from 223).
+
 ## [11.11.10] - 2026-08-06
 
 ### BLU devices work again on firmware 2.0.0 and newer - [#261](https://github.com/windkh/node-red-contrib-shelly/issues/261)

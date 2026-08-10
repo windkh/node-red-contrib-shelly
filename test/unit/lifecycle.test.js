@@ -2,7 +2,13 @@ const { describe, it, beforeEach, afterEach, after } = require('node:test');
 const assert = require('node:assert/strict');
 const nock = require('nock');
 
-const { shellyPing, tryCheckDeviceType, start, describeError } = require('../../shelly/lib/shelly.js');
+const {
+    shellyPing,
+    tryCheckDeviceType,
+    start,
+    describeError,
+    reportInitializationError,
+} = require('../../shelly/lib/shelly.js');
 const { makeFakeNode } = require('../../test-helpers/fake-node.js');
 
 nock.disableNetConnect();
@@ -339,5 +345,59 @@ describe('describeError', () => {
 
     it('falls back to the bare message when there is no code', () => {
         assert.equal(describeError(new Error('Not Found /shelly')), 'Not Found /shelly');
+    });
+});
+
+describe('reportInitializationError', () => {
+    // #261: an initializer runs from an async IIFE and from a setInterval callback, neither of
+    // which observes a rejection — anything escaping it used to kill the node-red process.
+
+    it('reports a red status naming the reason', () => {
+        const harness = makeFakeNode({ type: 'shelly-gen2', hostname: HOST });
+
+        reportInitializationError(
+            harness.node,
+            new Error("Cannot read properties of undefined (reading '_currentUrl')")
+        );
+
+        const last = harness.statuses[harness.statuses.length - 1];
+        assert.equal(last.fill, 'red');
+        assert.match(last.text, /Initialization failed/);
+        assert.match(last.text, /_currentUrl/);
+    });
+
+    it('logs the failure once so a retry loop cannot flood the log', () => {
+        // The field report was 1465 restarts against one rate-limiting device; the timer
+        // now keeps retrying instead, which must not turn into one log line per interval.
+        const harness = makeFakeNode({ type: 'shelly-gen2', hostname: HOST });
+        const error = new Error('Request failed with status code 429');
+
+        reportInitializationError(harness.node, error);
+        reportInitializationError(harness.node, error);
+        reportInitializationError(harness.node, error);
+
+        assert.equal(harness.errors.length, 1);
+        // The status is still refreshed every time, only the log is deduplicated.
+        assert.equal(harness.statuses.length, 3);
+    });
+
+    it('logs again once the reason changes', () => {
+        const harness = makeFakeNode({ type: 'shelly-gen2', hostname: HOST });
+
+        reportInitializationError(harness.node, new Error('Request failed with status code 429'));
+        reportInitializationError(harness.node, new Error('getaddrinfo ENOTFOUND ' + HOST));
+
+        assert.equal(harness.errors.length, 2);
+        assert.match(harness.errors[1], /ENOTFOUND/);
+    });
+
+    it('carries the error code through describeError', () => {
+        const harness = makeFakeNode({ type: 'shelly-gen2', hostname: HOST });
+        const error = new Error('timeout of 5000ms exceeded');
+        error.code = 'ECONNABORTED';
+
+        reportInitializationError(harness.node, error);
+
+        assert.match(harness.errors[0], /ECONNABORTED/);
     });
 });
