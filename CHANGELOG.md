@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [11.11.12] - 2026-08-10
+
+### The BLU scanner script is 44% smaller, so uploading it costs half the RPC calls
+
+Follow-up to the crash fixed in 11.11.11. That fix stopped a failing upload from taking node-red down; this one reduces how often the upload fails in the first place.
+
+`Script.PutCode` sends the script in 1024-byte chunks, so the file size is directly a number of RPC calls against the device. [ble-shelly-blu.js](shelly/scripts/ble-shelly-blu.js) is vendored from `ALLTERCO/shelly-script-examples` and carried its full upstream commentary — JSDoc block, the `START CHANGE HERE` banner, per-field explanations — none of which the device's mJS runtime needs. Stripping it takes the file from 10689 to 5991 bytes, which is **11 PutCode chunks down to 6**, or 17 → 12 RPC calls for a complete install (list, delete, create, chunks, set-config, start, get-status). At the default 5000 ms `uploadretryinterval` that is roughly 204 calls/min down to 144 against a single device — meaningfully further from the limit that produced the 429s in [#261](https://github.com/windkh/node-red-contrib-shelly/issues/261).
+
+The comments were not discarded. [ble-shelly-blu-with-comments.js](shelly/scripts/ble-shelly-blu-with-comments.js) keeps the annotated version as a readable twin; nothing uploads it, and it is where the `LOCAL PATCH` marker for the firmware-2.0.0 BLE guard now lives. [test/unit/ble-blu-script.test.js](test/unit/ble-blu-script.test.js) runs the **uploaded** file under stubbed device globals and still asserts that `init()` reaches `BLE.Scanner.Subscribe()` for the 1.x shape, the 2.0.0 shape and a null config, so the patch cannot be lost in a future re-strip or re-vendor.
+
+Behaviour is unchanged — this is comment removal only, and all 228 tests pass against the stripped file.
+
+**Nothing to do on the device:** scripts are deleted and re-uploaded by name on every init.
+
 ## [11.11.11] - 2026-08-10
 
 ### A failing script upload no longer takes node-red down - [#261](https://github.com/windkh/node-red-contrib-shelly/issues/261)

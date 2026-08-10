@@ -178,13 +178,20 @@ Payloads are decoded BTHomeV2.
 
 - The `shelly/scripts/` JS runs on the Shelly device's mJS runtime, not Node — do not import Node
   modules there or apply Node idioms.
-- [ble-shelly-blu.js](shelly/scripts/ble-shelly-blu.js) is vendored from
-  `ALLTERCO/shelly-script-examples` but is **not** a verbatim copy: it carries a local patch to the
-  BLE-enabled check in `init()`, marked `LOCAL PATCH` in place, because firmware 2.0.0 removed the
+- The BLU scanner is kept as **two files**.
+  [ble-shelly-blu.js](shelly/scripts/ble-shelly-blu.js) is the one that is uploaded and is
+  comment-stripped on purpose: `Script.PutCode` sends 1024-byte chunks, so every comment costs RPC
+  calls on a device that rate-limits. [ble-shelly-blu-with-comments.js](shelly/scripts/ble-shelly-blu-with-comments.js)
+  is the readable twin — nothing uploads it, and it exists so the rationale is not lost with the
+  comments. Change the commented file first, then re-strip; keep them behaviourally identical.
+- Both are vendored from `ALLTERCO/shelly-script-examples` but are **not** a verbatim copy: they
+  carry a local patch to the BLE-enabled check in `init()`, because firmware 2.0.0 removed the
   `ble.enable` flag the upstream guard tests and upstream has not adapted
-  ([#261](https://github.com/windkh/node-red-contrib-shelly/issues/261)). Re-vendoring the file means
-  re-applying that patch — [test/unit/ble-blu-script.test.js](test/unit/ble-blu-script.test.js) runs
-  the script under stubbed device globals and fails if it is dropped.
+  ([#261](https://github.com/windkh/node-red-contrib-shelly/issues/261)). Re-vendoring means
+  re-applying that patch. The `LOCAL PATCH` marker survives only in the commented twin — in the
+  uploaded file the guard is bare code, so
+  [test/unit/ble-blu-script.test.js](test/unit/ble-blu-script.test.js), which runs the uploaded
+  script under stubbed device globals and fails if the patch is dropped, is the real safeguard.
 - When adding a new device, prefer extending
   [shelly/config/config.json](shelly/config/config.json) and reusing an existing `type` so the input
   parser is already wired. If a genuinely new behavior is needed, add a parser in the matching
