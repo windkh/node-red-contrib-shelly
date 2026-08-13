@@ -824,6 +824,19 @@
 
 <script type="text/x-red" data-help-name="shelly-cloud-server">
     <p>A configuration node that can be used by several shelly cloud nodes.</p>
+
+    <h3>Server URI and Authentication Key</h3>
+    <p>
+        Both are generated in the Shelly Cloud app under
+        <code>User settings</code> &rarr; <code>Authorization cloud key</code>.
+        The server URI is shown on the same page as the key, so you do not have to look for it elsewhere &mdash;
+        it is account specific, so do not copy one from an example.
+    </p>
+    <p>
+        See <a href="https://shelly-api-docs.shelly.cloud/cloud-control-api/">the Shelly Cloud Control API documentation</a>
+        for the details.
+    </p>
+
     <h3>API Version</h3>
     <p>
         Selects which Shelly Cloud Control API the cloud nodes on this connection speak.
@@ -888,10 +901,20 @@
     <p>Description of the device.</p>
     <p>Server URI of shelly cloud.</p>
     <p>Authentication Key of your account.</p>
+    <p>
+        Both the server URI and the authentication key are generated in the Shelly Cloud app under
+        <code>User settings</code> &rarr; <code>Authorization cloud key</code>, and are entered on the
+        cloud server configuration node. See
+        <a href="https://shelly-api-docs.shelly.cloud/cloud-control-api/">the Shelly Cloud Control API documentation</a>.
+    </p>
 
     <h3>Inputs</h3>
     <p>See example in example folder.</p>
     <p><code>msg.payload</code></p>
+    <p>
+        The commands depend on the API version selected on the configuration node. The examples
+        <code>cloud-v1</code> and <code>cloud-v2</code> under <i>Import &rarr; Examples</i> show both.
+    </p>
 
     <h3>Outputs</h3>
     <p>1. Standard Ouput: status object.</p>

@@ -1004,6 +1004,8 @@ https://shelly-api-docs.shelly.cloud/#common-http-api
 
 See also https://shelly-api-docs.shelly.cloud/cloud-control-api/communication
 The node can communicate with your shellies via cloud API. You need to create an authentication key in your shelly app and enter it into the config node.
+Generate it in the Shelly Cloud app under `User settings` -> `Authorization cloud key`; the server URI is shown on the same page, and both are account specific.
+See [the Shelly Cloud Control API documentation](https://shelly-api-docs.shelly.cloud/cloud-control-api/) for details.
 
 **Two API versions are supported.** Shelly has deprecated the v1 API above and replaced it with
 [v2.0-beta](https://shelly-api-docs.shelly.cloud/cloud-control-api/communication-v2). Pick the version

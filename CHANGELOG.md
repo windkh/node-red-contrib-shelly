@@ -26,6 +26,10 @@ Part of [#282](https://github.com/windkh/node-red-contrib-shelly/issues/282). An
 
 The node now reports it and names the configured version — `unknown command "relay" for cloud API v2` — which is the diagnosis for the commonest mistake once two vocabularies exist. The message goes to `node.error` with the `msg`, so a catch node can handle it, and the node no longer emits on its normal output for a command it did not send.
 
+### Where the credentials come from
+
+The cloud node needs a server URI and an authentication key, and neither the node help nor the README said where to get them. Both are generated in the Shelly Cloud app under `User settings` → `Authorization cloud key` — the server URI is shown on the same page as the key — and both are now documented in the help of the cloud node and the cloud server config node, alongside a link to [the Shelly Cloud Control API documentation](https://shelly-api-docs.shelly.cloud/cloud-control-api/).
+
 ### Examples and internals
 
 - `examples/cloud.json` is now **[`examples/cloud-v1.json`](examples/cloud-v1.json)** and pins `apiversion: "v1"`, so importing it produces a working v1 configuration rather than picking up the new v2 default.
