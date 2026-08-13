@@ -259,6 +259,19 @@ describe('catalog consistency', () => {
         assert.equal(configuration.getDevice('S4SN-0071Z').name, 'Shelly Flood S Gen4');
     });
 
+    it('lists the Pro 3EM variants that report a distinct model, and no others', () => {
+        // The suffix marks a genuinely different product: the KB "Device identification"
+        // section gives SPEM-003CEBEU400 and SPEM-003CEBEU63. The 120 A version is the
+        // base model and reports SPEM-003CEBEU with no suffix — confirmed against a real
+        // meter reporting {"model":"SPEM-003CEBEU","app":"Pro3EM"}. A "Pro 3EM-120" entry
+        // therefore matched no hardware, and choosing it with an exact type match ticked
+        // left the node permanently on "Shelly type mismatch".
+        ['SPEM-003CEBEU', 'SPEM-003CEBEU400', 'SPEM-003CEBEU63', 'SPEM-002CEBEU50'].forEach((model) => {
+            assert.ok(configuration.getDevice(model), 'expected a catalog entry for ' + model);
+        });
+        assert.equal(configuration.getDevice('SPEM-003CEBEU120'), undefined);
+    });
+
     it('lists all five Wall Display variants', () => {
         const models = ['SAWD-0A1XX10EU1', 'SAWD-2A1XX10EU1', 'SAWD-3A1XE10EU2', 'SAWD-5A1XX10EU0', 'SAWD-6A1XX10EU0'];
         models.forEach((model) => {

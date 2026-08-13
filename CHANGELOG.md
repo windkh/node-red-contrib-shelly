@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [11.11.14] - 2026-08-13
+
+### "Shelly Pro 3EM-120" removed — no such device exists
+
+11.11.13 left this entry in place pending hardware confirmation. A user's meter supplied it:
+
+```json
+{ "model": "SPEM-003CEBEU", "gen": 2, "app": "Pro3EM", "profile": "triphase" }
+```
+
+The suffix in this family marks a genuinely distinct product — the knowledge base's _Device identification_ section gives `SPEM-003CEBEU400` for the [Pro 3EM-400](https://kb.shelly.cloud/knowledge-base/shelly-pro-3em-400) and `SPEM-003CEBEU63` for the [Pro 3EM-3CT63](https://kb.shelly.cloud/knowledge-base/shelly-pro-3em-3ct63). But the 120 A version **is** the base model: it reports `SPEM-003CEBEU` with no suffix, the [Pro 3EM page](https://kb.shelly.cloud/knowledge-base/shelly-pro-3em) states that one code and never mentions a `…120`, and "CT 120A" is an accessory clamp rather than a device variant.
+
+So `SPEM-003CEBEU120` matched no hardware that can exist, and it was worse than dead weight: it sat directly above the real entry in the dropdown, so an owner of a standard 120 A Pro 3EM would reasonably pick "Shelly Pro 3EM-120" — and with _device type must match exactly_ ticked, the node then sat permanently on `Shelly type mismatch`, because the meter reports the unsuffixed code. Selecting the plain "Shelly Pro 3EM" is correct for the 120 A model.
+
+A test now pins the three real variants and asserts the phantom stays absent.
+
+1 test added (234 total, up from 233).
+
 ## [11.11.13] - 2026-08-10
 
 Audit of [config.json](shelly/config/config.json) against the [Shelly knowledge base](https://kb.shelly.cloud/knowledge-base/devices).
