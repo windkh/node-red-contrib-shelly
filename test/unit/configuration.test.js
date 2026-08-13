@@ -208,3 +208,61 @@ describe('configuration.getDeviceTypes2', () => {
         assert.deepEqual(configuration.getDeviceTypes2('NotAFamily', false), []);
     });
 });
+
+describe('catalog consistency', () => {
+    const config = require('../../shelly/config/config.json');
+
+    it('every device is reachable by selecting its own family', () => {
+        // The UI offers either a concrete model or a device family. Selecting the family
+        // yields that family's model-prefix list, and tryCheckDeviceType matches the device
+        // against it — so a model with no matching prefix can only ever be reached by exact
+        // model, and picking the obvious family reports "Shelly type mismatch" instead.
+        // This caught six entries at once: all three gen 4 dimmers (no S4DM- prefix), the
+        // Duo Bulb E27 Gen3, the Ogemray relay and the gen 1 Bulb RGBW.
+        const unreachable = config.devices.filter((device) => {
+            const families = device.gen === '1' ? config.gen1DeviceTypes : config.gen2DeviceTypes;
+            const family = families.find((entry) => entry[0] === device.type);
+            return !family || !family[1].some((prefix) => device.model.startsWith(prefix));
+        });
+
+        assert.deepEqual(
+            unreachable.map((d) => d.model + ' (' + d.type + ')'),
+            [],
+            'every device must match at least one prefix of its own declared type'
+        );
+    });
+
+    it('does not offer roller mode on the single-channel Shelly 1L', () => {
+        // The 1L has one load output and no cover mode, so neither the catalog entry nor
+        // the Roller prefix list may claim otherwise. SHSW-21 and SHSW-25 do have two
+        // channels and stay in the Roller family.
+        const rollerPrefixes = configuration.getDeviceTypes1('Roller', false);
+        assert.equal(rollerPrefixes.includes('SHSW-L'), false, 'SHSW-L must not be a Roller prefix');
+        assert.ok(rollerPrefixes.includes('SHSW-21'));
+        assert.ok(rollerPrefixes.includes('SHSW-25'));
+
+        const oneLTypes = config.devices.filter((d) => d.model === 'SHSW-L').map((d) => d.type);
+        assert.deepEqual(oneLTypes, ['Relay']);
+    });
+
+    it('lists the Shelly Pro CB circuit breakers', () => {
+        ['SPCB-01VENEU', 'SPCB-02VENEU', 'SPCB-03VENEU', 'SPCB-04VENEU'].forEach((model) => {
+            const device = configuration.getDevice(model);
+            assert.ok(device, 'expected a catalog entry for ' + model);
+            assert.equal(device.type, 'Relay');
+        });
+    });
+
+    it('distinguishes Flood Gen4 from Flood S Gen4', () => {
+        // Two different devices one character apart in the model code.
+        assert.equal(configuration.getDevice('S4SN-0071A').name, 'Shelly Flood Gen4');
+        assert.equal(configuration.getDevice('S4SN-0071Z').name, 'Shelly Flood S Gen4');
+    });
+
+    it('lists all five Wall Display variants', () => {
+        const models = ['SAWD-0A1XX10EU1', 'SAWD-2A1XX10EU1', 'SAWD-3A1XE10EU2', 'SAWD-5A1XX10EU0', 'SAWD-6A1XX10EU0'];
+        models.forEach((model) => {
+            assert.ok(configuration.getDevice(model), 'expected a catalog entry for ' + model);
+        });
+    });
+});

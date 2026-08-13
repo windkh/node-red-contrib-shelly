@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
+## [11.11.13] - 2026-08-10
+
+Audit of [config.json](shelly/config/config.json) against the [Shelly knowledge base](https://kb.shelly.cloud/knowledge-base/devices).
+
+### Six devices could not be reached by picking their device family
+
+The device dropdown offers either a concrete model or a family (`Relay`, `Dimmer`, …). Choosing the family hands `tryCheckDeviceType` that family's model-prefix list, so a model matched by no prefix in its own family is only reachable by exact model — pick the obvious family and the node reports `Shelly type mismatch` instead of connecting.
+
+Six catalog entries were in that state, and **all three gen 4 dimmers were among them**: the `Dimmer` family had no `S4DM-` prefix, so Shelly Dimmer Gen4, Dimmer 0/1-10V PM Gen4 and Dimmer Gen4 US all failed family selection. The others were the Duo Bulb E27 Gen3 (no `S3BL-D` in `Dimmer`), the Ogemray Smart Relay (no `S3PB-` in `Relay`) and the gen 1 Bulb RGBW (no `SHBLB-` in `RGBW`). The four missing prefixes are added.
+
+A new test asserts the invariant for the **whole catalog** rather than for these six cases, so a future device added without its prefix fails the suite instead of shipping.
+
+### The Shelly 1L is no longer offered as a roller
+
+The catalog carried a `Shelly 1L Roller` entry and listed `SHSW-L` in the gen 1 `Roller` prefix list. The [1L](https://kb.shelly.cloud/knowledge-base/shelly-1l) has a single load output and no cover mode — it cannot drive a roller. Both are removed; `SHSW-21` and `SHSW-25` genuinely have two channels and stay.
+
+Little should change in practice: both `SHSW-L` entries shared one model, and `getDevice` returns the first match, which was already the Relay one. The reachable consequence was the prefix — selecting the `Roller` family accepted a 1L and produced a node whose commands the device cannot perform.
+
+### Six devices added
+
+| Device                                                                                    | Model             | Type   |
+| ----------------------------------------------------------------------------------------- | ----------------- | ------ |
+| [Shelly Pro 1CB](https://kb.shelly.cloud/knowledge-base/shelly-pro-cbs)                   | `SPCB-01VENEU`    | Relay  |
+| Shelly Pro 2CB                                                                            | `SPCB-02VENEU`    | Relay  |
+| Shelly Pro 3CB                                                                            | `SPCB-03VENEU`    | Relay  |
+| Shelly Pro 4CB                                                                            | `SPCB-04VENEU`    | Relay  |
+| [Shelly Wall Display X1i](https://kb.shelly.cloud/knowledge-base/shelly-wall-display-x1i) | `SAWD-6A1XX10EU0` | Relay  |
+| [Shelly Flood S Gen4](https://kb.shelly.cloud/knowledge-base/shelly-flood-s-gen4)         | `S4SN-0071Z`      | Sensor |
+
+The Pro CB circuit breakers also needed a new `SPCB-` prefix in the gen2 `Relay` family; `SAWD-` and `S4SN-` were already there. Note that Flood S Gen4 differs from the Flood Gen4 (`S4SN-0071A`) by one character, so a test pins the two apart.
+
+### Catalog names now match the knowledge base
+
+`Shelly The Pill Gen3` → `The Pill by Shelly`, `Shelly AZ Plug Gen3` → `Shelly AZ Plug`, `Shelly AZ H&T Gen3` → `Shelly AZ H&T`. Display labels only — flows store the model code, so nothing needs re-selecting.
+
+### Verified, not changed
+
+All 111 distinct `helpLink` URLs resolve (HTTP 200; the check was validated against a deliberately bogus URL returning 404), and the four Wall Display model codes match the knowledge base exactly. Gen 1 devices the knowledge base no longer lists — Shelly 2, Dimmer 1, Door/Window 1, Button 2, Bulb RGBW, Smoke — are discontinued, not wrong, and stay.
+
+Two items are left open pending hardware confirmation rather than guessed at: `SPEM-003CEBEU120` (“Shelly Pro 3EM-120”), which has no counterpart in the knowledge base — the base Pro 3EM already ships with CT 120A transformers, and “CT 120A” is an accessory rather than a device variant; and Shelly 1 Mini Gen4 ANZ, whose knowledge-base page reports the same `S4SW-001X8EU` as the EU model even though 1/1PM/2PM Gen4 ANZ each have distinct `…ANZ` codes.
+
+5 tests added (233 total, up from 228).
+
 ## [11.11.12] - 2026-08-10
 
 ### The BLU scanner script is 44% smaller, so uploading it costs half the RPC calls
