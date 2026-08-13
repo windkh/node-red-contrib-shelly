@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [11.12.0] - 2026-08-13
+
+### The cloud node speaks API v2 - [#283](https://github.com/windkh/node-red-contrib-shelly/issues/283)
+
+Shelly deprecated the [v1 Cloud Control API](https://shelly-api-docs.shelly.cloud/cloud-control-api/communication) — "will be removed in the near future" — in favour of [v2.0-beta](https://shelly-api-docs.shelly.cloud/cloud-control-api/communication-v2). Both are now supported, chosen on the **cloud server config node**.
+
+**Nothing changes for existing flows.** A configuration saved before this option existed carries no version property, and the runtime reads that as v1. New configurations are created as v2. This asymmetry is deliberate and is the whole design: v2 is not a compatible superset, so reading "absent" as v2 would have switched the API under every deployed flow on update and broken every command in it. See [ADR-011](doc/architecture/adr/011-cloud-api-v1-v2-coexistence.md).
+
+What v2 adds:
+
+- **Batch reads.** `type: 'get'` fetches up to 10 devices in one call, with `select` and `pick` to choose what comes back. The cloud allows ~1 request/second either way, so reading ten devices drops from ten seconds to one.
+- **Failures that name a reason.** v2 answers with `DEVICE_OFFLINE`, `DEVICE_INVALID_MODE`, `BAD_REQUEST` and friends plus detail messages; those now reach `msg.error` and the node status. Previously the response body was discarded and users saw a bare status code — the same blindness fixed for local gen2 requests in 11.10.1.
+- **More control.** Covers gain `slatPosition`, `slatRelative`, `relative` and `duration`; lights gain `mode`, `temperature` and `effect`; switches gain `toggle_after`.
+
+The v2 commands are `switch`, `cover`, `light`, `groups` and `get`. They are **not** renamed v1 commands — `turn: "on"` became `on: true`, the roller's `direction`/`pos` collapsed into the cover's `position`, bulk control became groups, and `all_status` has no v2 equivalent at all. Switching a config node from v1 to v2 is a migration, not a toggle; [doc/migration/cloud-api-v1-to-v2.md](doc/migration/cloud-api-v1-to-v2.md) maps every command and flags the one that bites downstream: reads change shape on the way **back**, since v2 returns a list of `{id, type, code, gen, online, status, settings}` rather than the status object itself.
+
+Also worth knowing: v2 signals a successful control command with HTTP 200 and an **empty body**, so `msg.payload` is empty afterwards. A failed command raises an error instead, so an empty payload means it was accepted. A `groups` call still returns a `failedCommands` map when only some devices could be driven.
+
+### An unusable cloud command is now reported instead of ignored
+
+Part of [#282](https://github.com/windkh/node-red-contrib-shelly/issues/282). An unrecognised `msg.payload.type` used to leave the route undefined, and the message was forwarded untouched: no error, no status change, no request. Nothing distinguished "done" from "silently dropped", which is what left [discussion #192](https://github.com/windkh/node-red-contrib-shelly/discussions/192) unanswered for nine months.
+
+The node now reports it and names the configured version — `unknown command "relay" for cloud API v2` — which is the diagnosis for the commonest mistake once two vocabularies exist. The message goes to `node.error` with the `msg`, so a catch node can handle it, and the node no longer emits on its normal output for a command it did not send.
+
+### Examples and internals
+
+- `examples/cloud.json` is now **[`examples/cloud-v1.json`](examples/cloud-v1.json)** and pins `apiversion: "v1"`, so importing it produces a working v1 configuration rather than picking up the new v2 default.
+- New **[`examples/cloud-v2.json`](examples/cloud-v2.json)** covers reads (single and batched), switches, covers, lights and groups.
+- Request building moved into pure modules under `shelly/nodes/cloud/`, one per version, so both are unit-testable without a Node-RED runtime.
+
+45 tests added (279 total, up from 234). The cloud node had **no test coverage at all** before this; it is now at 95.7%, and both new modules at 100%. The v1 tests pin the wire format that existed before the extraction, and the refactor was verified by replaying all nine v1 commands through the old and new modules against a mock server and diffing the actual HTTP requests — identical on every one.
+
 ## [11.11.14] - 2026-08-13
 
 ### "Shelly Pro 3EM-120" removed — no such device exists

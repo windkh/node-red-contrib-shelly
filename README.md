@@ -1004,6 +1004,14 @@ https://shelly-api-docs.shelly.cloud/#common-http-api
 
 See also https://shelly-api-docs.shelly.cloud/cloud-control-api/communication
 The node can communicate with your shellies via cloud API. You need to create an authentication key in your shelly app and enter it into the config node.
+
+**Two API versions are supported.** Shelly has deprecated the v1 API above and replaced it with
+[v2.0-beta](https://shelly-api-docs.shelly.cloud/cloud-control-api/communication-v2). Pick the version
+on the cloud server config node: new configurations default to **v2**, while configurations made before
+this option existed keep using **v1**, so updating the package never changes an existing flow.
+The commands below are the **v1** vocabulary — v2 uses different payloads, see
+[the migration guide](doc/migration/cloud-api-v1-to-v2.md) and the
+[**shelly cloud flow (API v2)**](examples/cloud-v2.json) example.
 All devices have unique IDs. You can configure the ID in the config node or send it into the node, just as you prefer.
 Note that the cloud API is limited to 1 call per second. If you call too fast you will likely receive an error 401.
 You can get the status of a device by simply triggering the node using a msg.payload as follows
@@ -1041,7 +1049,8 @@ You can control relays as follows:
 
 ### Examples
 
-[**shelly cloud flow**](examples/cloud.json)
+[**shelly cloud flow (API v1)**](examples/cloud-v1.json)  
+[**shelly cloud flow (API v2)**](examples/cloud-v2.json)
 
 ## Roller
 
@@ -1060,7 +1069,8 @@ Please use direction or pos here.
 
 ### Examples
 
-[**shelly cloud flow**](examples/cloud.json)
+[**shelly cloud flow (API v1)**](examples/cloud-v1.json)  
+[**shelly cloud flow (API v2)**](examples/cloud-v2.json)
 
 ## Light
 
@@ -1086,7 +1096,8 @@ Please see documentation. It depends on if you have RGBW or White lights.
 
 ### Examples
 
-[**shelly cloud flow**](examples/cloud.json)
+[**shelly cloud flow (API v1)**](examples/cloud-v1.json)  
+[**shelly cloud flow (API v2)**](examples/cloud-v2.json)
 
 ## Bulk Control
 

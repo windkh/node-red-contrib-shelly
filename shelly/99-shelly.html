@@ -782,6 +782,10 @@
         category: 'config',
         defaults: {
             description: { value: '' },
+            // New config nodes get v2. Nodes saved before this option existed carry no value
+            // at all, and the runtime reads that as v1 so an upgrade cannot silently switch
+            // API under a deployed flow — the payloads are not compatible. See ADR-011.
+            apiversion: { value: 'v2' },
         },
         credentials: {
             serveruri: { type: 'text' },
@@ -808,11 +812,35 @@
             <label for="node-config-input-authkey"><i class="fa fa-key"></i> Authentication Key</label>
             <input type="text" id="node-config-input-authkey" placeholder="Enter the auth key here">
         </div>
+        <div class="form-row">
+            <label for="node-config-input-apiversion"><i class="fa fa-code-fork"></i> API Version</label>
+            <select id="node-config-input-apiversion">
+                <option value="v2">v2 (recommended)</option>
+                <option value="v1">v1 (deprecated by Shelly)</option>
+            </select>
+        </div>
     </div>
 </script>
 
 <script type="text/x-red" data-help-name="shelly-cloud-server">
     <p>A configuration node that can be used by several shelly cloud nodes.</p>
+    <h3>API Version</h3>
+    <p>
+        Selects which Shelly Cloud Control API the cloud nodes on this connection speak.
+        <b>v1 is deprecated by Shelly</b> and will be removed by them in the near future; v2 additionally
+        reads up to 10 devices in a single call and reports a real reason when a command fails.
+    </p>
+    <p>
+        <b>Switching version is a migration, not a toggle.</b> The two versions use different payloads —
+        <code>turn:"on"</code> becomes <code>on:true</code>, the roller's <code>direction</code>/<code>pos</code>
+        become the cover's <code>position</code>, and <code>all_status</code> has no v2 equivalent — so flows
+        do not keep working across the change. See
+        <a href="https://github.com/windkh/node-red-contrib-shelly/blob/master/doc/migration/cloud-api-v1-to-v2.md">the migration guide</a>.
+    </p>
+    <p>
+        Configurations created before this option existed keep using v1 until you change it here,
+        so updating the package does not alter an existing flow.
+    </p>
 </script>
 
 <!-- ------------------------------------------------------------------------------------------ -->

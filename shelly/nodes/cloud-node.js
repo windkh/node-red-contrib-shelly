@@ -8,29 +8,24 @@ module.exports = function (RED) {
     const rateLimit = require('axios-rate-limit');
     const cloudAxios = rateLimit(axios.create(), { maxRequests: 1, perMilliseconds: 1000, maxRPS: 1 });
 
-    function encodeParams(data) {
-        Object.keys(data).forEach((key) => data[key] === undefined && delete data[key]);
-        const params = new URLSearchParams(data).toString();
-        return params;
+    const { buildRequestV1 } = require('./cloud/parsers/v1.js');
+    const { buildRequestV2 } = require('./cloud/parsers/v2.js');
+    const { describeCloudErrorV2 } = require('./cloud/errors.js');
+    const { V2 } = require('./cloud/api-version.js');
+
+    function getRequestTimeout(timeout) {
+        let requestTimeout = 10000;
+
+        // We avoid an invalid timeout by taking a default if 0 or unset.
+        if (timeout !== undefined && timeout !== null && timeout > 0) {
+            requestTimeout = timeout;
+        }
+
+        return requestTimeout;
     }
 
-    function encodeArrayParams(data) {
-        const params = JSON.stringify(data);
-        return params;
-    }
-
-    // generic REST cloud request wrapper
+    // generic REST cloud request wrapper (v1: form-urlencoded body carrying the auth key)
     async function shellyCloudRequestAsync(method, route, data, credentials, timeout) {
-        if (timeout === undefined || timeout === null) {
-            timeout = 10000;
-        }
-
-        // We avoid an invalid timeout by taking a default if 0.
-        let requestTimeout = timeout;
-        if (requestTimeout <= 0) {
-            requestTimeout = 10000;
-        }
-
         let encodedData = 'auth_key=' + credentials.authKey;
         if (data !== undefined && data !== null) {
             encodedData += '&' + data;
@@ -42,7 +37,7 @@ module.exports = function (RED) {
             url: route,
             method: method,
             data: encodedData,
-            timeout: requestTimeout,
+            timeout: getRequestTimeout(timeout),
             validateStatus: (status) => status === 200,
         };
 
@@ -52,6 +47,28 @@ module.exports = function (RED) {
             result = response.data;
         } else {
             throw new Error(response.statusText + ' ' + config.url);
+        }
+
+        return result;
+    }
+
+    // v2 request wrapper: auth key in the query string, command as a JSON body.
+    async function shellyCloudRequestV2Async(route, body, credentials, timeout) {
+        const config = {
+            baseURL: credentials.serverUri,
+            url: route + '?auth_key=' + encodeURIComponent(credentials.authKey),
+            method: 'POST',
+            data: body,
+            timeout: getRequestTimeout(timeout),
+            validateStatus: (status) => status === 200,
+        };
+
+        let result;
+        try {
+            const response = await cloudAxios.request(config);
+            result = response.data;
+        } catch (error) {
+            throw new Error(describeCloudErrorV2(error), { cause: error });
         }
 
         return result;
@@ -69,84 +86,44 @@ module.exports = function (RED) {
 
         this.on('input', async function (msg) {
             try {
-                let route;
-                let params;
-                if (utils.isMsgPayloadValid(msg)) {
-                    const type = msg.payload.type;
-                    if (type === 'light') {
-                        route = '/device/light/control';
+                const apiVersion = node.server.apiVersion;
+                const hasPayload = utils.isMsgPayloadValid(msg);
 
-                        const data = {
-                            id: msg.payload.id,
-                            channel: msg.payload.channel,
-                            turn: msg.payload.turn,
-                            brightness: msg.payload.brightness,
-                            white: msg.payload.white,
-                            red: msg.payload.red,
-                            green: msg.payload.green,
-                            blue: msg.payload.blue,
-                            gain: msg.payload.gain,
-                        };
-                        params = encodeParams(data);
-                    } else if (type === 'relay') {
-                        route = '/device/relay/control';
-
-                        const data = {
-                            id: msg.payload.id,
-                            channel: msg.payload.channel,
-                            turn: msg.payload.turn,
-                        };
-                        params = encodeParams(data);
-                    } else if (type === 'roller') {
-                        route = '/device/relay/roller/control';
-
-                        const data = {
-                            id: msg.payload.id,
-                            channel: msg.payload.channel,
-                            direction: msg.payload.direction,
-                            pos: msg.payload.pos,
-                        };
-                        params = encodeParams(data);
-                    } else if (type === 'relays') {
-                        route = '/device/relay/bulk_control';
-
-                        const data = {
-                            turn: msg.payload.turn,
-                        };
-                        params = encodeParams(data);
-                        params += '&devices=' + encodeArrayParams(msg.payload.devices);
-                    } else if (type === 'status') {
-                        route = '/device/status';
-
-                        const data = {
-                            id: msg.payload.id,
-                        };
-                        params = encodeParams(data);
-                    } else if (type === 'all_status') {
-                        route = '/device/all_status';
-
-                        const data = {
-                            show_info: msg.payload.show_info,
-                            no_shared: msg.payload.no_shared,
-                        };
-                        params = encodeParams(data);
+                let request;
+                if (hasPayload) {
+                    if (apiVersion === V2) {
+                        request = buildRequestV2(msg.payload);
                     } else {
-                        // nothing to do
+                        request = buildRequestV1(msg.payload);
                     }
                 }
 
-                if (route) {
+                if (request) {
                     const credentials = node.server.getCredentials();
-                    const body = await shellyCloudRequestAsync('POST', route, params, credentials);
+
+                    let body;
+                    if (apiVersion === V2) {
+                        body = await shellyCloudRequestV2Async(request.route, request.body, credentials);
+                    } else {
+                        body = await shellyCloudRequestAsync('POST', request.route, request.params, credentials);
+                    }
 
                     node.status({ fill: 'green', shape: 'ring', text: 'OK' });
 
-                    const status = body;
-                    // msg.status = status;
-                    msg.payload = status;
+                    msg.payload = body;
                     node.send([msg]);
                 } else {
-                    node.send([msg]);
+                    // Doing nothing silently is what made an unusable command impossible to
+                    // diagnose: no error, no status change, no request. Name the command and
+                    // the configured API version, because the commonest cause is a v1 payload
+                    // reaching a v2 connection or the other way round.
+                    const command = hasPayload ? msg.payload.type : undefined;
+                    const reason =
+                        command === undefined ? 'no command in msg.payload' : 'unknown command "' + command + '"';
+                    const text = reason + ' for cloud API ' + apiVersion;
+
+                    node.status({ fill: 'red', shape: 'ring', text: text });
+                    node.error(text, msg);
                 }
             } catch (error) {
                 node.status({ fill: 'red', shape: 'ring', text: error.message });

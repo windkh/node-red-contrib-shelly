@@ -18,6 +18,7 @@ The records are stored individually in [`adr/`](adr/). They use a lightweight Ny
 |            [008](adr/008-digest-auth-401-retry.md) | HTTP Digest auth (gen 2+) handled by transparent 401-retry                | Accepted |
 |    [009](adr/009-gen3-gen4-share-gen2-codepath.md) | Generations 3 and 4 reuse the gen 2 code path                             | Accepted |
 |      [010](adr/010-vendored-blu-scanner-script.md) | The BLU scanner script is vendored from `ALLTERCO/shelly-script-examples` | Accepted |
+|      [011](adr/011-cloud-api-v1-v2-coexistence.md) | Cloud node supports API v1 and v2 side by side                            | Accepted |
 
 ## Reading order
 
