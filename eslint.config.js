@@ -1,5 +1,7 @@
 'use strict';
-// Flat ESLint config — standard for windkh node-red node repos (ESLint >= 9).
+// Flat ESLint config — standard for windkh node-red node repos (ESLint >= 10).
+// Verified unchanged against the full v10 stack: eslint@10, @eslint/js@10,
+// eslint-config-prettier@10, globals@17.
 const js = require('@eslint/js');
 const globals = require('globals');
 const prettier = require('eslint-config-prettier');
