@@ -51,6 +51,17 @@
 - Node's default discovery runs **every** `.js` under `test/`, whatever it is named, so shared helpers and
   fixtures belong outside that directory (e.g. `test-helpers/`). The test script deliberately takes no path
   arguments: a `'test/**/*.test.js'` glob would need Node >= 21 and fails on Node 20, which is still supported.
+- The test script deliberately has **no `--test-force-exit`**. It calls `process.exit()` as soon as the last
+  test finishes, racing libuv's teardown of undici keep-alive sockets and mock HTTP servers — on Windows that
+  aborts the process _after_ the results are in, so the runner marks a whole file failed while every test in
+  it passed (`Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)`). A suite that exits on its own has
+  also _proved_ it leaks no handles, which the flag hides. If the suite ever stops exiting, find the open
+  handle — don't reinstate the flag.
+- `test-helpers/fake-red.js` is a minimal Node-RED stand-in shipped by the standard. A node file exports
+  `function (RED) {…}`, so without a RED object its contents cannot run at all — which is why node files
+  tend to sit at 0% coverage while the logic extracted from them is well covered. Use it to instantiate a
+  node and drive its input handler, with `nock` intercepting the requests it makes, so the assertion is
+  about what actually went to the device rather than what a parser intended.
 
 ## Shared: Documentation
 
@@ -61,13 +72,17 @@
 
 ## Shared: Workflow
 
-- CI (`.github/workflows/node.js.yml`) must pass: lint, format:check, test, coverage.
-- Releases go through `.github/workflows/npm-publish.yml`.
+- CI (`.github/workflows/node.js.yml`) must pass: lint, format:check, test, coverage. The coverage
+  report is uploaded as a build artifact, so a threshold failure can be inspected from the run.
+- Releases go through `.github/workflows/npm-publish.yml`. It re-runs lint, format:check and test in a
+  `build` job and publishes only on `needs: build` — a release is cut from a tag, and nothing guarantees
+  that tag points at a commit CI ever saw. `npm publish` is irreversible, so the gate is not optional.
+- `.github/workflows/standards-check.yml` runs `nrstd audit` and fails the build on drift from the standard.
 - Never bump the major version without an ADR explaining the breaking change.
 
 ## Shared: package.json scripts
 
-`lint`, `lint:fix`, `format`, `format:check`, `test` (`node --test` with `--test-force-exit --test-timeout=30000 --test-concurrency=1`, no path args), `coverage` / `coverage:check` (c8 over `npm test`).
+`lint`, `lint:fix`, `format`, `format:check`, `test` (`node --test` with `--test-timeout=30000 --test-concurrency=1`, no path args), `coverage` / `coverage:check` (c8 over `npm test`).
 
 <!-- END node-red-standards:managed -->
 
