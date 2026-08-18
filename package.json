@@ -35,7 +35,7 @@
         "prepare": "husky",
         "lint": "eslint .",
         "postlint": "echo ✅ lint valid",
-        "test": "node --test --test-force-exit --test-timeout=30000 --test-concurrency=1",
+        "test": "node --test --test-timeout=30000 --test-concurrency=1",
         "test:watch": "node --test --watch",
         "coverage": "c8 npm test",
         "coverage:check": "c8 --check-coverage npm test",
