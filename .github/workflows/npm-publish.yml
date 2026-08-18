@@ -32,6 +32,11 @@ jobs:
                   node-version: 20
                   registry-url: https://registry.npmjs.org/
             - run: npm ci
-            - run: npm publish
+            # A GitHub release flagged "pre-release" goes to the `beta` dist-tag, so users
+            # on Manage Palette — which tracks `latest` — are not auto-upgraded onto an
+            # unproven build. A plain `npm publish` would move `latest` to the beta and
+            # push it to every install; `latest` cannot be walked back to an earlier
+            # version by publishing, only by a separate dist-tag change.
+            - run: npm publish ${{ github.event.release.prerelease && '--tag beta' || '' }}
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
