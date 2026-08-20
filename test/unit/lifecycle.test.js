@@ -388,7 +388,7 @@ describe('reportInitializationError', () => {
         reportInitializationError(harness.node, new Error('getaddrinfo ENOTFOUND ' + HOST));
 
         assert.equal(harness.errors.length, 2);
-        assert.match(harness.errors[1], /ENOTFOUND/);
+        assert.match(harness.errors[1].message, /ENOTFOUND/);
     });
 
     it('carries the error code through describeError', () => {
@@ -398,6 +398,6 @@ describe('reportInitializationError', () => {
 
         reportInitializationError(harness.node, error);
 
-        assert.match(harness.errors[0], /ECONNABORTED/);
+        assert.match(harness.errors[0].message, /ECONNABORTED/);
     });
 });

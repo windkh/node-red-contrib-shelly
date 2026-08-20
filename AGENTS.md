@@ -140,7 +140,13 @@ The package abstracts three distinct Shelly protocols behind a similar Node-RED 
   [#195](https://github.com/windkh/node-red-contrib-shelly/issues/195).
 - **Cloud** ([shelly/nodes/cloud-node.js](shelly/nodes/cloud-node.js)) — calls the Shelly Cloud REST
   API with a user-provided auth key. Rate-limited via `axios-rate-limit` (the cloud caps at ~1
-  req/sec; exceeding it yields 401).
+  req/sec; exceeding it yields 401). The node file itself is 30 lines of wiring: request building,
+  transport and dispatch live in [shelly/nodes/cloud/](shelly/nodes/cloud/) and take no `RED` object,
+  so they are unit-testable directly. Keep it that way — see
+  [ADR-012](doc/architecture/adr/012-node-files-are-glue-only.md), which also states the rule that
+  tests mock a **node object** ([test-helpers/fake-node.js](test-helpers/fake-node.js)), never the RED
+  runtime. There is no `fake-red.js` in this repo; if the managed block above still mentions one, the
+  standard has not caught up yet.
 
 [shelly/lib/shelly.js](shelly/lib/shelly.js) is the shared HTTP layer used by gen1 and gen2 nodes. It:
 

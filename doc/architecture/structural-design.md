@@ -18,7 +18,10 @@ shelly/
 │   ├── gen2-node.js        }
 │   ├── gen2-server-node.js }
 │   ├── cloud-node.js       }
-│   └── cloud-server-node.js}
+│   ├── cloud-server-node.js}
+│   ├── gen1/               Extracted out of gen1-node.js: status converter + 7 parsers
+│   ├── gen2/               Extracted out of gen2-node.js: status converter + generic parser
+│   └── cloud/              api-version, errors, transport, dispatch + parsers/{v1,v2}
 ├── scripts/                Device-side JS, runs on Shelly's mJS runtime (not Node)
 │   ├── callback.js         Forwards events from gen2+ device to Node-RED listener
 │   └── ble-shelly-blu.js   BLU scanner for gen2+ gateway devices (vendored, Apache 2.0)
@@ -110,7 +113,7 @@ doc/architecture/          This documentation
 
 [`nodes/gen2-node.js`](../../shelly/nodes/gen2-node.js) (703 LOC) is the gen 2/3/4 device implementation. Smaller than gen 1 because the JSON-RPC envelope is uniform — `inputParserGeneric2` handles every command type with a single shape. The bulk of the file is **script / webhook lifecycle**: `tryInstallScriptAsync`, `tryUninstallScriptAsync`, `tryInstallWebhook2Async`, `tryUninstallWebhook2Async`, plus four `initializer*` variants (`polling`, `Callback`, `BluCallback`, `Webhook`) wired by `getInitializer2`. Same `ShellyGen2Node` constructor pattern as gen 1.
 
-[`nodes/cloud-node.js`](../../shelly/nodes/cloud-node.js) (164 LOC) is by far the smallest device implementation — it's a thin REST wrapper around the Shelly Cloud control API. Uses [`axios-rate-limit`](https://github.com/aishek/axios-rate-limit) capped at 1 request per second (the cloud's hard rate limit).
+[`nodes/cloud-node.js`](../../shelly/nodes/cloud-node.js) (30 LOC) is the only device node that is pure glue: it resolves the server config node, clears the status, and registers the two handlers. Everything a test would want to reach sits beside it in [`nodes/cloud/`](../../shelly/nodes/cloud/) and needs no RED object — [`transport.js`](../../shelly/nodes/cloud/transport.js) (the `axios-rate-limit` instance capped at 1 request per second, the cloud's hard limit) and [`dispatch.js`](../../shelly/nodes/cloud/dispatch.js) (`handleInput`, which takes the node). See ADR-[012](adr/012-node-files-are-glue-only.md); the two gen device nodes are the remaining candidates for the same treatment.
 
 The three `*-server-node.js` files are config-node skeletons:
 

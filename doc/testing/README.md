@@ -63,6 +63,19 @@ test/
 
 The split into `unit/` leaves room for `integration/` later (when / if a Shelly-device simulator emerges).
 
+That tree is the layout as **planned**. What was actually built differs in three ways, all of
+them deliberate:
+
+- Helpers live in **`test-helpers/` at the repo root**, not `test/helpers/`. `node --test` with
+  no path arguments loads _every_ `.js` under `test/` and runs it as a test file, whatever it is
+  named, so a helper placed there is executed as an empty suite. Path arguments would scope
+  discovery but need Node >= 21, and this package supports 20.
+- Parsers ended up under `test/unit/parsers/` and `test/unit/converters/` per source module,
+  rather than one `status-converters.test.js`.
+- There is no `mock-shelly.js`. Interceptors turned out to be short enough to write inline in
+  each test, and shared ones made it harder to see what a test actually expects on the wire.
+- There is no `fake-red.js` either — see Phase 7 below.
+
 ---
 
 ## What to test in what order
@@ -118,7 +131,9 @@ Each phase is one PR. Each phase produces a working `npm test` that's more capab
 
 **Mock the Node-RED `RED` object and exercise the constructor.**
 
-- Use `test/helpers/fake-red.js` to provide a minimal `RED.nodes.createNode`, `RED.nodes.registerType`, `RED.nodes.getNode`, `RED.httpAdmin`, `RED.log`.
+- Use a minimal `RED.nodes.createNode` / `getNode` / `registerType` stub to instantiate the node.
+  (This is what was actually done, and what Phase 7 later reversed: mock the **node object**, not
+  the RED runtime, and move anything worth asserting out of the closure first. See ADR-012.)
 - Assert that `new ShellyGen1Node({ hostname: '...', devicetype: 'Relay', mode: 'polling' })` sets up the expected `axiosInstance`, `pollingTimer`, and event handlers.
 - Test the `close` handler — assert `node.closing === true`, timers cleared, listeners removed.
 
@@ -307,9 +322,13 @@ Actual progression once executed (matches the floors set in `package.json`'s `c8
 
 | 6 | 47 | 84 | 90 | + cloud API v2 support: request builders per version in `shelly/nodes/cloud/`, plus the first fake-RED tests — `cloud-node.js` went from 0% → 95.7% lines. | 279 |
 
-Phase 6 settled a question left open above: a **fake Node-RED runtime** turned out to be cheap. [`test-helpers/fake-red.js`](../../test-helpers/fake-red.js) is ~50 lines — it supplies `createNode`, `getNode` and captures `status` / `error` / `send` — and it lets a node module be instantiated and driven for real, with `nock` intercepting the HTTP it issues. That is how the v2 request shape is verified against the specification rather than against a parser's intent, and how the v1 wire format was proved unchanged across the refactor by replaying every command through the old and new modules and diffing the actual requests.
+| 7 | 47 | 84 | 90 | + the transport and dispatch pulled out of `cloud-node.js` into `cloud/transport.js` and `cloud/dispatch.js`; `fake-red.js` deleted (ADR-012). Lines 48.8 → 49.2, branches 91.1 → 91.8, functions 85.7 → 85.9; `shelly/nodes/cloud/` at 98.9% lines and `cloud-node.js` at 100% on 30 lines. Floors unchanged. | 293 |
 
-The remaining uncovered lines live mostly in the three node files that still lack that treatment (`99-shelly.js`, `gen1-node.js`, `gen2-node.js`). Their core logic — the input parsers, status converters, transport, polling lifecycle — is already tested in isolation; what remains is mostly wiring (constructor field assignment, event-handler registration, the EM-data download side path in `inputParserMeasure1Async`). The `fake-red.js` harness now makes extending the same approach to them straightforward.
+Phase 6 settled a question left open above: a **fake Node-RED runtime** turned out to be cheap. `fake-red.js` was ~78 lines, and it let a node module be instantiated and driven for real with `nock` intercepting the HTTP it issued. That is how the v2 request shape was first verified against the specification rather than against a parser's intent, and how the v1 wire format was proved unchanged across that refactor.
+
+**Phase 7 reversed it.** The harness was cheap but it was treating a symptom: the cloud transport had no reason to be inside a `function (RED)` closure in the first place — `RED` appeared at 2 of that file's 141 lines — and the harness existed to reach around that. So the transport moved to `cloud/transport.js`, the input handler to `cloud/dispatch.js` as `handleInput(node, msg)`, and `cloud-node.js` shrank to 30 lines of wiring. The tests that used to need a RED stand-in now need none at all, or need only `test-helpers/fake-node.js` — a plain node-shaped object, the pattern `lifecycle.test.js` had been using since Phase 5. Every coverage metric improved. `fake-red.js` is deleted; see ADR-[012](../architecture/adr/012-node-files-are-glue-only.md) for the full reasoning, including why the wiring test in `cloud-node.test.js` keeps its RED stub **local** to that one file.
+
+The remaining uncovered lines live in the three node files that still hold logic (`99-shelly.js`, and `gen1-node.js` / `gen2-node.js` at 794 lines each, both 0%). Their extracted core — input parsers, status converters, transport, polling lifecycle — is already tested in isolation; what is left inside the closures is a mix of real logic (the `initializer*` and script/webhook lifecycle functions, the EM-data download side path in `inputParserMeasure1Async`) and genuine wiring. The route in is the Phase 7 one, not the Phase 6 one: move what does not need `RED` out, then mock the node. `cloud-node.js` is the worked example.
 
 Note: line / function / branch percentages don't move in lockstep. Branch and function percentages spike early because the small tested files are well-branched; line percentage moves slowly until the large `gen1-node.js` and `gen2-node.js` get split (Phase 3); and the function metric can dip when a new larger file enters the tested set (Phase 4) before its functions get covered (Phase 5).
 

@@ -250,7 +250,7 @@ The retry loop is cleared by `close`, and as of 11.10.0 won't be re-armed by a l
 - **No mutexes / locking.** The library assumes that input messages arrive sequentially, which is the Node-RED single-threaded reality.
 - **Module-global state:**
     - `nonceCount` in [`lib/shelly.js`](../../shelly/lib/shelly.js) — monotonic counter for HTTP Digest auth. Shared across all nodes (see [Errors and Weaknesses §nonceCount](errors-and-weaknesses.md)).
-    - `cloudAxios` in [`nodes/cloud-node.js`](../../shelly/nodes/cloud-node.js) — single rate-limited axios instance shared by _all_ cloud nodes (so the 1 req/sec limit is enforced across the whole flow, not per node).
+    - `cloudAxios` in [`nodes/cloud/transport.js`](../../shelly/nodes/cloud/transport.js) — single rate-limited axios instance shared by _all_ cloud nodes (so the 1 req/sec limit is enforced across the whole flow, not per node).
 
 ## Error propagation
 
