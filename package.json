@@ -41,7 +41,9 @@
         "coverage:check": "c8 --check-coverage npm test",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write .",
-        "format:check": "prettier --check ."
+        "format:check": "prettier --check .",
+        "standards:audit": "nrstd audit",
+        "standards:sync": "nrstd sync"
     },
     "c8": {
         "include": [
