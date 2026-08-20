@@ -19,6 +19,7 @@ The records are stored individually in [`adr/`](adr/). They use a lightweight Ny
 |    [009](adr/009-gen3-gen4-share-gen2-codepath.md) | Generations 3 and 4 reuse the gen 2 code path                             | Accepted |
 |      [010](adr/010-vendored-blu-scanner-script.md) | The BLU scanner script is vendored from `ALLTERCO/shelly-script-examples` | Accepted |
 |      [011](adr/011-cloud-api-v1-v2-coexistence.md) | Cloud node supports API v1 and v2 side by side                            | Accepted |
+|         [012](adr/012-node-files-are-glue-only.md) | Node files hold glue only; tests mock the node, not the RED runtime       | Accepted |
 
 ## Reading order
 
@@ -30,7 +31,7 @@ If you're working on BLU or callback mode: 006, 007, 004, 010.
 
 ## How to add a new ADR
 
-1. Pick the next free number (currently 011).
+1. Pick the next free number (currently 012).
 2. Copy an existing record as a template — they're all short and uniform.
 3. Update the status field on any record this one supersedes.
 4. Add a row to the table above.

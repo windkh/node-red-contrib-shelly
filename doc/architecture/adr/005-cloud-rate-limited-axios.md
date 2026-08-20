@@ -11,7 +11,7 @@ If multiple `shelly-cloud` device nodes in a single Node-RED flow each made thei
 
 ## Decision
 
-Use a **single rate-limited axios instance** shared by all cloud nodes in the same Node-RED process. The instance is module-level in [`shelly/nodes/cloud-node.js`](../../../shelly/nodes/cloud-node.js):
+Use a **single rate-limited axios instance** shared by all cloud nodes in the same Node-RED process. The instance is module-level in [`shelly/nodes/cloud/transport.js`](../../../shelly/nodes/cloud/transport.js) — genuinely so since ADR-[012](012-node-files-are-glue-only.md); before that it sat in the `function (RED)` closure of `cloud-node.js`, which made it one instance per RED initialisation rather than per process:
 
 ```js
 const cloudAxios = rateLimit(axios.create(), {

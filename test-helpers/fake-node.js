@@ -2,10 +2,10 @@
 
 const axios = require('axios').default;
 
-// A minimal Node-RED-shaped node mock for unit-testing the lifecycle
-// functions in shelly/lib/shelly.js. Each call to status/warn/error/send
-// is captured into a list on the returned harness so tests can assert on
-// what the SUT tried to do.
+// A minimal Node-RED-shaped node mock for unit-testing the functions that take a node —
+// the lifecycle helpers in shelly/lib/shelly.js and the per-node dispatchers under
+// shelly/nodes/. Each call to status/warn/error/send is captured into a list on the
+// returned harness so tests can assert on what the SUT tried to do.
 function makeFakeNode(opts = {}) {
     const statuses = [];
     const warnings = [];
@@ -22,9 +22,13 @@ function makeFakeNode(opts = {}) {
         authType: opts.authType,
         credentials: { username: opts.username || '', password: opts.password || '' },
         axiosInstance: opts.axiosInstance || axios,
+        // The config node a device node was wired to, as RED.nodes.getNode would return it.
+        server: opts.server,
         status: (s) => statuses.push(s),
         warn: (m) => warnings.push(m),
-        error: (m) => errors.push(m),
+        // Node-RED passes the msg as a second argument so a catch node can handle it; keep
+        // both, because "was the message forwarded to the catch node" is a real assertion.
+        error: (m, msg) => errors.push({ message: m, msg: msg }),
         send: (m) => sends.push(m),
         emit: () => {},
     };

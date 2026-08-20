@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [11.12.1] - 2026-08-19
+
+### Internals: the cloud transport left the RED closure — nothing changes for flows
+
+No behaviour change. `cloud-node.js` exported `function (RED) { … }` with the entire cloud transport inside it — the shared rate-limited axios instance, both request wrappers and the input handler — even though `RED` was referenced at exactly two of its 141 lines. Everything in there was therefore unreachable from a test without standing up a fake Node-RED runtime, which is what `test-helpers/fake-red.js` had been doing.
+
+The transport now lives in [`shelly/nodes/cloud/transport.js`](shelly/nodes/cloud/transport.js) and the input handler in [`shelly/nodes/cloud/dispatch.js`](shelly/nodes/cloud/dispatch.js) as `handleInput(node, msg)`. `cloud-node.js` is 30 lines of wiring. `fake-red.js` is gone: tests now mock the node object (`test-helpers/fake-node.js`) or nothing at all. Coverage improved on every metric — `shelly/nodes/cloud/` sits at 98.9% lines and `cloud-node.js` at 100% — and the suite grew from 279 to 290 tests.
+
+Recorded as [ADR-012](doc/architecture/adr/012-node-files-are-glue-only.md), which also sets the rule going forward: a node file holds glue only, and anything that does not need `RED` belongs beside it in a plain module. `gen1-node.js` and `gen2-node.js` are the next candidates.
+
 ## [11.12.0] - 2026-08-13
 
 ### The cloud node speaks API v2 - [#283](https://github.com/windkh/node-red-contrib-shelly/issues/283)
