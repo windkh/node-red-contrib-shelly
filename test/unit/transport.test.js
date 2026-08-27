@@ -109,7 +109,8 @@ describe('shellyRequestAsync — Digest auth (gen 2+) 401 retry', () => {
         });
 
         // Second call: must carry an Authorization: Digest ... header. Match
-        // partial values — exact nc / cnonce are nondeterministic.
+        // partial values — the exact cnonce is nondeterministic, but nc is not:
+        // the nonce is fresh, so it is always its first use.
         nock(URL)
             .get('/rpc/Switch.GetStatus')
             .matchHeader('Authorization', (val) => {
@@ -121,7 +122,7 @@ describe('shellyRequestAsync — Digest auth (gen 2+) 401 retry', () => {
                     val.includes('uri="/rpc/Switch.GetStatus"') &&
                     val.includes('qop=auth') &&
                     val.includes('algorithm=SHA-256') &&
-                    /nc=[0-9a-f]{8}/.test(val) &&
+                    val.includes('nc=00000001') &&
                     /response="[a-f0-9]+"/.test(val)
                 );
             })
@@ -138,6 +139,39 @@ describe('shellyRequestAsync — Digest auth (gen 2+) 401 retry', () => {
         });
 
         assert.deepEqual(result, { id: 0, output: true });
+    });
+
+    // Firmware 2.0.0 validates the nonce count per nonce (RFC 7616). A module-global counter that
+    // survived between requests sent 00000002, 00000003, … against nonces that were each brand new,
+    // and every authenticated call failed with "Unauthorized". See #296.
+    it('sends nc=00000001 on every request, not an ever-increasing counter', async () => {
+        const sentCounts = [];
+
+        for (const nonce of ['first-nonce', 'second-nonce']) {
+            nock(URL)
+                .get('/rpc/Shelly.GetStatus')
+                .reply(401, 'Unauthorized', {
+                    'www-authenticate':
+                        'Digest qop="auth", realm="shellypmmini", nonce="' + nonce + '", algorithm=SHA-256',
+                });
+
+            nock(URL)
+                .get('/rpc/Shelly.GetStatus')
+                .matchHeader('Authorization', (val) => {
+                    sentCounts.push(/nc=([0-9]{8})/.exec(val)[1]);
+                    return true;
+                })
+                .reply(200, { ok: true });
+
+            await shellyRequestAsync(axios, 'GET', '/rpc/Shelly.GetStatus', null, null, {
+                hostname: HOST,
+                authType: 'Digest',
+                username: 'admin',
+                password: 'topsecret',
+            });
+        }
+
+        assert.deepEqual(sentCounts, ['00000001', '00000001']);
     });
 
     it('throws when the digest retry itself is rejected with a non-200, non-401 status', async () => {

@@ -5,8 +5,6 @@ const crypto = require('crypto');
 
 const axios = require('axios').default;
 
-let nonceCount = 1;
-
 // gets all IP addresses: https://stackoverflow.com/questions/3653065/get-local-ip-address-in-node-js?page=2&tab=scoredesc#tab-top
 function getIPAddresses() {
     const ipAddresses = [];
@@ -106,7 +104,6 @@ function getDigestAuthorization(response, credentials, config) {
     const propertiesArray = authDetails.map((v) => v.split('='));
     const properties = new Map(propertiesArray.map((obj) => [obj[0], obj[1]]));
 
-    nonceCount++; // global counter
     const url = config.url;
     const method = config.method;
 
@@ -120,7 +117,10 @@ function getDigestAuthorization(response, credentials, config) {
     const ha1 = sha256(ha1String);
     const ha2String = method + ':' + url;
     const ha2 = sha256(ha2String);
-    const nc = ('00000000' + nonceCount).slice(-8);
+    // Every digest request starts with an unauthenticated call and gets a fresh nonce back in the
+    // 401 challenge, so the nonce count is always the first use of that nonce. Firmware 2.0.0 tracks
+    // the count per nonce (RFC 7616) and rejects anything but 00000001 here. See #296.
+    const nc = '00000001';
     const nonce = utils.replace(properties.get('nonce'), /"/g, '');
     const cnonce = crypto.randomBytes(24).toString('hex');
     const responseString = ha1 + ':' + nonce + ':' + nc + ':' + cnonce + ':' + 'auth' + ':' + ha2;

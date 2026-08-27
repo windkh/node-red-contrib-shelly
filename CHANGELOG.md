@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [11.12.2] - 2026-08-27
+
+### Digest auth works again on firmware 2.0.0 - [#296](https://github.com/windkh/node-red-contrib-shelly/issues/296)
+
+Authenticated requests to gen 2+ devices running firmware 2.0.0 failed with `Unauthorized /rpc/Shelly.GetStatus`, while the same credentials worked from `curl --anyauth`.
+
+The digest handshake in [`shelly/lib/shelly.js`](shelly/lib/shelly.js) sends every request unauthenticated first and builds the `Authorization` header from the fresh nonce in the 401 challenge. The nonce is therefore never reused — but the nonce count came from a module-global counter that was pre-incremented on each call and shared across every device in the runtime. The first authenticated request after a restart announced `nc=00000002` for a nonce it was using for the first time, and it climbed from there.
+
+Firmware 2.0.0 implements RFC 7616 and tracks the count per nonce, so it rejects anything but `00000001`. Earlier firmware ignored the field, which is why this went unnoticed. The counter is gone; `nc` is now the constant `00000001`, which is what a fresh nonce means and is equally correct on older firmware.
+
+Diagnosis and fix contributed by [eisenluk](https://github.com/eisenluk).
+
 ## [11.12.1] - 2026-08-19
 
 ### Internals: the cloud transport left the RED closure — nothing changes for flows
