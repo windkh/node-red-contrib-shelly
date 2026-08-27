@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [11.12.3] - 2026-08-27
+
+### Digest auth works again on firmware 2.0.0 - [#296](https://github.com/windkh/node-red-contrib-shelly/issues/296)
+
+Authenticated requests to gen 2+ devices running firmware 2.0.0 failed with `Unauthorized /rpc/Shelly.GetStatus`, while the same credentials worked from `curl --anyauth`.
+
+The digest handshake in [`shelly/lib/shelly.js`](shelly/lib/shelly.js) sends every request unauthenticated first and builds the `Authorization` header from the fresh nonce in the 401 challenge. The nonce is therefore never reused — but the nonce count came from a module-global counter that was pre-incremented on each call and shared across every device in the runtime. The first authenticated request after a restart announced `nc=00000002` for a nonce it was using for the first time, and it climbed from there.
+
+Firmware 2.0.0 implements RFC 7616 and tracks the count per nonce, so it rejects anything but `00000001`. Earlier firmware ignored the field, which is why this went unnoticed. The counter is gone; `nc` is now the constant `00000001`, which is what a fresh nonce means and is equally correct on older firmware.
+
+Diagnosis and fix contributed by [eisenluk](https://github.com/eisenluk).
+
+### The digest challenge is parsed properly, and a malformed one says so
+
+Follow-up to [#296](https://github.com/windkh/node-red-contrib-shelly/issues/296), hardening the other half of the same handshake.
+
+The `WWW-Authenticate` challenge was parsed by splitting the header on `', '` and then splitting each parameter on **every** `=`, keeping only the second field. Three assumptions came with that, none of them guaranteed by RFC 7235: that no value contains `=`, that the whitespace after the separating comma is always there, and that no quoted value contains a comma. A base64 nonce lost everything from its `=` padding onward; a challenge written `qop="auth",realm="x"` collapsed into a single token and left `realm` and `nonce` undefined.
+
+Undefined values were then hashed as the literal string `undefined`, so the node sent a syntactically valid but meaningless `Authorization` header, the device answered 401, and the user was told `Unauthorized /rpc/Shelly.GetStatus` — the same message a wrong password produces, and the same one #296 produced. Nothing pointed at the header.
+
+The challenge is now parsed with a tokenizer that understands quoted strings, and a challenge carrying no realm or nonce raises `Malformed digest challenge, no realm or nonce in: <header>` rather than proceeding with a hash of nothing. Current firmware sends a numeric nonce and the conventional `', '` separator, so no device in the field was affected — this closes the gap before one is.
+
 ## [11.12.1] - 2026-08-19
 
 ### Internals: the cloud transport left the RED closure — nothing changes for flows

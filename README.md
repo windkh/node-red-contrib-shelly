@@ -200,6 +200,7 @@ If you want to support this free project. Any help is welcome. You can donate by
 - MichaelEFlip for improving the readme
 - Solarer for fixing script overload
 - prpr19xx for adding exception handling to callback script
+- eisenluk for finding and fixing the digest authentication failure on firmware 2.0.0 see issue #296
 
 # 👥 Contributors
 

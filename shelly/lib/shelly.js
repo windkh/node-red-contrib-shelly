@@ -5,8 +5,6 @@ const crypto = require('crypto');
 
 const axios = require('axios').default;
 
-let nonceCount = 1;
-
 // gets all IP addresses: https://stackoverflow.com/questions/3653065/get-local-ip-address-in-node-js?page=2&tab=scoredesc#tab-top
 function getIPAddresses() {
     const ipAddresses = [];
@@ -99,29 +97,42 @@ function sha256(str) {
     return result;
 }
 
-// see https://shelly-api-docs.shelly.cloud/gen2/General/Authentication
-// see https://github.com/axios/axios/issues/686
-function getDigestAuthorization(response, credentials, config) {
-    const authDetails = response.headers['www-authenticate'].split(', ');
-    const propertiesArray = authDetails.map((v) => v.split('='));
-    const properties = new Map(propertiesArray.map((obj) => [obj[0], obj[1]]));
+// Parses the parameters of a WWW-Authenticate challenge into a map, with quotes already stripped.
+// The challenge is a comma-separated list of name=value pairs whose values may be quoted strings
+// (RFC 7235), so neither splitting on ', ' nor on every '=' holds up: the whitespace after the comma
+// is optional, a base64 nonce carries '=' padding, and a quoted value may contain a comma itself.
+function parseAuthenticateHeader(header) {
+    const parameters = new Map();
+    const matcher = /([A-Za-z0-9_-]+)\s*=\s*(?:"([^"]*)"|([^\s,]*))/g;
 
-    nonceCount++; // global counter
+    let match = matcher.exec(header);
+    while (match !== null) {
+        const value = match[2] !== undefined ? match[2] : match[3];
+        parameters.set(match[1], value);
+        match = matcher.exec(header);
+    }
+
+    return parameters;
+}
+
+// Builds the Authorization header value answering a digest challenge.
+function buildDigestAuthorization(realm, nonce, credentials, config) {
     const url = config.url;
     const method = config.method;
 
     // let algorithm = properties.get('algorithm'); // TODO: check if it is still SHA-256
     const username = credentials.username;
     const password = credentials.password;
-    const realm = utils.replace(properties.get('realm'), /"/g, '');
     const authParts = [username, realm, password];
 
     const ha1String = authParts.join(':');
     const ha1 = sha256(ha1String);
     const ha2String = method + ':' + url;
     const ha2 = sha256(ha2String);
-    const nc = ('00000000' + nonceCount).slice(-8);
-    const nonce = utils.replace(properties.get('nonce'), /"/g, '');
+    // Every digest request starts with an unauthenticated call and gets a fresh nonce back in the
+    // 401 challenge, so the nonce count is always the first use of that nonce. Firmware 2.0.0 tracks
+    // the count per nonce (RFC 7616) and rejects anything but 00000001 here. See #296.
+    const nc = '00000001';
     const cnonce = crypto.randomBytes(24).toString('hex');
     const responseString = ha1 + ':' + nonce + ':' + nc + ':' + cnonce + ':' + 'auth' + ':' + ha2;
     const responseHash = sha256(responseString);
@@ -143,6 +154,27 @@ function getDigestAuthorization(response, credentials, config) {
         ', response="' +
         responseHash +
         '", algorithm=SHA-256';
+    return authorization;
+}
+
+// see https://shelly-api-docs.shelly.cloud/gen2/General/Authentication
+// see https://github.com/axios/axios/issues/686
+function getDigestAuthorization(response, credentials, config) {
+    const header = response.headers['www-authenticate'];
+    const properties = parseAuthenticateHeader(header);
+    const realm = properties.get('realm');
+    const nonce = properties.get('nonce');
+
+    let authorization;
+    if (realm !== undefined && nonce !== undefined) {
+        authorization = buildDigestAuthorization(realm, nonce, credentials, config);
+    } else {
+        // Hashing an absent realm or nonce produces a well-formed header the device rejects, and the
+        // retry then failed as a bare "Unauthorized <route>" — the same message a wrong password
+        // gives, which is what made #296 take a firmware bisect to find. Name the real cause instead.
+        throw new Error('Malformed digest challenge, no realm or nonce in: ' + header);
+    }
+
     return authorization;
 }
 
