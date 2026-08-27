@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [11.12.3] - 2026-08-27
+
+### The digest challenge is parsed properly, and a malformed one says so
+
+Follow-up to [#296](https://github.com/windkh/node-red-contrib-shelly/issues/296), hardening the other half of the same handshake.
+
+The `WWW-Authenticate` challenge was parsed by splitting the header on `', '` and then splitting each parameter on **every** `=`, keeping only the second field. Three assumptions came with that, none of them guaranteed by RFC 7235: that no value contains `=`, that the whitespace after the separating comma is always there, and that no quoted value contains a comma. A base64 nonce lost everything from its `=` padding onward; a challenge written `qop="auth",realm="x"` collapsed into a single token and left `realm` and `nonce` undefined.
+
+Undefined values were then hashed as the literal string `undefined`, so the node sent a syntactically valid but meaningless `Authorization` header, the device answered 401, and the user was told `Unauthorized /rpc/Shelly.GetStatus` — the same message a wrong password produces, and the same one #296 produced. Nothing pointed at the header.
+
+The challenge is now parsed with a tokenizer that understands quoted strings, and a challenge carrying no realm or nonce raises `Malformed digest challenge, no realm or nonce in: <header>` rather than proceeding with a hash of nothing. Current firmware sends a numeric nonce and the conventional `', '` separator, so no device in the field was affected — this closes the gap before one is.
+
 ## [11.12.2] - 2026-08-27
 
 ### Digest auth works again on firmware 2.0.0 - [#296](https://github.com/windkh/node-red-contrib-shelly/issues/296)

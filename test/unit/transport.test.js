@@ -2,6 +2,7 @@ const { describe, it, beforeEach, afterEach, after } = require('node:test');
 const assert = require('node:assert/strict');
 const nock = require('nock');
 const axios = require('axios').default;
+const crypto = require('node:crypto');
 
 const { shellyRequestAsync } = require('../../shelly/lib/shelly.js');
 
@@ -192,6 +193,93 @@ describe('shellyRequestAsync — Digest auth (gen 2+) 401 retry', () => {
                 password: 'x',
             }),
             /forbidden/
+        );
+    });
+});
+
+describe('shellyRequestAsync — Digest challenge parsing', () => {
+    const CREDENTIALS = { hostname: HOST, authType: 'Digest', username: 'admin', password: 'topsecret' };
+
+    // Drives one full 401 -> retry cycle against the given challenge and hands back the
+    // Authorization header the device would have received.
+    async function captureAuthorization(challenge) {
+        let sent;
+
+        nock(URL).get('/rpc/Shelly.GetStatus').reply(401, 'Unauthorized', { 'www-authenticate': challenge });
+        nock(URL)
+            .get('/rpc/Shelly.GetStatus')
+            .matchHeader('Authorization', (val) => {
+                sent = val;
+                return true;
+            })
+            .reply(200, { ok: true });
+
+        await shellyRequestAsync(axios, 'GET', '/rpc/Shelly.GetStatus', null, null, CREDENTIALS);
+
+        return sent;
+    }
+
+    it('reads realm and nonce from the challenge Shelly sends today', async () => {
+        const sent = await captureAuthorization(
+            'Digest qop="auth", realm="shellypmmini-abc", nonce="1234567890", algorithm=SHA-256'
+        );
+
+        assert.match(sent, /realm="shellypmmini-abc"/);
+        assert.match(sent, /nonce="1234567890"/);
+    });
+
+    // Splitting each parameter on every '=' and keeping field [1] truncated the value at its first
+    // '=' — a base64 nonce lost its padding, so the hash was computed over a different nonce than
+    // the device had issued and the retry came back Unauthorized.
+    it('keeps a base64 nonce whose padding contains =', async () => {
+        const sent = await captureAuthorization(
+            'Digest qop="auth", realm="shellypmmini-abc", nonce="YWJjZGVmZw==", algorithm=SHA-256'
+        );
+
+        assert.match(sent, /nonce="YWJjZGVmZw=="/);
+
+        // The echoed nonce alone would not prove the hash used it, so recompute the response the way
+        // the device does and require a match.
+        const sha256 = (str) => crypto.createHash('sha256').update(str).digest('hex');
+        const cnonce = /cnonce="([a-f0-9]+)"/.exec(sent)[1];
+        const ha1 = sha256('admin:shellypmmini-abc:topsecret');
+        const ha2 = sha256('GET:/rpc/Shelly.GetStatus');
+        const expected = sha256(ha1 + ':YWJjZGVmZw==:00000001:' + cnonce + ':auth:' + ha2);
+
+        assert.match(sent, new RegExp('response="' + expected + '"'));
+    });
+
+    // RFC 7235 makes the whitespace after the separating comma optional. Splitting on the literal
+    // ', ' collapsed such a challenge into a single token, leaving realm and nonce undefined.
+    it('accepts a challenge with no whitespace after the commas', async () => {
+        const sent = await captureAuthorization(
+            'Digest qop="auth",realm="shellypmmini-abc",nonce="1234567890",algorithm=SHA-256'
+        );
+
+        assert.match(sent, /realm="shellypmmini-abc"/);
+        assert.match(sent, /nonce="1234567890"/);
+    });
+
+    it('keeps a quoted realm that contains a comma', async () => {
+        const sent = await captureAuthorization(
+            'Digest qop="auth", realm="Shelly, Gen3", nonce="1234567890", algorithm=SHA-256'
+        );
+
+        assert.match(sent, /realm="Shelly, Gen3"/);
+        assert.match(sent, /nonce="1234567890"/);
+    });
+
+    // Previously the missing values were hashed as the string "undefined", producing a header the
+    // device rejected — reported to the user as a bare "Unauthorized /rpc/Shelly.GetStatus", which
+    // is exactly what a wrong password looks like.
+    it('names the malformed challenge instead of hashing an absent realm or nonce', async () => {
+        nock(URL).get('/rpc/Shelly.GetStatus').reply(401, 'Unauthorized', {
+            'www-authenticate': 'Digest qop="auth", algorithm=SHA-256',
+        });
+
+        await assert.rejects(
+            shellyRequestAsync(axios, 'GET', '/rpc/Shelly.GetStatus', null, null, CREDENTIALS),
+            /Malformed digest challenge/
         );
     });
 });
