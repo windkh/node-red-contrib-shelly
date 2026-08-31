@@ -16,6 +16,12 @@ The immediate trigger was [node-red-standards](https://github.com/windkh/node-re
 
 CI now runs on `[22.x, 24.x]` instead of `[20.x, 22.x]`, in both the build workflow and the release `verify` job.
 
+### Shelly Pro 2PM v.1 UL is recognised - [#302](https://github.com/windkh/node-red-contrib-shelly/issues/302)
+
+`SPSW-202PE12UL`, the North American variant of the Pro 2PM, was missing from the device catalog, so the node reported the device type as unrecognised and the only way through was to pick a family by hand.
+
+The UL models are the same product certified for a different market, but they report their own model string, so an entry for the EU twin does not cover them. The Pro 1, Pro 1PM and Pro 2 all had their UL entries already — the Pro 2PM was the one gap. It is a `Relay` like its EU twin, so the existing input parser handles it unchanged.
+
 ## [11.12.3] - 2026-08-27
 
 ### Digest auth works again on firmware 2.0.0 - [#296](https://github.com/windkh/node-red-contrib-shelly/issues/296)
