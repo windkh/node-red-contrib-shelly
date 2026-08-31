@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [12.0.0] - 2026-08-31
+
+### Breaking: Node 20 is no longer supported, the floor is Node 22.13
+
+**If you run Node-RED on Node 20, do not upgrade.** Stay on 11.12.3, which continues to work. npm respects `engines` on install, so Manage Palette will not offer 12.x to you, and nothing breaks by itself.
+
+`engines.node` moves from `>=20.0.0` to `>=22.13.0`. Nothing in the runtime changes: no API, no message contract, no device behaviour. A flow that works on 11.12.3 works unchanged on 12.0.0 given a supported Node. The major bump is purely about the dropped runtime.
+
+The old floor had stopped being true. This package mandates ESLint 10, whose own floor on the 22 line is `^22.13.0` (`^20.19.0 || ^22.13.0 || >=24`), so `>=20.0.0` advertised a range the toolchain would not install on — a contributor on Node 20.0–20.18 got an `EBADENGINE` warning from a floor we had set ourselves. 22.13 also clears `node-red@5`, which needs `>=22.9`.
+
+The immediate trigger was [node-red-standards](https://github.com/windkh/node-red-standards) raising the same floor and enforcing it as a hard audit rule. Because `standards-check` deliberately runs the standard unpinned, every open pull request went red at once without a commit here, and the audit offers no waiver for that rule — `allowDrift` covers file paths only. See [ADR-013](doc/architecture/adr/013-node-22-13-engines-floor.md) for why moving the floor beat changing the shared standard.
+
+CI now runs on `[22.x, 24.x]` instead of `[20.x, 22.x]`, in both the build workflow and the release `verify` job.
+
 ## [11.12.3] - 2026-08-27
 
 ### Digest auth works again on firmware 2.0.0 - [#296](https://github.com/windkh/node-red-contrib-shelly/issues/296)
