@@ -272,6 +272,28 @@ describe('catalog consistency', () => {
         assert.equal(configuration.getDevice('SPEM-003CEBEU120'), undefined);
     });
 
+    it('pairs every Pro switch with its UL variant, including the Pro 2PM (#302)', () => {
+        // The UL models are the same product certified for North America and report their own
+        // model string, so an entry for the EU twin does not cover them. SPSW-202PE12UL was the
+        // one gap in the set — the Pro 1, Pro 1PM and Pro 2 all had theirs — which left a real
+        // Pro 2PM reporting "device type not recognized" until its owner picked a family by hand.
+        const pairs = [
+            ['SPSW-201XE16EU', 'SPSW-201XE15UL'],
+            ['SPSW-201PE16EU', 'SPSW-201PE15UL'],
+            ['SPSW-202XE16EU', 'SPSW-202XE12UL'],
+            ['SPSW-202PE16EU', 'SPSW-202PE12UL'],
+        ];
+
+        pairs.forEach(([eu, ul]) => {
+            const euDevice = configuration.getDevice(eu);
+            const ulDevice = configuration.getDevice(ul);
+
+            assert.ok(ulDevice, 'expected a catalog entry for ' + ul);
+            assert.equal(ulDevice.type, euDevice.type, ul + ' must share the type of ' + eu);
+            assert.equal(ulDevice.gen, euDevice.gen, ul + ' must share the generation of ' + eu);
+        });
+    });
+
     it('lists all five Wall Display variants', () => {
         const models = ['SAWD-0A1XX10EU1', 'SAWD-2A1XX10EU1', 'SAWD-3A1XE10EU2', 'SAWD-5A1XX10EU0', 'SAWD-6A1XX10EU0'];
         models.forEach((model) => {
