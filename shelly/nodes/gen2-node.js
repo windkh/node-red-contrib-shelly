@@ -451,18 +451,21 @@ module.exports = function (RED) {
                 await shelly.startAsync(node, types);
                 success = true;
             } else if (mode === 'callback') {
-                const scriptPath = path.resolve(__dirname, callbackScript);
-                const buffer = fs.readFileSync(scriptPath);
-                // const buffer = await readFile(scriptPath); #96 nodejs V19
-                let script = buffer.toString();
+                const url = shelly.getCallbackUrl(node, '/callback');
+                if (url !== undefined) {
+                    const scriptPath = path.resolve(__dirname, callbackScript);
+                    const buffer = fs.readFileSync(scriptPath);
+                    // const buffer = await readFile(scriptPath); #96 nodejs V19
+                    let script = buffer.toString();
 
-                const ipAddress = shelly.getIPAddress(node);
-                const url = 'http://' + ipAddress + ':' + node.server.port + '/callback';
-                script = utils.replace(script, '%URL%', url);
-                const sender = node.hostname;
-                script = utils.replace(script, '%SENDER%', sender);
+                    script = utils.replace(script, '%URL%', url);
+                    const sender = node.hostname;
+                    script = utils.replace(script, '%SENDER%', sender);
 
-                success = await tryInstallScriptAsync(node, script, scriptName);
+                    success = await tryInstallScriptAsync(node, script, scriptName);
+                } else {
+                    node.status({ fill: 'red', shape: 'ring', text: 'Callback URL not allowed' });
+                }
             } else {
                 // nothing to do.
                 success = true;
@@ -516,9 +519,12 @@ module.exports = function (RED) {
                 await shelly.startAsync(node, types);
                 success = true;
             } else if (mode === 'callback') {
-                const ipAddress = shelly.getIPAddress(node);
-                const webhookUrl = 'http://' + ipAddress + ':' + node.server.port + '/webhook';
-                success = await tryInstallWebhook2Async(node, webhookUrl, webhookName);
+                const webhookUrl = shelly.getCallbackUrl(node, '/webhook');
+                if (webhookUrl !== undefined) {
+                    success = await tryInstallWebhook2Async(node, webhookUrl, webhookName);
+                } else {
+                    node.status({ fill: 'red', shape: 'ring', text: 'Callback URL not allowed' });
+                }
             } else {
                 // nothing to do.
                 success = true;

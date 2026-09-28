@@ -1,6 +1,6 @@
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { getCredentials, getShellyInfo } = require('../../shelly/lib/shelly.js');
+const { getCredentials, getShellyInfo, getCallbackUrl } = require('../../shelly/lib/shelly.js');
 const nock = require('nock');
 
 // Helper: build a minimal "node" shape that getCredentials expects.
@@ -135,3 +135,28 @@ describe('getShellyInfo', () => {
 // We can't fully test getIPAddresses() / getIPAddress(node) without mocking
 // `os.networkInterfaces()` — leaving that for a future phase. They are exposed
 // via the admin route in 99-shelly.js, which will be exercised in Phase 5.
+// getCallbackUrl's hostip-override branch needs no such mocking, so it's
+// covered here directly.
+
+describe('getCallbackUrl', () => {
+    it('builds the callback URL from a configured hostip and port', () => {
+        const node = { server: { hostip: '192.168.1.10', port: 1880 } };
+
+        assert.equal(getCallbackUrl(node, '/callback'), 'http://192.168.1.10:1880/callback');
+    });
+
+    it('refuses to provision a callback to the cloud metadata endpoint', () => {
+        const errors = [];
+        const node = { server: { hostip: '169.254.169.254', port: 1880 }, error: (msg) => errors.push(msg) };
+
+        assert.equal(getCallbackUrl(node, '/callback'), undefined);
+        assert.equal(errors.length, 1);
+        assert.match(errors[0], /169\.254\.169\.254/);
+    });
+
+    it('refuses to provision a callback to loopback', () => {
+        const node = { server: { hostip: '127.0.0.1', port: 1880 }, error: () => {} };
+
+        assert.equal(getCallbackUrl(node, '/webhook'), undefined);
+    });
+});

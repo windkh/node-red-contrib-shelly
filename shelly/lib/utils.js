@@ -1,3 +1,5 @@
+const net = require('net');
+
 function isMsgPayloadValid(msg) {
     let isValid = false;
     if (msg !== undefined && msg.payload !== undefined && !Array.isArray(msg)) {
@@ -60,6 +62,50 @@ function replace(str, pattern, replacement) {
     return result;
 }
 
+// Blocks destinations a callback should never legitimately target: loopback and
+// link-local (which covers the AWS/Azure/GCP metadata IP 169.254.169.254).
+// Private/LAN ranges (10/8, 172.16/12, 192.168/16, IPv6 ULA) are deliberately
+// allowed, because the callback normally targets the Node-RED host on the LAN.
+function isAllowedCallbackHost(rawHostname) {
+    let allowed = true;
+    let hostname = rawHostname;
+    if (hostname.startsWith('[') && hostname.endsWith(']')) {
+        hostname = hostname.slice(1, -1);
+    }
+
+    const ipVersion = net.isIP(hostname);
+    if (hostname === 'localhost') {
+        allowed = false;
+    } else if (ipVersion === 4) {
+        const octets = hostname.split('.').map(Number);
+        allowed = octets[0] !== 127 && !(octets[0] === 169 && octets[1] === 254);
+    } else if (ipVersion === 6) {
+        const zoneFree = hostname.split('%')[0];
+        allowed = zoneFree !== '::1' && !zoneFree.startsWith('fe80:');
+    }
+
+    return allowed;
+}
+
+// Validates a callback/webhook URL before it is provisioned to a device: this is
+// the primary SSRF boundary (shelly/scripts/callback.js keeps a lightweight
+// substring check too, as defense-in-depth on the device side).
+function isAllowedCallbackUrl(url) {
+    let allowed = false;
+    if (typeof url === 'string' && url !== '') {
+        try {
+            const parsed = new URL(url);
+            if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                allowed = isAllowedCallbackHost(parsed.hostname.toLowerCase());
+            }
+        } catch {
+            // not a well-formed absolute URL: leave allowed = false.
+        }
+    }
+
+    return allowed;
+}
+
 module.exports = {
     isMsgPayloadValid,
     isMsgPayloadValidOrArray,
@@ -67,4 +113,5 @@ module.exports = {
     trim,
     trimHostname,
     replace,
+    isAllowedCallbackUrl,
 };

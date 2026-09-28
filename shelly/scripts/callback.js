@@ -61,6 +61,12 @@ function CallNodeRed(event) {
     };
    
     let body = JSON.stringify(data );
+
+    if (!IsAllowedCallbackUrl(CONFIG.URL)) {
+        print('Blocked callback to disallowed URL: ' + CONFIG.URL);
+        return;
+    }
+
     try {
       Shelly.call(
           'http.request', {
@@ -75,4 +81,29 @@ function CallNodeRed(event) {
     } catch(e) {
       print('Exception: ' + JSON.stringify(e));
     }
+}
+
+// Defense-in-depth only: the primary check is utils.isAllowedCallbackUrl in
+// Node-RED (shelly/lib/utils.js), enforced before this script is ever
+// generated. mJS has no URL/net module, so this stays substring-based.
+function IsAllowedCallbackUrl(url) {
+    if (typeof url !== 'string') {
+        return false;
+    }
+    if (url.indexOf('http://') !== 0 && url.indexOf('https://') !== 0) {
+        return false;
+    }
+    if (url.indexOf('://169.254.') >= 0) {
+        return false;
+    }
+    if (url.indexOf('://127.') >= 0) {
+        return false;
+    }
+    if (url.indexOf('://localhost') >= 0) {
+        return false;
+    }
+    if (url.indexOf('://[::1]') >= 0) {
+        return false;
+    }
+    return true;
 }

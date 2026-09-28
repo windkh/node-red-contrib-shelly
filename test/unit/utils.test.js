@@ -153,3 +153,58 @@ describe('utils.replace', () => {
         assert.equal(utils.replace('hello', /world/g, 'x'), 'hello');
     });
 });
+
+describe('utils.isAllowedCallbackUrl', () => {
+    it('rejects the cloud metadata endpoint', () => {
+        assert.equal(utils.isAllowedCallbackUrl('http://169.254.169.254:1880/callback'), false);
+    });
+
+    it('rejects IPv4 loopback', () => {
+        assert.equal(utils.isAllowedCallbackUrl('http://127.0.0.1:1880/callback'), false);
+    });
+
+    it('rejects the literal hostname localhost', () => {
+        assert.equal(utils.isAllowedCallbackUrl('http://localhost:1880/callback'), false);
+    });
+
+    it('rejects IPv6 loopback', () => {
+        assert.equal(utils.isAllowedCallbackUrl('http://[::1]:1880/callback'), false);
+    });
+
+    it('rejects IPv6 link-local', () => {
+        assert.equal(utils.isAllowedCallbackUrl('http://[fe80::1]:1880/callback'), false);
+    });
+
+    it('accepts private IPv4 addresses (LAN is the normal target)', () => {
+        assert.equal(utils.isAllowedCallbackUrl('http://10.0.0.1:1880/callback'), true);
+        assert.equal(utils.isAllowedCallbackUrl('http://172.16.0.1:1880/callback'), true);
+        assert.equal(utils.isAllowedCallbackUrl('http://192.168.1.1:1880/callback'), true);
+    });
+
+    it('accepts IPv6 unique local addresses', () => {
+        assert.equal(utils.isAllowedCallbackUrl('http://[fc00::1]:1880/callback'), true);
+    });
+
+    it('accepts a public https callback URL', () => {
+        assert.equal(utils.isAllowedCallbackUrl('https://nodered.example.com:1880/callback'), true);
+    });
+
+    it('accepts a plain DNS/mDNS hostname', () => {
+        assert.equal(utils.isAllowedCallbackUrl('http://my-nodered.local:1880/callback'), true);
+    });
+
+    it('rejects non-string input', () => {
+        assert.equal(utils.isAllowedCallbackUrl(undefined), false);
+        assert.equal(utils.isAllowedCallbackUrl(null), false);
+        assert.equal(utils.isAllowedCallbackUrl(42), false);
+    });
+
+    it('rejects a malformed URL', () => {
+        assert.equal(utils.isAllowedCallbackUrl('not a url'), false);
+    });
+
+    it('rejects non-http(s) schemes', () => {
+        assert.equal(utils.isAllowedCallbackUrl('ftp://192.168.1.1/callback'), false);
+        assert.equal(utils.isAllowedCallbackUrl('file:///etc/passwd'), false);
+    });
+});
