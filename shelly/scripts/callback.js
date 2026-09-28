@@ -61,6 +61,12 @@ function CallNodeRed(event) {
     };
    
     let body = JSON.stringify(data );
+
+    if (!IsAllowedCallbackUrl(CONFIG.URL)) {
+        print('Blocked callback to disallowed URL: ' + CONFIG.URL);
+        return;
+    }
+
     try {
       Shelly.call(
           'http.request', {
@@ -75,4 +81,19 @@ function CallNodeRed(event) {
     } catch(e) {
       print('Exception: ' + JSON.stringify(e));
     }
+}
+
+// Only allow http(s) URLs and block well known metadata/loopback targets
+// that should never legitimately be a Node-RED callback endpoint.
+function IsAllowedCallbackUrl(url) {
+    if (typeof url !== 'string') {
+        return false;
+    }
+    if (url.indexOf('http://') !== 0 && url.indexOf('https://') !== 0) {
+        return false;
+    }
+    if (url.indexOf('169.254.169.254') >= 0) {
+        return false;
+    }
+    return true;
 }
