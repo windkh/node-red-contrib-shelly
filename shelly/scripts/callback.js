@@ -83,8 +83,9 @@ function CallNodeRed(event) {
     }
 }
 
-// Only allow http(s) URLs and block well known metadata/loopback targets
-// that should never legitimately be a Node-RED callback endpoint.
+// Defense-in-depth only: the primary check is utils.isAllowedCallbackUrl in
+// Node-RED (shelly/lib/utils.js), enforced before this script is ever
+// generated. mJS has no URL/net module, so this stays substring-based.
 function IsAllowedCallbackUrl(url) {
     if (typeof url !== 'string') {
         return false;
@@ -92,7 +93,16 @@ function IsAllowedCallbackUrl(url) {
     if (url.indexOf('http://') !== 0 && url.indexOf('https://') !== 0) {
         return false;
     }
-    if (url.indexOf('169.254.169.254') >= 0) {
+    if (url.indexOf('://169.254.') >= 0) {
+        return false;
+    }
+    if (url.indexOf('://127.') >= 0) {
+        return false;
+    }
+    if (url.indexOf('://localhost') >= 0) {
+        return false;
+    }
+    if (url.indexOf('://[::1]') >= 0) {
         return false;
     }
     return true;

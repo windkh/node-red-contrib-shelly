@@ -43,6 +43,25 @@ function getIPAddress(node) {
     return ipAddress;
 }
 
+// Builds the URL a device is provisioned to call back on, and validates it before
+// handing it back: nothing that constructs a script or a device webhook from this
+// URL should run unless it comes back defined.
+function getCallbackUrl(node, path) {
+    let url;
+
+    const ipAddress = getIPAddress(node);
+    if (ipAddress !== undefined) {
+        const candidate = 'http://' + ipAddress + ':' + node.server.port + path;
+        if (utils.isAllowedCallbackUrl(candidate)) {
+            url = candidate;
+        } else {
+            node.error('Refusing to provision callback to disallowed URL: ' + candidate);
+        }
+    }
+
+    return url;
+}
+
 // Describes a failed request in one line, for the node status and msg.error.
 // axios puts the syscall and the host in the message ("getaddrinfo ENOTFOUND
 // shelly.local"), but for a timeout the message alone ("timeout of 5000ms
@@ -525,6 +544,7 @@ module.exports = {
     reportInitializationError,
     getIPAddress,
     getIPAddresses,
+    getCallbackUrl,
     getShellyInfo,
     shellyRequestAsync,
     getCredentials,

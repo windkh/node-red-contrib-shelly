@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [12.0.1] - 2026-09-28
+
+### Security: callback/webhook URLs are validated before provisioning (CWE-918)
+
+The URL a device is told to call back on (gen 1/2+ webhooks, and the `callback.js`
+script uploaded to gen 2+ devices) is now validated in Node-RED — via
+`shelly.getCallbackUrl()`, backed by `utils.isAllowedCallbackUrl()` — before the
+script is read/uploaded or the webhook is provisioned, not only after. It uses
+proper `URL` parsing rather than substring matching, and blocks loopback and
+link-local/cloud-metadata destinations (e.g. `169.254.169.254`) while still
+allowing private/LAN addresses, since a LAN-hosted Node-RED instance is the
+normal target for this callback. `callback.js` keeps a lightweight
+substring-based check as defense-in-depth on the device itself.
+
 ## [12.0.0] - 2026-08-31
 
 ### Breaking: Node 20 is no longer supported, the floor is Node 22.13
