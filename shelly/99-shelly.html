@@ -46,7 +46,7 @@
 </script>
 
 <script type="text/x-red" data-template-name="shelly-gen1-server">
-    <div class="form-row" style="min-width: 700px">
+    <div class="form-row">
         <div class="form-row">
             <label for="node-config-input-port"><i class="fa fa-phone"></i> Port</label>
             <input type="text" id="node-config-input-port" placeholder="(The network port to open)">
@@ -261,7 +261,7 @@
         <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
     </div>
 
-    <hr align="middle"/>
+    <hr/>
 
     <div class="form-row">
         <div class="form-row">
@@ -271,20 +271,16 @@
                 <i class="fa fa-search"></i>
             </button>
 
-            <div style="display: inline-block; position: relative; width: calc(80% - 105px); height: 19.1333px;">
-                <div style="position: absolute; left: 0; right: 0;">
-                    <select id="node-input-devicetype" style="width: 100%">
-                        <option value="Relay">Relay - Shelly1, 1PM, 1L, 2, 2.5, Plug(S/E/US), Uni</option>
-                        <option value="Measure">Measure - Shelly EM, EM3</option>
-                        <option value="Roller">Roller - Shelly 2, 2.5</option>
-                        <option value="Dimmer">Dimmer - Shelly Dimmer 1/2, Duo, Vintage</option>
-                        <option value="RGBW">RGBW - Shelly RGBW2, Bulb RGBW</option>
-                        <option value="Thermostat">Thermostat - Shelly TRV</option>
-                        <option value="Sensor">Sensor - Shelly Motion, Door, Window, H&T, Smoke, Flood, Gas</option>
-                        <option value="Button">Button - Shelly Button, I3</option>
-                    </select>
-                </div>
-            </div>
+            <select id="node-input-devicetype" style="width: calc(70% - 50px)">
+                <option value="Relay">Relay - Shelly1, 1PM, 1L, 2, 2.5, Plug(S/E/US), Uni</option>
+                <option value="Measure">Measure - Shelly EM, EM3</option>
+                <option value="Roller">Roller - Shelly 2, 2.5</option>
+                <option value="Dimmer">Dimmer - Shelly Dimmer 1/2, Duo, Vintage</option>
+                <option value="RGBW">RGBW - Shelly RGBW2, Bulb RGBW</option>
+                <option value="Thermostat">Thermostat - Shelly TRV</option>
+                <option value="Sensor">Sensor - Shelly Motion, Door, Window, H&T, Smoke, Flood, Gas</option>
+                <option value="Button">Button - Shelly Button, I3</option>
+            </select>
         </div>
 
         <div class="form-row">
@@ -302,7 +298,7 @@
         <div class="form-tips" style="width: auto"><b>Tip:</b> If checked an error is created if the shelly is not yet supported. If you want that a new device is supported then create a new issue here: <a href="https://github.com/windkh/node-red-contrib-shelly/issues">Github</a></div>
     </div>
 
-    <hr align="middle"/>
+    <hr/>
 
     <div class="form-row">
         <label for="node-input-mode"><i class="fa fa-link"></i> Mode</label>
@@ -313,7 +309,7 @@
         </select>
     </div>
 
-    <div class="form-row hidden" id="polling" style="background: #fbfbfb">
+    <div class="form-row hidden" id="polling">
         <label style="width: auto"><i class="fa fa-cogs"></i> Polling Options:</label>
 
         <div class="form-row" style="margin-left: 20px">
@@ -328,7 +324,7 @@
         </div>
     </div>
 
-    <div class="form-row hidden" id="callback" style="background: #fbfbfb">
+    <div class="form-row hidden" id="callback">
         <label style="width: auto"><i class="fa fa-cogs"></i> Callback Options:</label>
 
         <div class="form-row" style="margin-left: 20px">
@@ -350,21 +346,21 @@
         </div>
     </div>
 
-    <hr align="middle"/>
+    <hr/>
 
     <div class="form-row">
         <label for="node-input-getstatusoncommand"><i class="fa fa-share"></i> Status</label>
         <input type="checkbox" id="node-input-getstatusoncommand" style="display: inline-block; width: auto; vertical-align: top"> Enable status output after each command
     </div>
 
-    <hr align="middle"/>
+    <hr/>
 
     <div class="form-row" id="hiddeninputs">
         <label for="node-input-outputs"><i class="fa fa-envelope"></i> Output Count</label>
         <input type="text" id="node-input-outputs">
     </div>
 
-    <hr align="middle"/>
+    <hr/>
 
     <div class="form-row">
         <label for="node-input-verbose"><i class="fa fa-pencil"></i> Verbose Logging</label>
@@ -442,7 +438,7 @@
 </script>
 
 <script type="text/x-red" data-template-name="shelly-gen2-server">
-    <div class="form-row" style="min-width: 700px">
+    <div class="form-row">
         <div class="form-row">
             <label for="node-config-input-port"><i class="fa fa-phone"></i> Port</label>
             <input type="text" id="node-config-input-port" placeholder="(The network port to open)">
@@ -643,7 +639,7 @@
         <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
     </div>
 
-    <hr align="middle"/>
+    <hr/>
 
     <div class="form-row">
         <div class="form-row">
@@ -653,19 +649,15 @@
                 <i class="fa fa-search"></i>
             </button>
 
-            <div style="display: inline-block; position: relative; width: calc(80% - 105px); height: 19.1333px;">
-                <div style="position: absolute; left: 0; right: 0;">
-                    <select id="node-input-devicetype" style="width: 100%">
-                        <option value="Relay">Relay - any relay</option>
-                        <option value="Button">Button - any button</option>
-                        <option value="Sensor">Sensor - any sensor</option>
-                        <option value="Measure">Measure - any measure device</option>
-                        <option value="Dimmer">Dimmer - any dimmer</option>
-                        <option value="Roller">Roller - any roller/shutter</option>
-                        <option value="BluGateway">BLU-Gateway - any bluetooth gatweway</option>
-                    </select>
-                </div>
-            </div>
+            <select id="node-input-devicetype" style="width: calc(70% - 50px)">
+                <option value="Relay">Relay - any relay</option>
+                <option value="Button">Button - any button</option>
+                <option value="Sensor">Sensor - any sensor</option>
+                <option value="Measure">Measure - any measure device</option>
+                <option value="Dimmer">Dimmer - any dimmer</option>
+                <option value="Roller">Roller - any roller/shutter</option>
+                <option value="BluGateway">BLU-Gateway - any bluetooth gatweway</option>
+            </select>
         </div>
 
         <div class="form-row">
@@ -683,7 +675,7 @@
         <div class="form-tips" style="width: auto"><b>Tip:</b> If checked an error is created if the shelly is not yet supported. If you want that a new device is supported then create a new issue here: <a href="https://github.com/windkh/node-red-contrib-shelly/issues">Github</a></div>
     </div>
 
-    <hr align="middle"/>
+    <hr/>
 
     <div class="form-row">
         <label for="node-input-mode"><i class="fa fa-link"></i> Mode</label>
@@ -696,7 +688,7 @@
     <div class="form-tips" style="width: auto"><b>Tip:</b> For BluGateway please choose callback with event as output!</div>
 
 
-    <div class="form-row hidden" id="polling" style="background: #fbfbfb">
+    <div class="form-row hidden" id="polling">
         <label style="width: auto"><i class="fa fa-cogs"></i> Polling Options:</label>
 
         <div class="form-row" style="margin-left: 20px">
@@ -711,7 +703,7 @@
         </div>
     </div>
 
-    <div class="form-row hidden" id="callback" style="background: #fbfbfb">
+    <div class="form-row hidden" id="callback">
         <label style="width: auto"><i class="fa fa-cogs"></i> Callback Options:</label>
 
         <div class="form-row" style="margin-left: 20px">
@@ -738,14 +730,14 @@
         </div>
     </div>
 
-    <hr align="middle"/>
+    <hr/>
 
     <div class="form-row">
         <label for="node-input-getstatusoncommand"><i class="fa fa-share"></i> Status</label>
         <input type="checkbox" id="node-input-getstatusoncommand" style="display: inline-block; width: auto; vertical-align: top"> Enable status output after each command
     </div>
 
-    <hr align="middle"/>
+    <hr/>
 
     <div class="form-row">
         <label for="node-input-verbose"><i class="fa fa-pencil"></i> Verbose Logging</label>
@@ -798,7 +790,7 @@
 </script>
 
 <script type="text/x-red" data-template-name="shelly-cloud-server">
-    <div class="form-row" style="min-width: 700px">
+    <div class="form-row">
         <div class="form-row">
             <label for="node-config-input-description"><i class="fa fa-tag"></i> Description</label>
             <input type="text" id="node-config-input-description" placeholder="Description of this configuration (optional).">

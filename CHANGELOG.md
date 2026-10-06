@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [12.0.1] - 2026-10-05
+
+### Fixed
+
+- Generation 1 and generation 2+ polling and callback options now follow the Node-RED editor theme.
+- Simplified device dropdowns and removed fixed server-dialog widths and obsolete `<hr>` attributes.
+
 ## [12.0.0] - 2026-08-31
 
 ### Breaking: Node 20 is no longer supported, the floor is Node 22.13
