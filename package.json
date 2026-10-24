@@ -70,7 +70,7 @@
         "eslint-config-prettier": "^10.0.0",
         "globals": "^17.8.0",
         "husky": "^9.1.7",
-        "nock": "^14.0.10",
+        "nock": "^15.0.1",
         "node-red-node-test-helper": "^0.3.4",
         "node-red-standards": "github:windkh/node-red-standards",
         "prettier": "^3.0.0"
